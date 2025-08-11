@@ -6,13 +6,13 @@ class DropdownChoose<T> extends StatefulWidget {
   final List<SelectData<T>>? list;
   final Future<List<SelectData<T>>> Function()? remoteFetch;
   final bool? multiple;
-  final SelectData<T>? defaultValue;
+  // 统一使用defaultValue，支持单选和多选
+  // 单选时传入 SelectData<T>?，多选时传入 List<SelectData<T>>?
+  final dynamic defaultValue;
   final Function(SelectData<T>)? onSingleSelected;
   final Function(List<SelectData<T>>)? onMultipleSelected;
   final bool filterable;
   final bool remote;
-  // 新增：用于编辑时显示已选择的数据
-  final List<SelectData<T>>? selectedData;
 
   const DropdownChoose({
     super.key,
@@ -24,7 +24,6 @@ class DropdownChoose<T> extends StatefulWidget {
     this.onMultipleSelected,
     this.filterable = false,
     this.remote = false,
-    this.selectedData,
   });
 
   @override
@@ -39,6 +38,8 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
   List<SelectData<T>> _filteredList = [];
   bool _isLoading = false;
   Timer? _debounceTimer; // 新增：防抖定时器
+  // 保存底部弹窗的StatefulBuilder的setState，用于在其他弹窗操作后同步更新底部可选区域
+  StateSetter? _modalSetState;
 
   @override
   void initState() {
@@ -50,7 +51,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
     // 处理数据初始化
     _initializeData();
 
-    // 设置默认值（优先级：selectedData > defaultValue）
+    // 设置默认值
     _setDefaultValues();
   }
 
@@ -59,33 +60,56 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
       _list = List.from(widget.list!);
     }
 
-    // 如果有selectedData，将其合并到_list中
-    if (widget.selectedData != null && widget.selectedData!.isNotEmpty) {
-      for (final item in widget.selectedData!) {
-        if (!_list.any((existing) => existing.value == item.value)) {
-          _list.add(item);
-        }
-      }
-    }
+    // 如果有默认值，将其合并到_list中
+    _addDefaultValuesToDataList();
 
     _filteredList = _list;
   }
 
-  void _setDefaultValues() {
-    // 优先使用selectedData中的第一个值作为默认值
-    if (widget.selectedData != null && widget.selectedData!.isNotEmpty) {
-      final firstSelected = widget.selectedData!.first;
-      if (widget.multiple == false) {
-        _selectedValue = firstSelected;
-      } else {
-        _selectedValues.addAll(widget.selectedData!);
+  void _addDefaultValuesToDataList() {
+    if (widget.defaultValue == null) return;
+
+    if (widget.multiple == true) {
+      // 多选模式：defaultValue应该是List<SelectData<T>>
+      if (widget.defaultValue is List<SelectData<T>>) {
+        final defaultList = widget.defaultValue as List<SelectData<T>>;
+        for (final item in defaultList) {
+          if (!_list.any((existing) => existing.value == item.value)) {
+            _list.add(item);
+          }
+        }
       }
-    } else if (widget.defaultValue != null) {
-      // 如果没有selectedData，则使用defaultValue
-      if (widget.multiple == false && _list.any((item) => item.value == widget.defaultValue!.value)) {
-        _selectedValue = widget.defaultValue;
-      } else if (widget.multiple == true && _list.any((item) => item.value == widget.defaultValue!.value)) {
-        _selectedValues.add(widget.defaultValue!);
+    } else {
+      // 单选模式：defaultValue应该是SelectData<T>
+      if (widget.defaultValue is SelectData<T>) {
+        final defaultItem = widget.defaultValue as SelectData<T>;
+        if (!_list.any((existing) => existing.value == defaultItem.value)) {
+          _list.add(defaultItem);
+        }
+      }
+    }
+  }
+
+  void _setDefaultValues() {
+    if (widget.defaultValue == null) return;
+
+    if (widget.multiple == true) {
+      // 多选模式
+      if (widget.defaultValue is List<SelectData<T>>) {
+        final defaultList = widget.defaultValue as List<SelectData<T>>;
+        for (final item in defaultList) {
+          if (_list.any((existing) => existing.value == item.value)) {
+            _selectedValues.add(item);
+          }
+        }
+      }
+    } else {
+      // 单选模式
+      if (widget.defaultValue is SelectData<T>) {
+        final defaultItem = widget.defaultValue as SelectData<T>;
+        if (_list.any((item) => item.value == defaultItem.value)) {
+          _selectedValue = defaultItem;
+        }
       }
     }
   }
@@ -125,7 +149,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
     if (!mounted) return;
 
     // 显示弹窗
-    showModalBottomSheet(
+    final modalFuture = showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -139,6 +163,8 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
           ),
           child: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
+              // 记录底部弹窗的setState，便于在其他地方（如“已选择”弹窗）触发刷新
+              _modalSetState = setState;
               // 在弹窗首次渲染完成后，如果是远程搜索且没有数据，立即触发数据加载
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (widget.remote && widget.remoteFetch != null && _list.isEmpty) {
@@ -369,35 +395,81 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                               ),
                       ),
                     ),
-                    // 多选模式下的确认按钮
+                    // 多选模式下的底部按钮区域
                     if (widget.multiple == true)
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           border: Border(top: BorderSide(color: Colors.grey[100]!, width: 1)),
                         ),
-                        child: SizedBox(
-                          width: double.infinity,
-                          height: 48,
-                          child: ElevatedButton(
-                            onPressed: _selectedValues.isEmpty
-                                ? null
-                                : () {
-                                    widget.onMultipleSelected?.call(_selectedValues);
-                                    Navigator.of(context).pop();
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _selectedValues.isEmpty ? Colors.grey[300] : const Color(0xFF007AFF),
-                              foregroundColor: _selectedValues.isEmpty ? Colors.grey[500] : Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              elevation: 0,
+                        child: Row(
+                          children: [
+                            // 左侧：已选择按钮
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: _selectedValues.isEmpty
+                                    ? null
+                                    : () {
+                                        _showSelectedItemsDialog(context);
+                                      },
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: _selectedValues.isEmpty ? Colors.grey[400] : const Color(0xFF007AFF),
+                                  side: BorderSide(
+                                    color: _selectedValues.isEmpty ? Colors.grey[300]! : const Color(0xFF007AFF),
+                                    width: 1,
+                                  ),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                ),
+                                icon: Icon(
+                                  Icons.check_circle_outline,
+                                  size: 18,
+                                  color: _selectedValues.isEmpty ? Colors.grey[400] : const Color(0xFF007AFF),
+                                ),
+                                label: Text(
+                                  '已选择 (${_selectedValues.length})',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: _selectedValues.isEmpty ? Colors.grey[400] : const Color(0xFF007AFF),
+                                  ),
+                                ),
+                              ),
                             ),
-                            child: Text(
-                              '确认选择 (${_selectedValues.length})',
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            const SizedBox(width: 12),
+                            // 右侧：确认选择按钮
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: _selectedValues.isEmpty
+                                    ? null
+                                    : () {
+                                        widget.onMultipleSelected?.call(_selectedValues);
+                                        Navigator.of(context).pop();
+                                      },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _selectedValues.isEmpty ? Colors.grey[200] : const Color(0xFF007AFF),
+                                  foregroundColor: _selectedValues.isEmpty ? Colors.grey[500] : Colors.white,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  elevation: 0,
+                                ),
+                                icon: Icon(
+                                  Icons.check,
+                                  size: 18,
+                                  color: _selectedValues.isEmpty ? Colors.grey[500] : Colors.white,
+                                ),
+                                label: Text(
+                                  '确认选择',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    color: _selectedValues.isEmpty ? Colors.grey[500] : Colors.white,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
                         ),
                       ),
                   ],
@@ -405,6 +477,190 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
               );
             },
           ),
+        );
+      },
+    );
+    // 弹窗关闭后，清理setState引用，避免后续误用
+    modalFuture.whenComplete(() {
+      _modalSetState = null;
+    });
+  }
+
+  // 显示已选择项目的弹窗
+  void _showSelectedItemsDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter dialogSetState) {
+            return AlertDialog(
+              title: Container(
+                padding: const EdgeInsets.all(10),
+                margin: const EdgeInsets.only(bottom: 10),
+                decoration: BoxDecoration(color: const Color(0xFFF8F9FA), borderRadius: BorderRadius.circular(12)),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(color: const Color(0xFF007AFF), borderRadius: BorderRadius.circular(8)),
+                      child: const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            '已选择的项目',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF333333)),
+                          ),
+                          Text('共 ${_selectedValues.length} 项', style: const TextStyle(fontSize: 14, color: Color(0xFF666666))),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: _selectedValues.isEmpty
+                    ? Container(
+                        padding: const EdgeInsets.all(40),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.inbox_outlined, size: 48, color: Colors.grey[400]),
+                            const SizedBox(height: 16),
+                            const Text(
+                              '暂未选择任何项目',
+                              style: TextStyle(color: Colors.grey, fontSize: 16, fontWeight: FontWeight.w500),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text('请返回选择一些项目', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: _selectedValues.length,
+                        itemBuilder: (context, index) {
+                          final item = _selectedValues[index];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 10),
+                            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(color: const Color(0xFFE9ECEF)),
+                              boxShadow: [
+                                BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2)),
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF007AFF).withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Icon(Icons.check_circle, color: Color(0xFF007AFF), size: 16),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item.label,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          color: Color(0xFF333333),
+                                        ),
+                                      ),
+                                      if (item.value != null)
+                                        Text('值: ${item.value}', style: const TextStyle(fontSize: 12, color: Color(0xFF999999))),
+                                    ],
+                                  ),
+                                ),
+                                // 移除按钮
+                                Container(
+                                  decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(8)),
+                                  child: IconButton(
+                                    onPressed: () {
+                                      // 更新主弹窗的状态
+                                      setState(() {
+                                        _selectedValues.remove(item);
+                                      });
+                                      // 同步刷新底部弹窗的可选列表和底部按钮状态
+                                      _modalSetState?.call(() {});
+                                      // 刷新当前弹窗内容
+                                      dialogSetState(() {});
+                                    },
+                                    icon: Icon(Icons.remove_circle_outline, color: Colors.red[400], size: 20),
+                                    tooltip: '移除',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+              ),
+              actions: [
+                Container(
+                  margin: const EdgeInsets.only(top: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: _selectedValues.isEmpty ? Colors.grey[400] : const Color(0xFF007AFF),
+                              side: BorderSide(
+                                color: _selectedValues.isEmpty ? Colors.grey[300]! : const Color(0xFF007AFF),
+                                width: 1,
+                              ),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                            ),
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('关闭', style: TextStyle(fontSize: 16, color: Color(0xFF666666))),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: SizedBox(
+                          height: 44,
+                          child: ElevatedButton(
+                            onPressed: _selectedValues.isEmpty
+                                ? null
+                                : () {
+                                    Navigator.of(context).pop();
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _selectedValues.isEmpty ? Colors.grey[200] : const Color(0xFF007AFF),
+                              foregroundColor: _selectedValues.isEmpty ? Colors.grey[500] : Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              elevation: 0,
+                            ),
+                            child: const Text('确认', style: TextStyle(fontSize: 16)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
+            );
+          },
         );
       },
     );
@@ -424,14 +680,8 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
         setState(() {
           _list = List.from(list);
 
-          // 确保selectedData中的数据始终可见
-          if (widget.selectedData != null && widget.selectedData!.isNotEmpty) {
-            for (final item in widget.selectedData!) {
-              if (!_list.any((existing) => existing.value == item.value)) {
-                _list.add(item);
-              }
-            }
-          }
+          // 确保defaultValue中的数据始终可见
+          _addDefaultValuesToDataList();
 
           _filteredList = _list;
           _isLoading = false;

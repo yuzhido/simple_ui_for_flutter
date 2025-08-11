@@ -170,12 +170,11 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
             const SizedBox(height: 24),
 
             // 编辑模式数据回显
-            _buildSectionTitle('7. 编辑模式数据回显（selectedData）'),
+            _buildSectionTitle('7. 编辑模式数据回显（defaultValue）'),
             const SizedBox(height: 8),
             DropdownChoose<String>(
               list: _options,
               multiple: false,
-              selectedData: _editModeData.take(1).toList(), // 只显示第一个作为已选择
               defaultValue: _editModeSingleSelected,
               onSingleSelected: (val) {
                 setState(() => _editModeSingleSelected = val);
@@ -195,8 +194,7 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
             DropdownChoose<String>(
               list: _options,
               multiple: true,
-              selectedData: _editModeData, // 显示所有编辑模式数据
-              defaultValue: _editModeMultipleSelected.isNotEmpty ? _editModeMultipleSelected.first : null,
+              defaultValue: _editModeMultipleSelected,
               onMultipleSelected: (vals) {
                 setState(() {
                   _editModeMultipleSelected
@@ -220,7 +218,6 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
               remote: true,
               remoteFetch: _fetchRemoteData,
               multiple: false,
-              selectedData: _editModeData.take(1).toList(),
               defaultValue: _editModeRemoteSelected,
               onSingleSelected: (val) {
                 setState(() => _editModeRemoteSelected = val);
@@ -260,7 +257,6 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
                     remote: true,
                     remoteFetch: _fetchRemoteData,
                     multiple: false,
-                    selectedData: _editModeData.take(1).toList(),
                     defaultValue: _editModeRemoteSelected,
                     onSingleSelected: (val) {
                       setState(() => _editModeRemoteSelected = val);
@@ -326,10 +322,9 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
                   Text('• filterable: 启用本地筛选功能'),
                   Text('• remote: 启用远程搜索功能'),
                   Text('• remoteFetch: 远程数据获取函数'),
-                  Text('• defaultValue: 设置默认选中值'),
+                  Text('• defaultValue: 设置默认选中值（单选时传入SelectData<T>，多选时传入List<SelectData<T>>）'),
                   Text('• onSingleSelected: 单选回调'),
                   Text('• onMultipleSelected: 多选回调'),
-                  Text('• selectedData: 编辑时显示已选择的数据（优先级最高）'),
                   SizedBox(height: 8),
                   Text(
                     '注意：filterable 和 remote 不能同时使用',
@@ -337,7 +332,7 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    '编辑模式：使用selectedData参数可以确保编辑时显示之前选择的数据，即使这些数据不在当前list或远程搜索结果中',
+                    '编辑模式：使用defaultValue参数可以确保编辑时显示之前选择的数据，即使这些数据不在当前list或远程搜索结果中',
                     style: TextStyle(color: Color(0xFF1976D2), fontSize: 12),
                   ),
                 ],
