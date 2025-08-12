@@ -1,3 +1,6 @@
+import 'package:example/models/city.dart';
+import 'package:example/models/subject.dart';
+import 'package:example/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_ui/simple_ui.dart';
 
@@ -8,10 +11,43 @@ class DropdownSelectPage extends StatefulWidget {
 }
 
 class _DropdownSelectPageState extends State<DropdownSelectPage> {
+  // 我整理的开始
+  final List<SelectData<String>> singleChoose = const [
+    SelectData(label: '选项1', value: '1', data: 'data1'),
+    SelectData(label: '选项2', value: '2', data: 'data2'),
+    SelectData(label: '选项3', value: '3', data: 'data3'),
+    SelectData(label: '选项4', value: '4', data: 'data4'),
+    SelectData(label: '选项5', value: '5', data: 'data5'),
+    SelectData(label: '苹果', value: 'apple', data: 'fruit'),
+    SelectData(label: '香蕉', value: 'banana', data: 'fruit'),
+    SelectData(label: '橙子', value: 'orange', data: 'fruit'),
+    SelectData(label: '葡萄', value: 'grape', data: 'fruit'),
+    SelectData(label: '西瓜', value: 'watermelon', data: 'fruit'),
+  ];
+  SelectData<String>? singleSelected;
+  List<SelectData<String>> multipleSelected = [SelectData(label: '香蕉', value: 'banana', data: 'fruit')];
+  List<SelectData<String>> localFilter = [];
+  SelectData<City>? remoteFilter;
+  List<SelectData<String>> remoteFilterList = [];
+
+  final List<SelectData<Subject>> _remoteMultipleSelected = [
+    SelectData(
+      data: Subject(name: 'React开发', category: '前端开发'),
+      label: 'React开发',
+      value: '689ac20a4e5572668640d160',
+    ),
+    SelectData(
+      data: Subject(name: 'Vue开发', category: '前端开发'),
+      label: 'Vue开发',
+      value: '689ac20a4e5572668640d161',
+    ),
+  ];
+
+  // 我整理的结束
+
   SelectData<String>? _singleSelected;
   final List<SelectData<String>> _multipleSelected = [];
   SelectData<String>? _remoteSelected;
-  final List<SelectData<String>> _remoteMultipleSelected = [];
 
   // 新增：用于演示编辑时的数据回显
   final List<SelectData<String>> _editModeData = [
@@ -22,7 +58,7 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
   // 新增：编辑模式的选择状态
   SelectData<String>? _editModeSingleSelected;
   final List<SelectData<String>> _editModeMultipleSelected = [];
-  SelectData<String>? _editModeRemoteSelected;
+  SelectData<City>? _editModeRemoteSelected;
 
   final List<SelectData<String>> _options = const [
     SelectData(label: '选项1', value: '1', data: 'data1'),
@@ -37,40 +73,46 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
     SelectData(label: '西瓜', value: 'watermelon', data: 'fruit'),
   ];
 
-  // 模拟远程数据获取
-  Future<List<SelectData<String>>> _fetchRemoteData() async {
-    // 模拟网络延迟
-    await Future.delayed(const Duration(milliseconds: 800));
-
-    // 模拟搜索关键词
-    final keyword = _searchController.text.toLowerCase();
-    if (keyword.isEmpty) {
-      return _options;
-    }
-
-    return _options
-        .where((item) => item.label.toLowerCase().contains(keyword) || item.value.toLowerCase().contains(keyword))
-        .toList();
+  // 模拟远程数据获取（返回 SelectData<City>）
+  Future<List<SelectData<City>>> _fetchRemoteData(String? keyword) async {
+    final cities = await UserService.getCities(keyword);
+    final selectDataList = cities.map((city) {
+      return SelectData<City>(label: city.name, value: city.name, data: city);
+    }).toList();
+    return selectDataList;
   }
 
-  final TextEditingController _searchController = TextEditingController();
+  // 模拟远程数据获取（返回 SelectData<City>）
+  Future<List<SelectData<Subject>>> _fetchMultipleRemoteData(String? keyword) async {
+    final cities = await UserService.getSubjects(keyword);
+    final selectDataList = cities.map((subject) {
+      return SelectData<Subject>(label: subject.name, value: subject.id ?? '', data: subject);
+    }).toList();
+    return selectDataList;
+  }
 
   @override
   void initState() {
     super.initState();
+    singleSelected = singleChoose.first;
+
     // 设置默认值
+
     _singleSelected = _options.first;
     _multipleSelected.addAll([_options.first, _options[1]]);
 
     // 初始化编辑模式的选择状态
     _editModeSingleSelected = _editModeData.first;
     _editModeMultipleSelected.addAll(_editModeData);
-    _editModeRemoteSelected = _editModeData.first;
+    _editModeRemoteSelected = SelectData(
+      data: City(name: '北京', province: '北京市', population: 2154, area: 16410),
+      label: '北京',
+      value: '北京',
+    );
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
     super.dispose();
   }
 
@@ -87,78 +129,75 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
             const SizedBox(height: 24),
 
             // 基础单选
-            _buildSectionTitle('1. 基础单选'),
+            _buildSectionTitle('1. 基础单选,选择的内容: ${singleSelected?.value}'),
             const SizedBox(height: 8),
             DropdownChoose<String>(
-              list: _options,
-              multiple: false,
-              defaultValue: _singleSelected,
+              list: singleChoose,
+              defaultValue: singleSelected,
               onSingleSelected: (val) {
-                setState(() => _singleSelected = val);
+                setState(() => singleSelected = val);
                 _toast('单选选择了：${val.label}');
               },
             ),
             const SizedBox(height: 24),
 
             // 基础多选
-            _buildSectionTitle('2. 基础多选'),
+            _buildSectionTitle('2. 基础多选,选择的内容 有：${multipleSelected.map((e) => e.label).join(', ')}'),
             const SizedBox(height: 8),
             DropdownChoose<String>(
-              list: _options,
+              list: singleChoose,
               multiple: true,
-              defaultValue: _options.first,
+              defaultValue: multipleSelected,
               onMultipleSelected: (vals) {
                 setState(() {
-                  _multipleSelected
+                  multipleSelected
                     ..clear()
                     ..addAll(vals);
                 });
-                _toast('多选结果：${vals.map((e) => e.label).join(', ')}');
               },
             ),
             const SizedBox(height: 24),
 
             // 本地筛选
-            _buildSectionTitle('3. 本地筛选（filterable: true）'),
+            _buildSectionTitle('3. 本地筛选（filterable: true）,选择的内容 有：${localFilter.map((e) => e.label).join(', ')}'),
             const SizedBox(height: 8),
             DropdownChoose<String>(
               list: _options,
               multiple: true,
               filterable: true,
-              onMultipleSelected: (vals) => _toast('筛选结果：${vals.map((e) => e.label).join(', ')}'),
+              onMultipleSelected: (vals) => setState(() {
+                localFilter = vals;
+              }),
             ),
             const SizedBox(height: 24),
 
             // 远程搜索
-            _buildSectionTitle('4. 远程搜索（remote: true）'),
+            _buildSectionTitle('4. 远程搜索（remote: true）,选择的结果是: ${remoteFilter?.value}'),
             const SizedBox(height: 8),
-            DropdownChoose<String>(
+            DropdownChoose<City>(
               remote: true,
               remoteFetch: _fetchRemoteData,
-              multiple: false,
-              defaultValue: _remoteSelected,
+              defaultValue: remoteFilter,
               onSingleSelected: (val) {
-                setState(() => _remoteSelected = val);
-                _toast('远程搜索选择了：${val.label}');
+                setState(() => remoteFilter = val);
               },
             ),
             const SizedBox(height: 24),
 
             // 远程多选
-            _buildSectionTitle('5. 远程多选搜索'),
+            _buildSectionTitle('5. 远程多选搜索,选中的结果是: ${_remoteMultipleSelected.map((item) => item.value).join(', ')}'),
             const SizedBox(height: 8),
-            DropdownChoose<String>(
+            DropdownChoose<Subject>(
               remote: true,
-              remoteFetch: _fetchRemoteData,
+              defaultValue: _remoteMultipleSelected,
+              remoteFetch: _fetchMultipleRemoteData,
               multiple: true,
-              defaultValue: _options.first,
               onMultipleSelected: (vals) {
                 setState(() {
                   _remoteMultipleSelected
                     ..clear()
                     ..addAll(vals);
                 });
-                _toast('远程多选结果：${vals.map((e) => e.label).join(', ')}');
               },
             ),
             const SizedBox(height: 24),
@@ -166,7 +205,12 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
             // 无默认值
             _buildSectionTitle('6. 无默认值'),
             const SizedBox(height: 8),
-            DropdownChoose<String>(list: _options, multiple: false, onSingleSelected: (val) => _toast('选择了：${val.label}')),
+            DropdownChoose<String>(
+              list: _options,
+              onSingleSelected: (val) => setState(() {
+                _toast('选择了：${val.label}');
+              }),
+            ),
             const SizedBox(height: 24),
 
             // 编辑模式数据回显
@@ -214,7 +258,7 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
             // 远程搜索 + 编辑模式数据回显
             _buildSectionTitle('9. 远程搜索 + 编辑模式数据回显'),
             const SizedBox(height: 8),
-            DropdownChoose<String>(
+            DropdownChoose<City>(
               remote: true,
               remoteFetch: _fetchRemoteData,
               multiple: false,
@@ -253,14 +297,13 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
                   const Text('2. 编辑时：需要显示之前选择的"编辑模式数据1"'),
                   const Text('3. 即使远程搜索没有返回这个数据，也能正确显示'),
                   const SizedBox(height: 16),
-                  DropdownChoose<String>(
+                  DropdownChoose<City>(
                     remote: true,
                     remoteFetch: _fetchRemoteData,
                     multiple: false,
                     defaultValue: _editModeRemoteSelected,
                     onSingleSelected: (val) {
                       setState(() => _editModeRemoteSelected = val);
-                      _toast('编辑场景选择了：${val.label}');
                     },
                   ),
                   const SizedBox(height: 8),
@@ -292,9 +335,7 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
                   const SizedBox(height: 8),
                   Text('远程单选：${_remoteSelected?.label ?? '未选择'}'),
                   const SizedBox(height: 8),
-                  Text(
-                    '远程多选：${_remoteMultipleSelected.isEmpty ? '未选择' : _remoteMultipleSelected.map((e) => e.label).join(', ')}',
-                  ),
+                  Text('远程多选：${_remoteMultipleSelected.isEmpty ? '未选择' : _remoteMultipleSelected.map((e) => e.label).join(', ')}'),
                 ],
               ),
             ),
@@ -331,10 +372,7 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
                     style: TextStyle(color: Color(0xFFE65100), fontWeight: FontWeight.w500),
                   ),
                   SizedBox(height: 8),
-                  Text(
-                    '编辑模式：使用defaultValue参数可以确保编辑时显示之前选择的数据，即使这些数据不在当前list或远程搜索结果中',
-                    style: TextStyle(color: Color(0xFF1976D2), fontSize: 12),
-                  ),
+                  Text('编辑模式：使用defaultValue参数可以确保编辑时显示之前选择的数据，即使这些数据不在当前list或远程搜索结果中', style: TextStyle(color: Color(0xFF1976D2), fontSize: 12)),
                 ],
               ),
             ),

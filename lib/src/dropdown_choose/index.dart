@@ -4,10 +4,10 @@ import 'dart:async'; // 新增：导入Timer
 
 class DropdownChoose<T> extends StatefulWidget {
   final List<SelectData<T>>? list;
-  final Future<List<SelectData<T>>> Function()? remoteFetch;
+  final Future<List<SelectData<T>>> Function(String? keyword)? remoteFetch;
   final bool? multiple;
-  // 统一使用defaultValue，支持单选和多选
-  // 单选时传入 SelectData<T>?，多选时传入 List<SelectData<T>>?
+
+  // 统一使用defaultValue，支持单选和多选 单选时传入 SelectData<T>?，多选时传入 List<SelectData<T>>?
   final dynamic defaultValue;
   final Function(SelectData<T>)? onSingleSelected;
   final Function(List<SelectData<T>>)? onMultipleSelected;
@@ -40,6 +40,9 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
   Timer? _debounceTimer; // 新增：防抖定时器
   // 保存底部弹窗的StatefulBuilder的setState，用于在其他弹窗操作后同步更新底部可选区域
   StateSetter? _modalSetState;
+  // 远程搜索不再自动触发，必须点击“搜索”按钮
+  // 弹窗显示且当前没有数据时，允许自动触发一次搜索
+  bool _hasTriggeredInitialFetch = false;
 
   @override
   void initState() {
@@ -47,6 +50,23 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
     assert(widget.list != null || widget.remoteFetch != null, 'DropdownChoose: 必须传入list或remoteFetch中的一个');
     assert(!(widget.filterable && widget.remote), 'DropdownChoose: filterable和remote不能同时使用，filterable用于本地筛选，remote用于远程搜索');
     assert(!widget.remote || widget.remoteFetch != null, 'DropdownChoose: 使用remote时必须提供remoteFetch参数');
+
+    // 验证defaultValue类型
+    if (widget.defaultValue != null) {
+      if (widget.multiple == true) {
+        // 多选模式：defaultValue必须是List<SelectData<T>>
+        assert(
+          widget.defaultValue is List<SelectData<T>>,
+          'DropdownChoose: 多选模式下defaultValue必须是List<SelectData<T>>类型，当前类型: ${widget.defaultValue.runtimeType}',
+        );
+      } else {
+        // 单选模式：defaultValue必须是SelectData<T>，不能是List
+        assert(
+          widget.defaultValue is SelectData<T> && widget.defaultValue is! List,
+          'DropdownChoose: 单选模式下defaultValue必须是SelectData<T>类型，不能是List，当前类型: ${widget.defaultValue.runtimeType}',
+        );
+      }
+    }
 
     // 处理数据初始化
     _initializeData();
@@ -60,8 +80,11 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
       _list = List.from(widget.list!);
     }
 
-    // 如果有默认值，将其合并到_list中
-    _addDefaultValuesToDataList();
+    // 只有在非远程搜索模式下才添加默认值到数据列表
+    // 远程搜索模式下，默认值会在首次搜索时处理
+    if (!widget.remote) {
+      _addDefaultValuesToDataList();
+    }
 
     _filteredList = _list;
   }
@@ -97,9 +120,15 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
       // 多选模式
       if (widget.defaultValue is List<SelectData<T>>) {
         final defaultList = widget.defaultValue as List<SelectData<T>>;
-        for (final item in defaultList) {
-          if (_list.any((existing) => existing.value == item.value)) {
-            _selectedValues.add(item);
+        if (widget.remote) {
+          // 远程模式：直接设置默认值，不依赖_list匹配
+          _selectedValues.addAll(defaultList);
+        } else {
+          // 本地模式：只在_list中找到的才设置
+          for (final item in defaultList) {
+            if (_list.any((existing) => existing.value == item.value)) {
+              _selectedValues.add(item);
+            }
           }
         }
       }
@@ -107,8 +136,14 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
       // 单选模式
       if (widget.defaultValue is SelectData<T>) {
         final defaultItem = widget.defaultValue as SelectData<T>;
-        if (_list.any((item) => item.value == defaultItem.value)) {
+        if (widget.remote) {
+          // 远程模式：直接设置默认值，不依赖_list匹配
           _selectedValue = defaultItem;
+        } else {
+          // 本地模式：只在_list中找到的才设置
+          if (_list.any((item) => item.value == defaultItem.value)) {
+            _selectedValue = defaultItem;
+          }
         }
       }
     }
@@ -126,13 +161,8 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
       _filterLocalData();
       updateState(() {});
     } else if (widget.remote && widget.remoteFetch != null) {
-      // 远程搜索模式：添加防抖自动搜索
-      _debounceTimer?.cancel();
-      _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
-        if (mounted) {
-          await _performRemoteSearchInModal(updateState);
-        }
-      });
+      // 远程搜索模式：不自动搜索，仅更新本地输入状态
+      // 不进行任何远程调用
     }
   }
 
@@ -143,6 +173,25 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
     } else {
       _filteredList = _list.where((item) => item.label.toLowerCase().contains(keyword)).toList();
     }
+  }
+
+  // 根据 value 在当前列表中查找对应的项（用于单选Radio的选中同步）
+  SelectData<T>? _findItemInListByValue(dynamic value) {
+    if (value == null) return null;
+    for (final item in _list) {
+      if (item.value == value) return item;
+    }
+    return null;
+  }
+
+  // 判断多选列表里是否已包含某个 value（避免引用不一致导致的 contains 失效）
+  bool _multiSelectedContainsValue(dynamic value) {
+    return _selectedValues.any((e) => e.value == value);
+  }
+
+  // 从多选列表中按 value 移除对应项
+  void _multiSelectedRemoveByValue(dynamic value) {
+    _selectedValues.removeWhere((e) => e.value == value);
   }
 
   void _showDialog() async {
@@ -165,9 +214,10 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
             builder: (BuildContext context, StateSetter setState) {
               // 记录底部弹窗的setState，便于在其他地方（如“已选择”弹窗）触发刷新
               _modalSetState = setState;
-              // 在弹窗首次渲染完成后，如果是远程搜索且没有数据，立即触发数据加载
+              // 弹窗显示时如果没有任何数据，仅自动触发一次搜索；其余情况必须点击“搜索”按钮
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (widget.remote && widget.remoteFetch != null && _list.isEmpty) {
+                if (widget.remote && widget.remoteFetch != null && !_hasTriggeredInitialFetch && _list.isEmpty) {
+                  _hasTriggeredInitialFetch = true;
                   _performRemoteSearchInModal(setState);
                 }
               });
@@ -204,16 +254,17 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                     ),
                     // 搜索区域
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         border: Border(bottom: BorderSide(color: Colors.grey[100]!, width: 1)),
                       ),
                       child: Row(
+                        spacing: 10,
                         children: [
                           Expanded(
                             child: Container(
-                              height: 44,
+                              height: 45,
                               decoration: BoxDecoration(
                                 color: Colors.grey[50],
                                 borderRadius: BorderRadius.circular(8),
@@ -236,7 +287,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                           ),
                           if (widget.remote && widget.remoteFetch != null)
                             SizedBox(
-                              height: 44,
+                              height: 45,
                               child: ElevatedButton.icon(
                                 onPressed: _isLoading
                                     ? null
@@ -244,6 +295,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                                         await _performRemoteSearchInModal(setState);
                                       },
                                 style: ElevatedButton.styleFrom(
+                                  padding: EdgeInsets.symmetric(horizontal: 15),
                                   backgroundColor: _isLoading ? Colors.grey[300] : const Color(0xFF007AFF),
                                   foregroundColor: _isLoading ? Colors.grey[500] : Colors.white,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -253,10 +305,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                                     ? const SizedBox(
                                         width: 18,
                                         height: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
-                                        ),
+                                        child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.grey)),
                                       )
                                     : const Icon(Icons.search, size: 18),
                                 label: Text(_isLoading ? '搜索中...' : '搜索', style: const TextStyle(fontSize: 14)),
@@ -274,10 +323,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF007AFF)),
-                                      strokeWidth: 3,
-                                    ),
+                                    const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF007AFF)), strokeWidth: 3),
                                     const SizedBox(height: 16),
                                     Text(
                                       '搜索中...',
@@ -297,10 +343,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                                     const SizedBox(height: 16),
                                     Text('暂无数据', style: TextStyle(color: Color(0xFF666666), fontSize: 16)),
                                     const SizedBox(height: 8),
-                                    Text(
-                                      widget.remote ? '请尝试其他关键词搜索' : '请尝试其他筛选条件',
-                                      style: TextStyle(color: Color(0xFF999999), fontSize: 14),
-                                    ),
+                                    Text(widget.remote ? '请尝试其他关键词搜索' : '请尝试其他筛选条件', style: TextStyle(color: Color(0xFF999999), fontSize: 14)),
                                   ],
                                 ),
                               )
@@ -309,8 +352,8 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                                 itemBuilder: (context, index) {
                                   final item = _filteredList[index];
                                   final isSelected = widget.multiple == false
-                                      ? _selectedValue == item
-                                      : _selectedValues.contains(item);
+                                      ? (_selectedValue?.value == item.value)
+                                      : _selectedValues.any((e) => e.value == item.value);
                                   return Container(
                                     margin: EdgeInsets.only(top: 12, right: 12, left: 12),
                                     decoration: BoxDecoration(
@@ -325,13 +368,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                                                 offset: const Offset(0, 2),
                                               ),
                                             ]
-                                          : [
-                                              BoxShadow(
-                                                color: Colors.black.withValues(alpha: 0.05),
-                                                blurRadius: 4,
-                                                offset: const Offset(0, 1),
-                                              ),
-                                            ],
+                                          : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 1))],
                                     ),
                                     child: ListTile(
                                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
@@ -361,28 +398,20 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                                           : widget.multiple == false
                                           ? Radio<SelectData<T>>(
                                               value: item,
-                                              groupValue: _selectedValue,
+                                              groupValue: _findItemInListByValue(_selectedValue?.value),
                                               activeColor: const Color(0xFF007AFF),
-                                              onChanged: (SelectData<T>? value) {
-                                                setState(() {
-                                                  _selectedValue = value;
-                                                });
-                                                if (value != null) widget.onSingleSelected?.call(value);
-                                                Navigator.of(context).pop();
+                                              onChanged: (SelectData<T>? item) {
+                                                onSelectRadio(item, setState);
                                               },
                                             )
                                           : null,
                                       onTap: () {
                                         if (widget.multiple == false) {
-                                          setState(() {
-                                            _selectedValue = item;
-                                          });
-                                          widget.onSingleSelected?.call(item);
-                                          Navigator.of(context).pop();
+                                          onSelectRadio(item, setState);
                                         } else if (widget.multiple == true) {
                                           setState(() {
-                                            if (_selectedValues.contains(item)) {
-                                              _selectedValues.remove(item);
+                                            if (_multiSelectedContainsValue(item.value)) {
+                                              _multiSelectedRemoveByValue(item.value);
                                             } else {
                                               _selectedValues.add(item);
                                             }
@@ -415,10 +444,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                                       },
                                 style: OutlinedButton.styleFrom(
                                   foregroundColor: _selectedValues.isEmpty ? Colors.grey[400] : const Color(0xFF007AFF),
-                                  side: BorderSide(
-                                    color: _selectedValues.isEmpty ? Colors.grey[300]! : const Color(0xFF007AFF),
-                                    width: 1,
-                                  ),
+                                  side: BorderSide(color: _selectedValues.isEmpty ? Colors.grey[300]! : const Color(0xFF007AFF), width: 1),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                   padding: const EdgeInsets.symmetric(vertical: 12),
                                 ),
@@ -454,11 +480,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                                   padding: const EdgeInsets.symmetric(vertical: 12),
                                   elevation: 0,
                                 ),
-                                icon: Icon(
-                                  Icons.check,
-                                  size: 18,
-                                  color: _selectedValues.isEmpty ? Colors.grey[500] : Colors.white,
-                                ),
+                                icon: Icon(Icons.check, size: 18, color: _selectedValues.isEmpty ? Colors.grey[500] : Colors.white),
                                 label: Text(
                                   '确认选择',
                                   style: TextStyle(
@@ -480,9 +502,10 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
         );
       },
     );
-    // 弹窗关闭后，清理setState引用，避免后续误用
+    // 弹窗关闭后，清理setState引用并重置首次搜索标志
     modalFuture.whenComplete(() {
       _modalSetState = null;
+      _hasTriggeredInitialFetch = false;
     });
   }
 
@@ -552,9 +575,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(5),
                               border: Border.all(color: const Color(0xFFE9ECEF)),
-                              boxShadow: [
-                                BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2)),
-                              ],
+                              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))],
                             ),
                             child: Row(
                               children: [
@@ -573,11 +594,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                                     children: [
                                       Text(
                                         item.label,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                          color: Color(0xFF333333),
-                                        ),
+                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Color(0xFF333333)),
                                       ),
                                       if (item.value != null)
                                         Text('值: ${item.value}', style: const TextStyle(fontSize: 12, color: Color(0xFF999999))),
@@ -620,10 +637,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                           child: OutlinedButton(
                             style: OutlinedButton.styleFrom(
                               foregroundColor: _selectedValues.isEmpty ? Colors.grey[400] : const Color(0xFF007AFF),
-                              side: BorderSide(
-                                color: _selectedValues.isEmpty ? Colors.grey[300]! : const Color(0xFF007AFF),
-                                width: 1,
-                              ),
+                              side: BorderSide(color: _selectedValues.isEmpty ? Colors.grey[300]! : const Color(0xFF007AFF), width: 1),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                               padding: const EdgeInsets.symmetric(vertical: 10),
                             ),
@@ -675,15 +689,37 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
     });
 
     try {
-      final list = await widget.remoteFetch!();
+      final list = await widget.remoteFetch?.call(_searchController.text);
       if (mounted) {
         setState(() {
-          _list = List.from(list);
+          _list = List.from(list ?? []);
 
-          // 确保defaultValue中的数据始终可见
-          _addDefaultValuesToDataList();
+          // 仅在搜索框为空（初次或清空搜索）时，才将默认值合并进列表用于编辑回显
+          // 有关键字时严格按搜索结果展示
+          if (_searchController.text.isEmpty && widget.defaultValue != null) {
+            _addDefaultValuesToDataList();
+          }
 
           _filteredList = _list;
+          // 远程搜索后保持已选中项的高亮（单选）
+          if (widget.multiple != true && _selectedValue != null) {
+            final matched = _findItemInListByValue(_selectedValue?.value);
+            if (matched != null) {
+              _selectedValue = matched;
+            }
+          }
+          // 远程搜索后保持已选中项的高亮（多选）
+          if (widget.multiple == true && widget.defaultValue != null) {
+            if (widget.defaultValue is List<SelectData<T>>) {
+              final defaultList = widget.defaultValue as List<SelectData<T>>;
+              for (final defaultItem in defaultList) {
+                final matched = _findItemInListByValue(defaultItem.value);
+                if (matched != null && !_multiSelectedContainsValue(matched.value)) {
+                  _selectedValues.add(matched);
+                }
+              }
+            }
+          }
           _isLoading = false;
         });
       }
@@ -757,5 +793,18 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
         ),
       ),
     );
+  }
+
+  // 单选结果点击：统一处理，并打印详细信息
+  onSelectRadio(SelectData<T>? value, StateSetter modalSetState) {
+    if (value == null) return;
+    // 更新当前组件选中值
+    modalSetState(() {
+      _selectedValue = value;
+    });
+    // 回调上抛
+    widget.onSingleSelected?.call(value);
+    // 关闭弹窗
+    Navigator.of(context).pop();
   }
 }

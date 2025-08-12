@@ -35,6 +35,9 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+  # 添加HTTP请求依赖
+  http: ^1.1.0
+
   # 添加对主包的依赖
   simple_ui:
     path: ../
