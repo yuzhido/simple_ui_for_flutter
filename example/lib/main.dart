@@ -1,4 +1,7 @@
+import 'package:example/pages/data_for_form/index.dart';
+import 'package:example/pages/data_for_form/new_data_form.dart';
 import 'package:example/pages/notice_info/index.dart';
+import 'package:example/pages/test_form/index.dart';
 import 'package:example/pages/tree_select/index.dart';
 import 'package:example/pages/upload_file/index.dart';
 import 'package:flutter/material.dart';
@@ -60,6 +63,24 @@ class HomePage extends StatelessWidget {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const NoticeInfoPage()));
               },
               child: Text('跳转查看消息通知（NoticeInfo）示例'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const DataForFormPage()));
+              },
+              child: Text('跳转查看数据驱动表单（DataForForm）示例'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const TestFormPage()));
+              },
+              child: Text('跳转查看测试数据增删改查示例'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const NewDataFormPage()));
+              },
+              child: Text('跳转查看数据驱动表单（NewDataForm）示例'),
             ),
           ],
         ),
