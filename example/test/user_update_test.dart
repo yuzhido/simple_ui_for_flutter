@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:example/models/user.dart';
-import 'package:example/services/user_service.dart';
 
 void main() {
   group('用户更新功能测试', () {
@@ -42,18 +41,7 @@ void main() {
     });
 
     test('用户toJson应该包含ID', () {
-      final user = User(
-        id: '456',
-        name: '李四',
-        gender: '女',
-        age: 30,
-        occupation: '设计师',
-        education: '硕士',
-        hobbies: ['设计'],
-        avatar: '',
-        introduction: '',
-        city: '上海',
-      );
+      final user = User(id: '456', name: '李四', gender: '女', age: 30, occupation: '设计师', education: '硕士', hobbies: ['设计'], avatar: '', introduction: '', city: '上海');
 
       final json = user.toJson();
       expect(json['id'], equals('456'));

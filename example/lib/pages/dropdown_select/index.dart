@@ -90,9 +90,7 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
     ];
 
     // 如果有搜索关键词，进行过滤
-    final filteredCities = keyword?.isNotEmpty == true
-        ? cities.where((city) => city.name.contains(keyword!) || city.province.contains(keyword!)).toList()
-        : cities;
+    final filteredCities = keyword?.isNotEmpty == true ? cities.where((city) => city.name.contains(keyword!) || city.province.contains(keyword)).toList() : cities;
 
     final selectDataList = filteredCities.map((city) {
       return SelectData<City>(label: city.name, value: city.name, data: city);
@@ -122,9 +120,7 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
     ];
 
     // 如果有搜索关键词，进行过滤
-    final filteredSubjects = keyword?.isNotEmpty == true
-        ? subjects.where((subject) => subject.name.contains(keyword!) || subject.category.contains(keyword!)).toList()
-        : subjects;
+    final filteredSubjects = keyword?.isNotEmpty == true ? subjects.where((subject) => subject.name.contains(keyword!) || subject.category.contains(keyword)).toList() : subjects;
 
     final selectDataList = filteredSubjects.map((subject) {
       return SelectData<Subject>(label: subject.name, value: subject.id ?? 'id_${subject.name.hashCode}', data: subject);
@@ -376,9 +372,7 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
                   const SizedBox(height: 8),
                   Text('远程单选：${_remoteSelected?.label ?? '未选择'}'),
                   const SizedBox(height: 8),
-                  Text(
-                    '远程多选：${_remoteMultipleSelected.isEmpty ? '未选择' : _remoteMultipleSelected.map((e) => e.label).join(', ')}',
-                  ),
+                  Text('远程多选：${_remoteMultipleSelected.isEmpty ? '未选择' : _remoteMultipleSelected.map((e) => e.label).join(', ')}'),
                 ],
               ),
             ),
@@ -415,10 +409,7 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
                     style: TextStyle(color: Color(0xFFE65100), fontWeight: FontWeight.w500),
                   ),
                   SizedBox(height: 8),
-                  Text(
-                    '编辑模式：使用defaultValue参数可以确保编辑时显示之前选择的数据，即使这些数据不在当前list或远程搜索结果中',
-                    style: TextStyle(color: Color(0xFF1976D2), fontSize: 12),
-                  ),
+                  Text('编辑模式：使用defaultValue参数可以确保编辑时显示之前选择的数据，即使这些数据不在当前list或远程搜索结果中', style: TextStyle(color: Color(0xFF1976D2), fontSize: 12)),
                 ],
               ),
             ),

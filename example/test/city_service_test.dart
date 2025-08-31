@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:example/services/user_service.dart';
 import 'package:example/models/city.dart';
 
 void main() {
