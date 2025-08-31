@@ -7,6 +7,7 @@ import 'package:example/pages/permission_request/index.dart';
 import 'package:flutter/material.dart';
 import 'pages/dropdown_select/index.dart';
 import 'pages/cascading_select/index.dart';
+import 'pages/config_form/index.dart';
 
 void main() {
   runApp(const MyApp());
@@ -81,6 +82,13 @@ class HomePage extends StatelessWidget {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const DataForFormPage()));
               },
               child: Text('跳转查看数据驱动表单（DataForForm）示例'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const ConfigFormPage()));
+              },
+              child: Text('跳转查看动态表单（ConfigForm）示例'),
             ),
           ],
         ),

@@ -16,6 +16,7 @@ enum FormFieldType {
   date,
   time,
   slider,
+  upload, // 新增：文件上传类型
 }
 
 /// 表单字段配置模型
@@ -184,22 +185,12 @@ class FormConfig {
     final fieldsList = map['fields'] as List<dynamic>;
     final fields = fieldsList.map((field) => FormFieldConfig.fromMap(field as Map<String, dynamic>)).toList();
 
-    return FormConfig(
-      fields: fields,
-      title: map['title'] as String?,
-      description: map['description'] as String?,
-      submitButtonText: map['submitButtonText'] as String? ?? '提交',
-    );
+    return FormConfig(fields: fields, title: map['title'] as String?, description: map['description'] as String?, submitButtonText: map['submitButtonText'] as String? ?? '提交');
   }
 
   /// 转换为Map
   Map<String, dynamic> toMap() {
-    return {
-      'fields': fields.map((field) => field.toMap()).toList(),
-      'title': title,
-      'description': description,
-      'submitButtonText': submitButtonText,
-    };
+    return {'fields': fields.map((field) => field.toMap()).toList(), 'title': title, 'description': description, 'submitButtonText': submitButtonText};
   }
 
   /// 验证配置是否有效

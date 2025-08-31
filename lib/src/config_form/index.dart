@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:simple_ui/models/form_field_config.dart';
 import 'package:simple_ui/models/select_data.dart';
 import 'package:simple_ui/src/dropdown_choose/index.dart';
+import 'package:simple_ui/src/upload_file/index.dart';
+import 'package:simple_ui/models/upload_result.dart';
 
 class ConfigForm extends StatefulWidget {
   final FormConfig formConfig;
@@ -235,7 +237,93 @@ class _ConfigFormState extends State<ConfigForm> {
 
       case FormFieldType.slider:
         return _buildSlider(field, error);
+
+      case FormFieldType.upload:
+        return _buildUploadFile(field, error);
     }
+  }
+
+  Widget _buildUploadFile(FormFieldConfig field, String? error) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel(field.label, field.required),
+        const SizedBox(height: 8),
+        UploadFile(
+          onSelected: (result) {
+            if (field.disabled) return;
+            setState(() {
+              if (_formData[field.name] == null) {
+                _formData[field.name] = <dynamic>[];
+              }
+              final list = _formData[field.name] as List<dynamic>;
+              list.add(result);
+              _formData[field.name] = list;
+              if (error != null) {
+                _errors.remove(field.name);
+              }
+            });
+          },
+          allowedSources: {UploadSource.image, UploadSource.file, UploadSource.camera},
+          buttonText: '选择${field.label}',
+          buttonIcon: Icons.upload_file,
+        ),
+        // 显示已选择的文件
+        if (_formData[field.name] != null && (_formData[field.name] as List<dynamic>).isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '已选择的文件：',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey.shade700),
+                ),
+                const SizedBox(height: 8),
+                ...(_formData[field.name] as List<dynamic>).map((file) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      children: [
+                        Icon(Icons.insert_drive_file, color: Colors.blue.shade600, size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(file.name ?? '未知文件', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                              if (file.size != null) Text('${(file.size! / 1024).toStringAsFixed(1)} KB', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                            ],
+                          ),
+                        ),
+                        if (!field.disabled)
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                            onPressed: () {
+                              setState(() {
+                                final list = _formData[field.name] as List<dynamic>;
+                                list.remove(file);
+                                _formData[field.name] = list;
+                              });
+                            },
+                          ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+        ],
+        _buildError(error),
+      ],
+    );
   }
 
   Widget _buildTextField(FormFieldConfig field, String? error) {
@@ -369,33 +457,46 @@ class _ConfigFormState extends State<ConfigForm> {
         _buildLabel(field.label, field.required),
         const SizedBox(height: 8),
         Container(
-          height: 56, // 与输入框高度一致
           decoration: BoxDecoration(
             border: Border.all(color: error != null ? Colors.red : Colors.grey.shade300),
             borderRadius: BorderRadius.circular(8),
             color: Colors.white,
           ),
-          child: Row(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Column(
             children: options
                 .map(
-                  (option) => Expanded(
-                    child: RadioListTile<dynamic>(
-                      title: Text(option.label, style: const TextStyle(fontSize: 14)),
-                      value: option.value,
-                      groupValue: _formData[field.name],
-                      activeColor: Colors.blue,
-                      contentPadding: EdgeInsets.zero,
-                      dense: true,
-                      onChanged: field.disabled
-                          ? null
-                          : (value) {
-                              setState(() {
-                                _formData[field.name] = value;
-                                if (error != null) {
-                                  _errors.remove(field.name);
-                                }
-                              });
-                            },
+                  (option) => InkWell(
+                    onTap: field.disabled
+                        ? null
+                        : () {
+                            setState(() {
+                              _formData[field.name] = option.value;
+                              if (error != null) {
+                                _errors.remove(field.name);
+                              }
+                            });
+                          },
+                    borderRadius: BorderRadius.circular(4),
+                    child: Row(
+                      children: [
+                        Expanded(child: Text(option.label, style: const TextStyle(fontSize: 14))),
+                        Radio<dynamic>(
+                          value: option.value,
+                          groupValue: _formData[field.name],
+                          activeColor: Colors.blue,
+                          onChanged: field.disabled
+                              ? null
+                              : (value) {
+                                  setState(() {
+                                    _formData[field.name] = value;
+                                    if (error != null) {
+                                      _errors.remove(field.name);
+                                    }
+                                  });
+                                },
+                        ),
+                      ],
                     ),
                   ),
                 )
@@ -420,41 +521,37 @@ class _ConfigFormState extends State<ConfigForm> {
             borderRadius: BorderRadius.circular(8),
             color: Colors.white,
           ),
-          padding: const EdgeInsets.all(12),
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 8,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Column(
             children: options
                 .map(
-                  (option) => Container(
-                    constraints: const BoxConstraints(minWidth: 80),
-                    child: CheckboxListTile(
-                      title: Text(option.label, style: const TextStyle(fontSize: 14)),
-                      value: (_formData[field.name] as List<dynamic>?)?.contains(option.value) ?? false,
-                      activeColor: Colors.blue,
-                      contentPadding: EdgeInsets.zero,
-                      dense: true,
-                      onChanged: field.disabled
-                          ? null
-                          : (checked) {
-                              setState(() {
-                                if (_formData[field.name] == null) {
-                                  _formData[field.name] = <dynamic>[];
+                  (option) => CheckboxListTile(
+                    title: Text(option.label, style: const TextStyle(fontSize: 14)),
+                    value: (_formData[field.name] as List<dynamic>?)?.contains(option.value) ?? false,
+                    activeColor: Colors.blue,
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    visualDensity: VisualDensity.compact,
+                    onChanged: field.disabled
+                        ? null
+                        : (checked) {
+                            setState(() {
+                              if (_formData[field.name] == null) {
+                                _formData[field.name] = <dynamic>[];
+                              }
+                              final list = _formData[field.name] as List<dynamic>;
+                              if (checked == true) {
+                                if (!list.contains(option.value)) {
+                                  list.add(option.value);
                                 }
-                                final list = _formData[field.name] as List<dynamic>;
-                                if (checked == true) {
-                                  if (!list.contains(option.value)) {
-                                    list.add(option.value);
-                                  }
-                                } else {
-                                  list.remove(option.value);
-                                }
-                                if (error != null) {
-                                  _errors.remove(field.name);
-                                }
-                              });
-                            },
-                    ),
+                              } else {
+                                list.remove(option.value);
+                              }
+                              if (error != null) {
+                                _errors.remove(field.name);
+                              }
+                            });
+                          },
                   ),
                 )
                 .toList(),
@@ -475,9 +572,8 @@ class _ConfigFormState extends State<ConfigForm> {
           key: _dropdownKeys[field.name],
           list: field.options?.map((option) => SelectData<String>(label: option.label, value: option.value as String, data: option.data)).toList(),
           remoteFetch: field.remoteFetch != null
-              ? (String? keyword) => field.remoteFetch!(keyword).then(
-                  (list) => list.map((item) => SelectData<String>(label: item.label, value: item.value as String, data: item.data)).toList(),
-                )
+              ? (String? keyword) =>
+                    field.remoteFetch!(keyword).then((list) => list.map((item) => SelectData<String>(label: item.label, value: item.value as String, data: item.data)).toList())
               : null,
           multiple: field.multiple,
           filterable: field.filterable,
@@ -550,12 +646,7 @@ class _ConfigFormState extends State<ConfigForm> {
           onTap: field.disabled
               ? null
               : () async {
-                  final date = await showDatePicker(
-                    context: context,
-                    initialDate: _formData[field.name] ?? DateTime.now(),
-                    firstDate: DateTime(1900),
-                    lastDate: DateTime(2100),
-                  );
+                  final date = await showDatePicker(context: context, initialDate: _formData[field.name] ?? DateTime.now(), firstDate: DateTime(1900), lastDate: DateTime(2100));
                   if (date != null) {
                     setState(() {
                       _formData[field.name] = date;
@@ -742,6 +833,8 @@ class _ConfigFormState extends State<ConfigForm> {
         return '请选择${field.label}';
       case FormFieldType.time:
         return '请选择${field.label}';
+      case FormFieldType.upload:
+        return '请选择${field.label}';
       default:
         return '';
     }
@@ -772,10 +865,7 @@ class _ConfigFormState extends State<ConfigForm> {
             if (widget.formConfig.description != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 24.0),
-                child: Text(
-                  widget.formConfig.description!,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600], height: 1.4),
-                ),
+                child: Text(widget.formConfig.description!, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600], height: 1.4)),
               ),
             ...widget.formConfig.fields.map((field) {
               return Padding(padding: const EdgeInsets.only(bottom: 20.0), child: _buildField(field));

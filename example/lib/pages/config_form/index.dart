@@ -73,14 +73,8 @@ class _ConfigFormPageState extends State<ConfigFormPage> {
             SelectData(label: '成都', value: '成都', data: '成都'),
           ],
         ),
-        FormFieldConfig(
-          label: '邮箱',
-          name: 'email',
-          type: FormFieldType.text,
-          required: true,
-          placeholder: '请输入邮箱地址',
-          validationRule: 'email',
-        ),
+        FormFieldConfig(label: '邮箱', name: 'email', type: FormFieldType.text, required: true, placeholder: '请输入邮箱地址', validationRule: 'email'),
+        FormFieldConfig(label: '上传文件', name: 'files', type: FormFieldType.upload, required: false),
         FormFieldConfig(label: '个人简介', name: 'bio', type: FormFieldType.textarea, required: false),
       ],
     );
@@ -113,10 +107,7 @@ class _ConfigFormPageState extends State<ConfigFormPage> {
                       child: Text('${entry.key}:', style: const TextStyle(fontWeight: FontWeight.bold)),
                     ),
                     Expanded(
-                      child: Text(
-                        entry.value?.toString() ?? 'null',
-                        style: TextStyle(color: entry.value == null ? Colors.grey : Colors.black),
-                      ),
+                      child: Text(entry.value?.toString() ?? 'null', style: TextStyle(color: entry.value == null ? Colors.grey : Colors.black)),
                     ),
                   ],
                 ),
@@ -169,10 +160,7 @@ class _ConfigFormPageState extends State<ConfigFormPage> {
                             child: Text('${entry.key}:', style: const TextStyle(fontWeight: FontWeight.bold)),
                           ),
                           Expanded(
-                            child: Text(
-                              entry.value?.toString() ?? 'null',
-                              style: TextStyle(color: entry.value == null ? Colors.grey : Colors.black),
-                            ),
+                            child: Text(entry.value?.toString() ?? 'null', style: TextStyle(color: entry.value == null ? Colors.grey : Colors.black)),
                           ),
                         ],
                       ),
