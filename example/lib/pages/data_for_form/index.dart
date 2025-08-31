@@ -30,7 +30,7 @@ class _DataForFormPageState extends State<DataForFormPage> {
       submitButtonText: '提交信息',
       fields: [
         FormFieldConfig(label: '姓名', name: 'name', type: FormFieldType.text, required: true, placeholder: '请输入您的姓名', defaultValue: '张三'),
-        FormFieldConfig(label: '年龄', name: 'age', type: FormFieldType.number, required: true, placeholder: '请输入您的年龄', defaultValue: 25),
+        FormFieldConfig(label: '年龄', name: 'age', type: FormFieldType.integer, required: true, placeholder: '请输入您的年龄', defaultValue: 25),
         FormFieldConfig(label: '身高', name: 'height', type: FormFieldType.double, required: true, placeholder: '请输入您的身高(米)', defaultValue: 1.75),
         FormFieldConfig(
           label: '性别',
@@ -152,14 +152,7 @@ class _DataForFormPageState extends State<DataForFormPage> {
           ],
           defaultValue: ['reading', 'programming'],
         ),
-        FormFieldConfig(
-          label: '自我介绍',
-          name: 'introduction',
-          type: FormFieldType.textarea,
-          required: true,
-          placeholder: '请简单介绍一下自己...',
-          defaultValue: '我是一名热爱编程的开发者，喜欢学习新技术。',
-        ),
+        FormFieldConfig(label: '自我介绍', name: 'introduction', type: FormFieldType.textarea, required: true, placeholder: '请简单介绍一下自己...', defaultValue: '我是一名热爱编程的开发者，喜欢学习新技术。'),
         FormFieldConfig(label: '提交', name: 'submit', type: FormFieldType.button, required: false),
       ],
     );
@@ -400,11 +393,7 @@ class _DataForFormPageState extends State<DataForFormPage> {
                               const SizedBox(width: 4),
                               Text(
                                 _isFormValid ? '验证通过' : '验证失败',
-                                style: TextStyle(
-                                  color: _isFormValid ? Colors.green.shade700 : Colors.red.shade700,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                                style: TextStyle(color: _isFormValid ? Colors.green.shade700 : Colors.red.shade700, fontSize: 12, fontWeight: FontWeight.w500),
                               ),
                             ],
                           ),
@@ -430,9 +419,7 @@ class _DataForFormPageState extends State<DataForFormPage> {
                             style: TextStyle(color: Colors.red.shade700, fontWeight: FontWeight.w500),
                           ),
                           const SizedBox(height: 4),
-                          ..._currentErrors.entries.map(
-                            (entry) => Text('• ${entry.key}: ${entry.value}', style: TextStyle(color: Colors.red.shade600, fontSize: 12)),
-                          ),
+                          ..._currentErrors.entries.map((entry) => Text('• ${entry.key}: ${entry.value}', style: TextStyle(color: Colors.red.shade600, fontSize: 12))),
                         ],
                       ),
                     ),

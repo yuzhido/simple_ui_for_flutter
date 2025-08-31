@@ -1,6 +1,5 @@
 import 'package:example/models/city.dart';
 import 'package:example/models/subject.dart';
-import 'package:example/services/user_service.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_ui/simple_ui.dart';
 
@@ -75,18 +74,60 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
 
   // 模拟远程数据获取（返回 SelectData<City>）
   Future<List<SelectData<City>>> _fetchRemoteData(String? keyword) async {
-    final cities = await UserService.getCities(keyword);
-    final selectDataList = cities.map((city) {
+    // 模拟网络延迟
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // 模拟城市数据
+    final List<City> cities = [
+      City(name: '北京', province: '北京市', population: 2154, area: 16410),
+      City(name: '上海', province: '上海市', population: 2424, area: 6340),
+      City(name: '广州', province: '广东省', population: 1531, area: 7434),
+      City(name: '深圳', province: '广东省', population: 1344, area: 1997),
+      City(name: '杭州', province: '浙江省', population: 1194, area: 16853),
+      City(name: '南京', province: '江苏省', population: 931, area: 6587),
+      City(name: '成都', province: '四川省', population: 1633, area: 14335),
+      City(name: '武汉', province: '湖北省', population: 1233, area: 8569),
+    ];
+
+    // 如果有搜索关键词，进行过滤
+    final filteredCities = keyword?.isNotEmpty == true
+        ? cities.where((city) => city.name.contains(keyword!) || city.province.contains(keyword!)).toList()
+        : cities;
+
+    final selectDataList = filteredCities.map((city) {
       return SelectData<City>(label: city.name, value: city.name, data: city);
     }).toList();
     return selectDataList;
   }
 
-  // 模拟远程数据获取（返回 SelectData<City>）
+  // 模拟远程数据获取（返回 SelectData<Subject>）
   Future<List<SelectData<Subject>>> _fetchMultipleRemoteData(String? keyword) async {
-    final cities = await UserService.getSubjects(keyword);
-    final selectDataList = cities.map((subject) {
-      return SelectData<Subject>(label: subject.name, value: subject.id ?? '', data: subject);
+    // 模拟网络延迟
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // 模拟学科数据
+    final List<Subject> subjects = [
+      Subject(name: 'React开发', category: '前端开发'),
+      Subject(name: 'Vue开发', category: '前端开发'),
+      Subject(name: 'Angular开发', category: '前端开发'),
+      Subject(name: 'Flutter开发', category: '移动开发'),
+      Subject(name: 'iOS开发', category: '移动开发'),
+      Subject(name: 'Android开发', category: '移动开发'),
+      Subject(name: 'Java开发', category: '后端开发'),
+      Subject(name: 'Python开发', category: '后端开发'),
+      Subject(name: 'Node.js开发', category: '后端开发'),
+      Subject(name: '数据库设计', category: '数据库'),
+      Subject(name: '数据分析', category: '数据科学'),
+      Subject(name: '机器学习', category: '人工智能'),
+    ];
+
+    // 如果有搜索关键词，进行过滤
+    final filteredSubjects = keyword?.isNotEmpty == true
+        ? subjects.where((subject) => subject.name.contains(keyword!) || subject.category.contains(keyword!)).toList()
+        : subjects;
+
+    final selectDataList = filteredSubjects.map((subject) {
+      return SelectData<Subject>(label: subject.name, value: subject.id ?? 'id_${subject.name.hashCode}', data: subject);
     }).toList();
     return selectDataList;
   }
@@ -335,7 +376,9 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
                   const SizedBox(height: 8),
                   Text('远程单选：${_remoteSelected?.label ?? '未选择'}'),
                   const SizedBox(height: 8),
-                  Text('远程多选：${_remoteMultipleSelected.isEmpty ? '未选择' : _remoteMultipleSelected.map((e) => e.label).join(', ')}'),
+                  Text(
+                    '远程多选：${_remoteMultipleSelected.isEmpty ? '未选择' : _remoteMultipleSelected.map((e) => e.label).join(', ')}',
+                  ),
                 ],
               ),
             ),
@@ -372,7 +415,10 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
                     style: TextStyle(color: Color(0xFFE65100), fontWeight: FontWeight.w500),
                   ),
                   SizedBox(height: 8),
-                  Text('编辑模式：使用defaultValue参数可以确保编辑时显示之前选择的数据，即使这些数据不在当前list或远程搜索结果中', style: TextStyle(color: Color(0xFF1976D2), fontSize: 12)),
+                  Text(
+                    '编辑模式：使用defaultValue参数可以确保编辑时显示之前选择的数据，即使这些数据不在当前list或远程搜索结果中',
+                    style: TextStyle(color: Color(0xFF1976D2), fontSize: 12),
+                  ),
                 ],
               ),
             ),
