@@ -244,6 +244,52 @@ class _ConfigFormState extends State<ConfigForm> {
   }
 
   Widget _buildUploadFile(FormFieldConfig field, String? error) {
+    // 根据字段名称配置不同的上传方式
+    Set<UploadSource> allowedSources;
+    String buttonText;
+    IconData buttonIcon;
+    bool chooseImage = false;
+
+    switch (field.name) {
+      case 'basicFiles':
+        // 基础文件上传 - 支持图片、文件、相机
+        allowedSources = {UploadSource.image, UploadSource.file, UploadSource.camera};
+        buttonText = '选择文件';
+        buttonIcon = Icons.upload_file;
+        break;
+      case 'imageFiles':
+        // 仅图片上传 - 相册和相机
+        allowedSources = {UploadSource.image, UploadSource.camera};
+        buttonText = '选择图片';
+        buttonIcon = Icons.photo_library;
+        chooseImage = true;
+        break;
+      case 'docFiles':
+        // 仅文件选择
+        allowedSources = {UploadSource.file};
+        buttonText = '选择文档';
+        buttonIcon = Icons.description;
+        break;
+      case 'cameraFiles':
+        // 仅相机拍照
+        allowedSources = {UploadSource.camera};
+        buttonText = '拍照';
+        buttonIcon = Icons.camera_alt;
+        chooseImage = true;
+        break;
+      case 'requiredFiles':
+        // 必填文件上传
+        allowedSources = {UploadSource.image, UploadSource.file, UploadSource.camera};
+        buttonText = '选择文件 *';
+        buttonIcon = Icons.upload_file;
+        break;
+      default:
+        // 默认配置
+        allowedSources = {UploadSource.image, UploadSource.file, UploadSource.camera};
+        buttonText = '选择${field.label}';
+        buttonIcon = Icons.upload_file;
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -264,9 +310,10 @@ class _ConfigFormState extends State<ConfigForm> {
               }
             });
           },
-          allowedSources: {UploadSource.image, UploadSource.file, UploadSource.camera},
-          buttonText: '选择${field.label}',
-          buttonIcon: Icons.upload_file,
+          allowedSources: allowedSources,
+          buttonText: buttonText,
+          buttonIcon: buttonIcon,
+          chooseImage: chooseImage,
         ),
         // 显示已选择的文件
         if (_formData[field.name] != null && (_formData[field.name] as List<dynamic>).isNotEmpty) ...[

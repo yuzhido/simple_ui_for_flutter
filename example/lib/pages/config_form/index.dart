@@ -74,8 +74,24 @@ class _ConfigFormPageState extends State<ConfigFormPage> {
           ],
         ),
         FormFieldConfig(label: '邮箱', name: 'email', type: FormFieldType.text, required: true, placeholder: '请输入邮箱地址', validationRule: 'email'),
-        FormFieldConfig(label: '上传文件', name: 'files', type: FormFieldType.upload, required: false),
+        // 基础文件上传 - 支持图片、文件、相机
+        FormFieldConfig(label: '基础文件上传（图片+文件+相机）', name: 'basicFiles', type: FormFieldType.upload, required: false),
+
+        // 仅图片上传 - 相册和相机
+        FormFieldConfig(label: '仅图片上传（相册+相机）', name: 'imageFiles', type: FormFieldType.upload, required: false),
+
+        // 仅文件选择
+        FormFieldConfig(label: '仅文件选择（文档）', name: 'docFiles', type: FormFieldType.upload, required: false),
+
+        // 仅相机拍照
+        FormFieldConfig(label: '仅相机拍照', name: 'cameraFiles', type: FormFieldType.upload, required: false),
+
+        // 必填文件上传
+        FormFieldConfig(label: '必填文件上传（图片+文件+相机）', name: 'requiredFiles', type: FormFieldType.upload, required: true),
         FormFieldConfig(label: '个人简介', name: 'bio', type: FormFieldType.textarea, required: false),
+
+        // 提交和重置按钮
+        FormFieldConfig(label: '提交', name: 'submit', type: FormFieldType.button, required: false),
       ],
     );
   }
@@ -129,6 +145,42 @@ class _ConfigFormPageState extends State<ConfigFormPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // 上传文件组件使用说明
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              margin: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.info_outline, color: Colors.blue.shade600),
+                      const SizedBox(width: 8),
+                      Text(
+                        '上传文件组件使用说明',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue.shade700),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    '• 基础文件上传：支持从相册选择图片、从文件系统选择文档、使用相机拍照\n'
+                    '• 仅图片上传：仅支持从相册选择图片和使用相机拍照，使用图片样式按钮\n'
+                    '• 仅文件选择：仅支持从文件系统选择文档\n'
+                    '• 仅相机拍照：仅支持使用相机拍照\n'
+                    '• 必填文件上传：必须选择文件才能提交表单',
+                    style: TextStyle(fontSize: 14, color: Colors.blue.shade700, height: 1.4),
+                  ),
+                ],
+              ),
+            ),
+
             // 使用动态表单组件
             ConfigForm(formConfig: formConfig, onSubmit: _handleSubmit),
 
