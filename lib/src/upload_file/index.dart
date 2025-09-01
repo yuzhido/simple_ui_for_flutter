@@ -94,14 +94,7 @@ class _UploadFileState extends State<UploadFile> {
     if (picked == null) return;
     final bytes = await picked.readAsBytes();
     widget.onSelected(
-      UploadResult(
-        source: UploadSource.image,
-        name: picked.name,
-        path: picked.path,
-        bytes: bytes,
-        size: bytes.lengthInBytes,
-        mimeType: _guessMimeTypeFromName(picked.name),
-      ),
+      UploadResult(source: UploadSource.image, name: picked.name, path: picked.path, bytes: bytes, size: bytes.lengthInBytes, mimeType: _guessMimeTypeFromName(picked.name)),
     );
   }
 
@@ -110,14 +103,7 @@ class _UploadFileState extends State<UploadFile> {
     if (captured == null) return;
     final bytes = await captured.readAsBytes();
     widget.onSelected(
-      UploadResult(
-        source: UploadSource.camera,
-        name: captured.name,
-        path: captured.path,
-        bytes: bytes,
-        size: bytes.lengthInBytes,
-        mimeType: _guessMimeTypeFromName(captured.name),
-      ),
+      UploadResult(source: UploadSource.camera, name: captured.name, path: captured.path, bytes: bytes, size: bytes.lengthInBytes, mimeType: _guessMimeTypeFromName(captured.name)),
     );
   }
 
@@ -126,16 +112,7 @@ class _UploadFileState extends State<UploadFile> {
     if (result == null || result.files.isEmpty) return;
 
     final PlatformFile file = result.files.first;
-    widget.onSelected(
-      UploadResult(
-        source: UploadSource.file,
-        name: file.name,
-        path: file.path,
-        bytes: file.bytes,
-        size: file.size,
-        mimeType: _guessMimeTypeFromName(file.name),
-      ),
-    );
+    widget.onSelected(UploadResult(source: UploadSource.file, name: file.name, path: file.path, bytes: file.bytes, size: file.size, mimeType: _guessMimeTypeFromName(file.name)));
   }
 
   void _showChooser() {
@@ -167,7 +144,7 @@ class _UploadFileState extends State<UploadFile> {
                   height: 4,
                   decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
                 ),
-                ...sources.map((s) => _buildSourceTile(s)).toList(),
+                ...sources.map((s) => _buildSourceTile(s)),
                 const SizedBox(height: 4),
               ],
             ),
@@ -282,13 +259,7 @@ class _UploadFileState extends State<UploadFile> {
         child: InkWell(
           onTap: _onTrigger,
           borderRadius: BorderRadius.circular(12),
-          child: SvgPicture.asset(
-            'assets/image/icon-image.svg',
-            package: 'simple_ui',
-            width: 96,
-            height: 96,
-            fit: BoxFit.contain,
-          ),
+          child: SvgPicture.asset('assets/image/icon-image.svg', package: 'simple_ui', width: 96, height: 96, fit: BoxFit.contain),
         ),
       );
     }
@@ -301,11 +272,7 @@ class _UploadFileState extends State<UploadFile> {
     return ElevatedButton.icon(
       onPressed: _isPicking ? null : _onTrigger,
       icon: _isPicking
-          ? SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
-            )
+          ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
           : Icon(widget.buttonIcon),
       label: Text(widget.buttonText),
       style: widget.buttonStyle,

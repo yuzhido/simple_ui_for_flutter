@@ -63,7 +63,7 @@ class UserService {
       }
     } catch (e) {
       print('获取用户详情失败: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -75,11 +75,7 @@ class UserService {
 
     try {
       final response = await http
-          .put(
-            Uri.parse('$apiUrl/api/users/${user.id}'),
-            headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
-            body: json.encode(user.toJson()),
-          )
+          .put(Uri.parse('$apiUrl/api/users/${user.id}'), headers: {'Content-Type': 'application/json', 'Accept': 'application/json'}, body: json.encode(user.toJson()))
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200 || response.statusCode == 204) {
@@ -123,7 +119,7 @@ class UserService {
       }
     } catch (e) {
       print('更新用户失败: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -141,7 +137,7 @@ class UserService {
       }
     } catch (e) {
       print('删除用户失败: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -149,11 +145,7 @@ class UserService {
   static Future<User> createUser(User user) async {
     try {
       final response = await http
-          .post(
-            Uri.parse('$apiUrl/api/users'),
-            headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
-            body: json.encode(user.toJson()),
-          )
+          .post(Uri.parse('$apiUrl/api/users'), headers: {'Content-Type': 'application/json', 'Accept': 'application/json'}, body: json.encode(user.toJson()))
           .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -174,9 +166,7 @@ class UserService {
   static Future<List<City>> getCities(String? keyword) async {
     final url = keyword != null ? '$apiUrl/api/cities?keyword=$keyword' : '$apiUrl/api/cities';
     try {
-      final response = await http
-          .get(Uri.parse(url), headers: {'Content-Type': 'application/json', 'Accept': 'application/json'})
-          .timeout(const Duration(seconds: 10));
+      final response = await http.get(Uri.parse(url), headers: {'Content-Type': 'application/json', 'Accept': 'application/json'}).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         try {
@@ -210,9 +200,7 @@ class UserService {
   static Future<List<Subject>> getSubjects(String? keyword) async {
     final url = keyword != null && keyword.isNotEmpty ? '$apiUrl/api/subjects?keyword=$keyword' : '$apiUrl/api/subjects';
     try {
-      final response = await http
-          .get(Uri.parse(url), headers: {'Content-Type': 'application/json', 'Accept': 'application/json'})
-          .timeout(const Duration(seconds: 10));
+      final response = await http.get(Uri.parse(url), headers: {'Content-Type': 'application/json', 'Accept': 'application/json'}).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         try {
@@ -221,7 +209,7 @@ class UserService {
           final dynamic data = responseData['data'];
           final List<dynamic> items = data is Map<String, dynamic> ? (data['items'] ?? []) : (data is List ? data : []);
 
-          return items.map((s) { 
+          return items.map((s) {
             if (s is Map<String, dynamic>) {
               return Subject.fromJson(s);
             } else {

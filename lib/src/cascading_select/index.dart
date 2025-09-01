@@ -10,8 +10,7 @@ class CascadingItem<T> {
   const CascadingItem({required this.label, required this.value, this.extra, this.children = const []});
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) || other is CascadingItem && runtimeType == other.runtimeType && value == other.value;
+  bool operator ==(Object other) => identical(this, other) || other is CascadingItem && runtimeType == other.runtimeType && value == other.value;
 
   @override
   int get hashCode => value.hashCode;
@@ -39,15 +38,7 @@ class CascadingSelect<T> extends StatefulWidget {
   /// 单级模式：返回当前选中的路径 [一级, 二级, 三级]
   final void Function(List<CascadingItem<T>> selected)? onConfirm;
 
-  const CascadingSelect({
-    super.key,
-    required this.options,
-    this.title = '三级联选多选',
-    this.multiple = true,
-    this.showUnlimited = true,
-    this.defaultSelectedValues,
-    this.onConfirm,
-  });
+  const CascadingSelect({super.key, required this.options, this.title = '三级联选多选', this.multiple = true, this.showUnlimited = true, this.defaultSelectedValues, this.onConfirm});
 
   @override
   State<CascadingSelect<T>> createState() => _CascadingSelectState<T>();
@@ -86,10 +77,8 @@ class _CascadingSelectState<T> extends State<CascadingSelect<T>> {
   }
 
   List<CascadingItem<T>> get _firstList => widget.options;
-  List<CascadingItem<T>> get _secondList =>
-      _firstList.isEmpty ? const [] : _firstList[_activeFirstIndex.clamp(0, _firstList.length - 1)].children;
-  List<CascadingItem<T>> get _thirdList =>
-      _secondList.isEmpty ? const [] : _secondList[_activeSecondIndex.clamp(0, _secondList.length - 1)].children;
+  List<CascadingItem<T>> get _secondList => _firstList.isEmpty ? const [] : _firstList[_activeFirstIndex.clamp(0, _firstList.length - 1)].children;
+  List<CascadingItem<T>> get _thirdList => _secondList.isEmpty ? const [] : _secondList[_activeSecondIndex.clamp(0, _secondList.length - 1)].children;
 
   // 打开选择面板
   void _openSheet() {
@@ -212,11 +201,7 @@ class _CascadingSelectState<T> extends State<CascadingSelect<T>> {
                 item.label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: active ? const Color(0xFF007AFF) : const Color(0xFF333333),
-                  fontSize: 14,
-                  fontWeight: active ? FontWeight.w600 : FontWeight.normal,
-                ),
+                style: TextStyle(color: active ? const Color(0xFF007AFF) : const Color(0xFF333333), fontSize: 14, fontWeight: active ? FontWeight.w600 : FontWeight.normal),
               ),
             ),
           );
@@ -334,10 +319,7 @@ class _CascadingSelectState<T> extends State<CascadingSelect<T>> {
                   final bool isUnlimited = _tempUnlimitedBySecond[secondValue] == true;
                   return ListTile(
                     title: const Text('不限'),
-                    trailing: Icon(
-                      isUnlimited ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                      color: isUnlimited ? const Color(0xFF007AFF) : Colors.grey[400],
-                    ),
+                    trailing: Icon(isUnlimited ? Icons.radio_button_checked : Icons.radio_button_unchecked, color: isUnlimited ? const Color(0xFF007AFF) : Colors.grey[400]),
                     onTap: () {
                       setStateModal(() {
                         final thirdValuesOfSecond = list.map((e) => e.value).toSet();
@@ -434,7 +416,7 @@ class _CascadingSelectState<T> extends State<CascadingSelect<T>> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: Colors.grey[200]!),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
         ),
         child: Row(
           children: [

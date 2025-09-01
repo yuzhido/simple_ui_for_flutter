@@ -81,11 +81,7 @@ class _DatabaseDemoPageState extends State<DatabaseDemoPage> {
 
     setState(() => _isLoading = true);
     try {
-      final results = await Future.wait([
-        _dbService.searchUsers(keyword),
-        _dbService.searchCities(keyword),
-        _dbService.searchSubjects(keyword),
-      ]);
+      final results = await Future.wait([_dbService.searchUsers(keyword), _dbService.searchCities(keyword), _dbService.searchSubjects(keyword)]);
 
       setState(() {
         _users = results[0];
@@ -106,13 +102,7 @@ class _DatabaseDemoPageState extends State<DatabaseDemoPage> {
       await _dbService.insertCity({'name': '杭州', 'province': '浙江省', 'population': 1194, 'area': 16853.0, 'description': '人间天堂'});
 
       // 添加新科目
-      await _dbService.insertSubject({
-        'name': '计算机科学',
-        'category': '技术学科',
-        'credits': 5,
-        'difficulty': '困难',
-        'description': '计算机基础课程',
-      });
+      await _dbService.insertSubject({'name': '计算机科学', 'category': '技术学科', 'credits': 5, 'difficulty': '困难', 'description': '计算机基础课程'});
 
       // 添加新用户
       await _dbService.insertUser({
@@ -139,9 +129,7 @@ class _DatabaseDemoPageState extends State<DatabaseDemoPage> {
   }
 
   void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), duration: const Duration(seconds: 2), backgroundColor: const Color(0xFF007AFF)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), duration: const Duration(seconds: 2), backgroundColor: const Color(0xFF007AFF)));
   }
 
   @override
@@ -228,11 +216,7 @@ class _DatabaseDemoPageState extends State<DatabaseDemoPage> {
         Expanded(
           child: TextField(
             controller: _searchController,
-            decoration: const InputDecoration(
-              hintText: '搜索用户、城市或科目...',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(),
-            ),
+            decoration: const InputDecoration(hintText: '搜索用户、城市或科目...', prefixIcon: Icon(Icons.search), border: OutlineInputBorder()),
             onSubmitted: (_) => _searchData(),
           ),
         ),
@@ -320,11 +304,7 @@ class _DatabaseDemoPageState extends State<DatabaseDemoPage> {
       title: Text(city['name'] ?? ''),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('省份: ${city['province'] ?? ''}'),
-          Text('人口: ${city['population'] ?? ''}万'),
-          Text('面积: ${city['area'] ?? ''}平方公里'),
-        ],
+        children: [Text('省份: ${city['province'] ?? ''}'), Text('人口: ${city['population'] ?? ''}万'), Text('面积: ${city['area'] ?? ''}平方公里')],
       ),
       trailing: PopupMenuButton(
         itemBuilder: (context) => [
@@ -348,11 +328,7 @@ class _DatabaseDemoPageState extends State<DatabaseDemoPage> {
       title: Text(subject['name'] ?? ''),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('分类: ${subject['category'] ?? ''}'),
-          Text('学分: ${subject['credits'] ?? ''}'),
-          Text('难度: ${subject['difficulty'] ?? ''}'),
-        ],
+        children: [Text('分类: ${subject['category'] ?? ''}'), Text('学分: ${subject['credits'] ?? ''}'), Text('难度: ${subject['difficulty'] ?? ''}')],
       ),
       trailing: PopupMenuButton(
         itemBuilder: (context) => [
@@ -470,7 +446,9 @@ class _AdvancedQueriesDialogState extends State<AdvancedQueriesDialog> {
       final results = await query;
       setState(() => _queryResults = results);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('查询失败: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('查询失败: $e')));
+      }
     } finally {
       setState(() => _isLoading = false);
     }

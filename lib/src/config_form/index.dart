@@ -363,7 +363,7 @@ class _ConfigFormState extends State<ConfigForm> {
                       ],
                     ),
                   );
-                }).toList(),
+                }),
               ],
             ),
           ),

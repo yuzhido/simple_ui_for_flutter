@@ -1,5 +1,3 @@
-library simple_ui;
-
 // 导出下拉选择组件
 export 'src/dropdown_choose/index.dart';
 
