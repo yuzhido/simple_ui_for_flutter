@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:simple_ui/models/form_field_config.dart';
 import 'package:simple_ui/models/select_data.dart';
 import 'package:simple_ui/src/dropdown_choose/index.dart';
-import 'package:simple_ui/src/upload_file/index.dart';
+import 'package:simple_ui/src/upload/index.dart';
 import 'package:simple_ui/models/upload_result.dart';
 
 class ConfigForm extends StatefulWidget {
@@ -295,7 +295,7 @@ class _ConfigFormState extends State<ConfigForm> {
       children: [
         _buildLabel(field.label, field.required),
         const SizedBox(height: 8),
-        UploadFile(
+        Upload(
           onSelected: (result) {
             if (field.disabled) return;
             setState(() {

@@ -12,9 +12,7 @@ class _UploadFilePageState extends State<UploadFilePage> {
 
   void _handleSelected(UploadResult result) {
     setState(() => _lastResult = result);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('已选择: ${result.name}'), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('已选择: ${result.name}'), behavior: SnackBarBehavior.floating, duration: const Duration(seconds: 2)));
   }
 
   Widget _buildResultPreview() {
@@ -104,30 +102,13 @@ class _UploadFilePageState extends State<UploadFilePage> {
                 runSpacing: 12,
                 children: [
                   // 1) 相册选图：chooseImage=true 用 svg 图片触发
-                  UploadFile(
-                    buttonText: '相册选图',
-                    buttonIcon: Icons.photo_library_rounded,
-                    allowedSources: const {UploadSource.image},
-                    chooseImage: true,
-                    onSelected: _handleSelected,
-                  ),
+                  Upload(buttonText: '相册选图', buttonIcon: Icons.photo_library_rounded, allowedSources: const {UploadSource.image}, chooseImage: true, onSelected: _handleSelected),
                   // 2) 拍照：chooseImage=true 用 svg 图片触发
-                  UploadFile(
-                    buttonText: '拍照',
-                    buttonIcon: Icons.photo_camera_rounded,
-                    allowedSources: const {UploadSource.camera},
-                    chooseImage: true,
-                    onSelected: _handleSelected,
-                  ),
+                  Upload(buttonText: '拍照', buttonIcon: Icons.photo_camera_rounded, allowedSources: const {UploadSource.camera}, chooseImage: true, onSelected: _handleSelected),
                   // 3) 选择文件：默认按钮
-                  UploadFile(
-                    buttonText: '选择文件',
-                    buttonIcon: Icons.description_rounded,
-                    allowedSources: const {UploadSource.file},
-                    onSelected: _handleSelected,
-                  ),
+                  Upload(buttonText: '选择文件', buttonIcon: Icons.description_rounded, allowedSources: const {UploadSource.file}, onSelected: _handleSelected),
                   // 4) 自定义触发组件
-                  UploadFile(
+                  Upload(
                     allowedSources: const {UploadSource.image, UploadSource.camera, UploadSource.file},
                     onSelected: _handleSelected,
                     triggerBuilder: (context, isPicking) {
@@ -153,7 +134,7 @@ class _UploadFilePageState extends State<UploadFilePage> {
                     },
                   ),
                   // 5) 自动选择来源（默认按钮）
-                  UploadFile(buttonText: '自动选择来源', buttonIcon: Icons.upload_rounded, onSelected: _handleSelected),
+                  Upload(buttonText: '自动选择来源', buttonIcon: Icons.upload_rounded, onSelected: _handleSelected),
                 ],
               ),
               const SizedBox(height: 24),
