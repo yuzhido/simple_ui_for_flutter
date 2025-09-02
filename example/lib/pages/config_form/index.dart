@@ -1,3 +1,4 @@
+import 'package:example/pages/config_form/choose_asset.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_ui/simple_ui.dart';
 
@@ -8,222 +9,159 @@ class ConfigFormPage extends StatefulWidget {
 }
 
 class _ConfigFormPageState extends State<ConfigFormPage> {
-  late final FormConfig formConfig;
-
-  @override
-  void initState() {
-    super.initState();
-
-    // 创建FormConfig对象
-    formConfig = FormConfig(
-      title: '数据驱动表单演示',
-      description: '这是一个数据驱动表单演示，通过配置信息动态生成表单字段',
-      submitButtonText: '提交',
-      fields: [
-        FormFieldConfig(label: '姓名', name: 'name', type: FormFieldType.text, required: true),
-        FormFieldConfig(label: '年龄', name: 'age', type: FormFieldType.integer, required: true),
-        FormFieldConfig(label: '身高', name: 'height', type: FormFieldType.double, required: false),
-        FormFieldConfig(
-          label: '性别',
-          name: 'gender',
-          type: FormFieldType.select,
-          required: true,
-          options: [
-            SelectData(label: '男', value: '男', data: '男'),
-            SelectData(label: '女', value: '女', data: '女'),
-          ],
-        ),
-        FormFieldConfig(
-          label: '爱好',
-          name: 'hobby',
-          type: FormFieldType.checkbox,
-          required: true,
-          options: [
-            SelectData(label: '读书', value: '读书', data: '读书'),
-            SelectData(label: '旅游', value: '旅游', data: '旅游'),
-            SelectData(label: '美食', value: '美食', data: '美食'),
-            SelectData(label: '运动', value: '运动', data: '运动'),
-            SelectData(label: '音乐', value: '音乐', data: '音乐'),
-          ],
-        ),
-        FormFieldConfig(
-          label: '职业',
-          name: 'profession',
-          type: FormFieldType.radio,
-          required: true,
-          options: [
-            SelectData(label: '程序员', value: '程序员', data: '程序员'),
-            SelectData(label: '设计师', value: '设计师', data: '设计师'),
-            SelectData(label: '产品经理', value: '产品经理', data: '产品经理'),
-            SelectData(label: '运营', value: '运营', data: '运营'),
-            SelectData(label: '销售', value: '销售', data: '销售'),
-          ],
-        ),
-        FormFieldConfig(
-          label: '城市',
-          name: 'city',
-          type: FormFieldType.select,
-          required: true,
-          options: [
-            SelectData(label: '北京', value: '北京', data: '北京'),
-            SelectData(label: '上海', value: '上海', data: '上海'),
-            SelectData(label: '广州', value: '广州', data: '广州'),
-            SelectData(label: '深圳', value: '深圳', data: '深圳'),
-            SelectData(label: '杭州', value: '杭州', data: '杭州'),
-            SelectData(label: '成都', value: '成都', data: '成都'),
-          ],
-        ),
-        FormFieldConfig(label: '邮箱', name: 'email', type: FormFieldType.text, required: true, placeholder: '请输入邮箱地址', validationRule: 'email'),
-        // 基础文件上传 - 支持图片、文件、相机
-        FormFieldConfig(label: '基础文件上传（图片+文件+相机）', name: 'basicFiles', type: FormFieldType.upload, required: false),
-
-        // 仅图片上传 - 相册和相机
-        FormFieldConfig(label: '仅图片上传（相册+相机）', name: 'imageFiles', type: FormFieldType.upload, required: false),
-
-        // 仅文件选择
-        FormFieldConfig(label: '仅文件选择（文档）', name: 'docFiles', type: FormFieldType.upload, required: false),
-
-        // 仅相机拍照
-        FormFieldConfig(label: '仅相机拍照', name: 'cameraFiles', type: FormFieldType.upload, required: false),
-
-        // 必填文件上传
-        FormFieldConfig(label: '必填文件上传（图片+文件+相机）', name: 'requiredFiles', type: FormFieldType.upload, required: true),
-        FormFieldConfig(label: '个人简介', name: 'bio', type: FormFieldType.textarea, required: false),
-
-        // 提交和重置按钮
-        FormFieldConfig(label: '提交', name: 'submit', type: FormFieldType.button, required: false),
-      ],
-    );
-  }
-
-  Map<String, dynamic>? _formData;
-
-  void _handleSubmit(Map<String, dynamic> data) {
-    setState(() {
-      _formData = data;
-    });
-
-    // 显示提交结果
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('表单提交成功'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: data.entries.map((entry) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 80,
-                      child: Text('${entry.key}:', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                    Expanded(
-                      child: Text(entry.value?.toString() ?? 'null', style: TextStyle(color: entry.value == null ? Colors.grey : Colors.black)),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('确定'))],
-      ),
-    );
-  }
-
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final ConfigFormController _formController = ConfigFormController();
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('数据驱动表单演示'), backgroundColor: const Color(0xFF007AFF), foregroundColor: Colors.white),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 上传文件组件使用说明
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              margin: const EdgeInsets.only(bottom: 24),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.shade200),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    final cfg = FormConfig(
+      fields: [
+        FormFieldConfig.text(name: 'title', label: '标题', placeholder: '请输入标题', required: true),
+        FormFieldConfig.number(name: 'price', label: '价格', placeholder: '如 9.99', props: const NumberFieldProps(min: 0)),
+        FormFieldConfig.integer(name: 'count', label: '数量', placeholder: '仅整数', props: const IntegerFieldProps(min: 0)),
+        FormFieldConfig.textarea(name: 'desc', label: '描述', placeholder: '请输入描述', props: const TextareaFieldProps(maxLines: 4)),
+        FormFieldConfig.select(
+          name: 'cate',
+          label: '分类',
+          props: SelectFieldProps(
+            options: const [
+              SelectData(label: '数码', value: 'digital', data: 'digital'),
+              SelectData(label: '服饰', value: 'clothes', data: 'clothes'),
+              SelectData(label: '食品', value: 'food', data: 'food'),
+            ],
+          ),
+        ),
+        FormFieldConfig.checkbox(
+          name: 'tags',
+          label: '标签',
+          props: CheckboxFieldProps(
+            options: const [
+              SelectData(label: '新品', value: 'new', data: 'new'),
+              SelectData(label: '热卖', value: 'hot', data: 'hot'),
+              SelectData(label: '推荐', value: 'recommend', data: 'recommend'),
+            ],
+          ),
+        ),
+        FormFieldConfig.radio(
+          name: 'sex',
+          label: '性别',
+          props: RadioFieldProps(
+            options: const [
+              SelectData(label: '男', value: 'male', data: 'male'),
+              SelectData(label: '女', value: 'female', data: 'female'),
+            ],
+          ),
+        ),
+        // 让原组件的表单项都至少展示一次：dropdown/date/time/datetime/upload
+        // 自定义下拉：演示远程搜索
+        FormFieldConfig.dropdown(
+          name: 'customDrop',
+          label: '选择水果(远程)',
+          props: DropdownFieldProps(
+            remote: true,
+            singleTitleText: '远程搜索水果',
+            placeholderText: '请输入关键字搜索水果',
+            options: const [],
+            onSingleSelected: (val) {
+              print(val.label);
+            },
+            remoteFetch: (String keyword) async {
+              await Future.delayed(const Duration(milliseconds: 400));
+              final all = <SelectData<String>>[
+                const SelectData(label: '苹果', value: 'apple', data: 'fruit'),
+                const SelectData(label: '香蕉', value: 'banana', data: 'fruit'),
+                const SelectData(label: '橙子', value: 'orange', data: 'fruit'),
+                const SelectData(label: '葡萄', value: 'grape', data: 'fruit'),
+                const SelectData(label: '西瓜', value: 'watermelon', data: 'fruit'),
+                const SelectData(label: '樱桃', value: 'cherry', data: 'fruit'),
+                const SelectData(label: '菠萝', value: 'pineapple', data: 'fruit'),
+                const SelectData(label: '草莓', value: 'strawberry', data: 'fruit'),
+                const SelectData(label: '芒果', value: 'mango', data: 'fruit'),
+                const SelectData(label: '蓝莓', value: 'blueberry', data: 'fruit'),
+              ];
+              final kw = keyword.trim().toLowerCase();
+              if (kw.isEmpty) {
+                return all.take(6).toList();
+              }
+              return all
+                  .where((e) => e.label.toLowerCase().contains(kw) || (e.value?.toLowerCase().contains(kw) ?? false))
+                  .map((e) => SelectData<dynamic>(label: e.label, value: e.value, data: e.data))
+                  .toList();
+            },
+          ),
+        ),
+        FormFieldConfig.date(name: 'bookDate', label: '日期'),
+        FormFieldConfig.time(name: 'bookTime', label: '时间'),
+        FormFieldConfig.datetime(name: 'bookDateTime', label: '日期时间'),
+        FormFieldConfig.upload(
+          name: 'attachment',
+          label: '附件上传',
+          props: const UploadFieldProps(uploadText: '上传文件', autoUpload: false),
+        ),
+        FormFieldConfig.custom(
+          name: 'extra',
+          label: '自定义区域',
+          props: CustomFieldProps(
+            contentBuilder: (context, value, onChanged) {
+              return const ChooseAsset();
+            },
+          ),
+        ),
+        FormFieldConfig.custom(
+          name: 'extra',
+          props: CustomFieldProps(
+            contentBuilder: (context, value, onChanged) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                spacing: 10,
                 children: [
-                  Row(
-                    children: [
-                      Icon(Icons.info_outline, color: Colors.blue.shade600),
-                      const SizedBox(width: 8),
-                      Text(
-                        '上传文件组件使用说明',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue.shade700),
-                      ),
-                    ],
+                  ElevatedButton(
+                    onPressed: () {
+                      _formKey.currentState?.reset();
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                    },
+                    child: Text('重置'),
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    '• 基础文件上传：支持从相册选择图片、从文件系统选择文档、使用相机拍照\n'
-                    '• 仅图片上传：仅支持从相册选择图片和使用相机拍照，使用图片样式按钮\n'
-                    '• 仅文件选择：仅支持从文件系统选择文档\n'
-                    '• 仅相机拍照：仅支持使用相机拍照\n'
-                    '• 必填文件上传：必须选择文件才能提交表单',
-                    style: TextStyle(fontSize: 14, color: Colors.blue.shade700, height: 1.4),
+                  ElevatedButton(
+                    onPressed: () {
+                      final ok = _formKey.currentState?.validate() ?? false;
+                      if (!ok) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请完成必填项'), duration: Duration(milliseconds: 1200)));
+                      } else {
+                        debugPrint('表单值: ${_formController.values}');
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('校验通过: ${_formController.values}'), duration: const Duration(milliseconds: 1500)));
+                      }
+                    },
+                    child: Text('确定'),
                   ),
                 ],
-              ),
-            ),
-
-            // 使用动态表单组件
-            ConfigForm(formConfig: formConfig, onSubmit: _handleSubmit),
-
-            // 显示表单数据
-            if (_formData != null) ...[
-              const SizedBox(height: 32),
-              const Divider(),
-              const SizedBox(height: 16),
-              const Text('表单数据预览：', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: _formData!.entries.map((entry) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: 100,
-                            child: Text('${entry.key}:', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          ),
-                          Expanded(
-                            child: Text(entry.value?.toString() ?? 'null', style: TextStyle(color: entry.value == null ? Colors.grey : Colors.black)),
-                          ),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ],
-          ],
+              );
+            },
+          ),
+        ),
+      ],
+    );
+    return Scaffold(
+      appBar: AppBar(title: const Text('表单配置')),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [ConfigForm(formConfig: cfg, formKey: _formKey, controller: _formController)],
         ),
       ),
     );
   }
+
+  SelectData<String>? singleSelected;
+  // 我整理的开始
+  final List<SelectData<String>> singleChoose = const [
+    SelectData(label: '选项1', value: '1', data: 'data1'),
+    SelectData(label: '选项2', value: '2', data: 'data2'),
+    SelectData(label: '选项3', value: '3', data: 'data3'),
+    SelectData(label: '选项4', value: '4', data: 'data4'),
+    SelectData(label: '选项5', value: '5', data: 'data5'),
+    SelectData(label: '苹果', value: 'apple', data: 'fruit'),
+    SelectData(label: '香蕉', value: 'banana', data: 'fruit'),
+    SelectData(label: '橙子', value: 'orange', data: 'fruit'),
+    SelectData(label: '葡萄', value: 'grape', data: 'fruit'),
+    SelectData(label: '西瓜', value: 'watermelon', data: 'fruit'),
+  ];
 }

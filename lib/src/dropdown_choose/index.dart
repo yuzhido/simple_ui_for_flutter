@@ -13,6 +13,11 @@ class DropdownChoose<T> extends StatefulWidget {
   final Function(List<SelectData<T>>)? onMultipleSelected;
   final bool filterable;
   final bool remote;
+  // 顶部标题文案（可选覆盖）。单选默认“请选择”，多选默认“请选择（可多选）”
+  final String? singleTitleText;
+  final String? multipleTitleText;
+  // 未选择时的占位提示文案，默认“请选择选项”
+  final String? placeholderText;
 
   const DropdownChoose({
     super.key,
@@ -24,7 +29,10 @@ class DropdownChoose<T> extends StatefulWidget {
     this.onMultipleSelected,
     this.filterable = false,
     this.remote = false,
-  });
+    this.singleTitleText,
+    this.multipleTitleText,
+    this.placeholderText,
+  }) : assert(!(singleTitleText != null && multipleTitleText != null), 'DropdownChoose: singleTitleText 与 multipleTitleText 不能同时传入');
 
   @override
   State<DropdownChoose<T>> createState() => _DropdownChooseState<T>();
@@ -55,10 +63,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
     if (widget.defaultValue != null) {
       if (widget.multiple == true) {
         // 多选模式：defaultValue必须是List<SelectData<T>>
-        assert(
-          widget.defaultValue is List<SelectData<T>>,
-          'DropdownChoose: 多选模式下defaultValue必须是List<SelectData<T>>类型，当前类型: ${widget.defaultValue.runtimeType}',
-        );
+        assert(widget.defaultValue is List<SelectData<T>>, 'DropdownChoose: 多选模式下defaultValue必须是List<SelectData<T>>类型，当前类型: ${widget.defaultValue.runtimeType}');
       } else {
         // 单选模式：defaultValue必须是SelectData<T>，不能是List
         assert(
@@ -238,7 +243,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            widget.multiple == false ? '请选择' : '请选择（可多选）',
+                            widget.multiple == false ? (widget.singleTitleText ?? '请选择') : (widget.multipleTitleText ?? '请选择（可多选）'),
                             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF333333)),
                           ),
                           GestureDetector(
@@ -351,9 +356,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                                 itemCount: _filteredList.length,
                                 itemBuilder: (context, index) {
                                   final item = _filteredList[index];
-                                  final isSelected = widget.multiple == false
-                                      ? (_selectedValue?.value == item.value)
-                                      : _selectedValues.any((e) => e.value == item.value);
+                                  final isSelected = widget.multiple == false ? (_selectedValue?.value == item.value) : _selectedValues.any((e) => e.value == item.value);
                                   return Container(
                                     margin: EdgeInsets.only(top: 12, right: 12, left: 12),
                                     decoration: BoxDecoration(
@@ -361,13 +364,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(color: isSelected ? const Color(0xFF007AFF) : Colors.grey[200]!),
                                       boxShadow: isSelected
-                                          ? [
-                                              BoxShadow(
-                                                color: const Color(0xFF007AFF).withValues(alpha: 0.1),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ]
+                                          ? [BoxShadow(color: const Color(0xFF007AFF).withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 2))]
                                           : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 1))],
                                     ),
                                     child: ListTile(
@@ -448,18 +445,10 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                   padding: const EdgeInsets.symmetric(vertical: 12),
                                 ),
-                                icon: Icon(
-                                  Icons.check_circle_outline,
-                                  size: 18,
-                                  color: _selectedValues.isEmpty ? Colors.grey[400] : const Color(0xFF007AFF),
-                                ),
+                                icon: Icon(Icons.check_circle_outline, size: 18, color: _selectedValues.isEmpty ? Colors.grey[400] : const Color(0xFF007AFF)),
                                 label: Text(
                                   '已选择 (${_selectedValues.length})',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: _selectedValues.isEmpty ? Colors.grey[400] : const Color(0xFF007AFF),
-                                  ),
+                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: _selectedValues.isEmpty ? Colors.grey[400] : const Color(0xFF007AFF)),
                                 ),
                               ),
                             ),
@@ -483,11 +472,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                                 icon: Icon(Icons.check, size: 18, color: _selectedValues.isEmpty ? Colors.grey[500] : Colors.white),
                                 label: Text(
                                   '确认选择',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: _selectedValues.isEmpty ? Colors.grey[500] : Colors.white,
-                                  ),
+                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: _selectedValues.isEmpty ? Colors.grey[500] : Colors.white),
                                 ),
                               ),
                             ),
@@ -581,10 +566,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                               children: [
                                 Container(
                                   padding: const EdgeInsets.all(6),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF007AFF).withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
+                                  decoration: BoxDecoration(color: const Color(0xFF007AFF).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
                                   child: const Icon(Icons.check_circle, color: Color(0xFF007AFF), size: 16),
                                 ),
                                 const SizedBox(width: 12),
@@ -596,8 +578,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                                         item.label,
                                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Color(0xFF333333)),
                                       ),
-                                      if (item.value != null)
-                                        Text('值: ${item.value}', style: const TextStyle(fontSize: 12, color: Color(0xFF999999))),
+                                      if (item.value != null) Text('值: ${item.value}', style: const TextStyle(fontSize: 12, color: Color(0xFF999999))),
                                     ],
                                   ),
                                 ),
@@ -752,7 +733,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
             Expanded(
               child: widget.multiple == true
                   ? (_selectedValues.isEmpty
-                        ? const Text('请选择选项', style: TextStyle(fontSize: 16, color: Color(0xFF999999)))
+                        ? Text(widget.placeholderText ?? '请选择选项', style: const TextStyle(fontSize: 16, color: Color(0xFF999999)))
                         : SizedBox(
                             height: 30,
                             child: ListView.separated(
@@ -775,7 +756,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                             ),
                           ))
                   : Text(
-                      _selectedValue?.label ?? '请选择选项',
+                      _selectedValue?.label ?? (widget.placeholderText ?? '请选择选项'),
                       style: TextStyle(
                         fontSize: 16,
                         color: _selectedValue != null ? const Color(0xFF333333) : const Color(0xFF999999),

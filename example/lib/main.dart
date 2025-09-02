@@ -1,3 +1,4 @@
+import 'package:example/pages/business_manage/asset_transfer.dart';
 import 'package:example/pages/data_for_form/index.dart';
 import 'package:example/pages/notice_info/index.dart';
 import 'package:example/pages/tree_select/index.dart';
@@ -59,6 +60,7 @@ class HomePage extends StatelessWidget {
               },
               child: Text('跳转查看上传文件（UploadFile）示例'),
             ),
+
             ElevatedButton(
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const NoticeInfoPage()));
@@ -89,6 +91,13 @@ class HomePage extends StatelessWidget {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const ConfigFormPage()));
               },
               child: Text('跳转查看动态表单（ConfigForm）示例'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const AssetTransferPage()));
+              },
+              child: Text('跳转查看资产转移（AssetTransfer）示例'),
             ),
           ],
         ),

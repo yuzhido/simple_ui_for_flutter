@@ -1,922 +1,625 @@
 import 'package:flutter/material.dart';
+import 'package:simple_ui/models/index.dart';
 import 'package:flutter/services.dart';
-import 'package:simple_ui/models/form_field_config.dart';
-import 'package:simple_ui/models/select_data.dart';
 import 'package:simple_ui/src/dropdown_choose/index.dart';
-import 'package:simple_ui/src/upload/index.dart';
-import 'package:simple_ui/models/upload_result.dart';
+import 'package:simple_ui/src/upload_file/index.dart';
+
+class ConfigFormController extends ChangeNotifier {
+  final Map<String, dynamic> _values = {};
+  Map<String, dynamic> get values => Map.unmodifiable(_values);
+  void _setAll(Map<String, dynamic> source) {
+    _values
+      ..clear()
+      ..addAll(source);
+    notifyListeners();
+  }
+}
 
 class ConfigForm extends StatefulWidget {
   final FormConfig formConfig;
-  final Function(Map<String, dynamic>)? onSubmit;
-  final Function(bool isValid, Map<String, String?> errors)? onValidationChanged;
-
-  const ConfigForm({super.key, required this.formConfig, this.onSubmit, this.onValidationChanged});
-
+  final EdgeInsets? padding;
+  final TextStyle? labelStyle;
+  final double? fieldGap;
+  final GlobalKey<FormState>? formKey;
+  final ConfigFormController? controller;
+  const ConfigForm({super.key, required this.formConfig, this.padding, this.labelStyle, this.fieldGap, this.formKey, this.controller});
   @override
   State<ConfigForm> createState() => _ConfigFormState();
 }
 
 class _ConfigFormState extends State<ConfigForm> {
-  final Map<String, dynamic> _formData = {};
-  final Map<String, TextEditingController> _controllers = {};
-  final Map<String, String?> _errors = {};
-  final Map<String, Key> _dropdownKeys = {};
-  // 添加一个key来强制重建表单
-  Key _formKey = UniqueKey();
-
-  // 暴露给外部调用的验证方法
-  bool validateForm() {
-    return _validateForm();
-  }
-
-  // 获取当前表单数据
-  Map<String, dynamic> getFormData() {
-    return Map.unmodifiable(_formData);
-  }
-
-  // 获取当前错误信息
-  Map<String, String?> getErrors() {
-    return Map.unmodifiable(_errors);
-  }
-
-  // 重置表单（外部可调用）
-  void resetForm() {
-    _resetForm();
-  }
+  // 基础静态状态（仅用于演示UI，不实现真实交互与校验）
+  // 仅保留动态表单所需的最小状态
+  final FocusNode _unfocusNode = FocusNode(debugLabel: 'unfocus-holder');
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final Map<String, TextEditingController> _cfgControllers = {};
+  final Map<String, dynamic> _cfgValues = {};
 
   @override
   void initState() {
     super.initState();
-    _initializeFormData();
-  }
-
-  void _initializeFormData() {
-    // 初始化控制器和默认值
-    for (var field in widget.formConfig.fields) {
-      final name = field.name;
-      if (field.type == FormFieldType.text ||
-          field.type == FormFieldType.number ||
-          field.type == FormFieldType.double ||
-          field.type == FormFieldType.integer ||
-          field.type == FormFieldType.textarea) {
-        _controllers[name] = TextEditingController();
-        if (field.defaultValue != null) {
-          _controllers[name]!.text = field.defaultValue.toString();
-          _formData[name] = field.defaultValue;
-        }
-      } else if (field.type == FormFieldType.select) {
-        // 为DropdownChoose组件创建key
-        _dropdownKeys[name] = UniqueKey();
-        if (field.defaultValue != null) {
-          _formData[name] = field.defaultValue;
-        }
-      } else if (field.defaultValue != null) {
-        _formData[name] = field.defaultValue;
-      }
-    }
+    _initConfigControllers();
   }
 
   @override
   void dispose() {
-    for (var controller in _controllers.values) {
-      controller.dispose();
+    _unfocusNode.dispose();
+    for (final c in _cfgControllers.values) {
+      c.dispose();
     }
     super.dispose();
   }
 
+  void _initConfigControllers() {
+    final cfg = widget.formConfig;
+    for (final field in cfg.fields) {
+      switch (field.type) {
+        case FormFieldType.text:
+        case FormFieldType.number:
+        case FormFieldType.integer:
+        case FormFieldType.textarea:
+          final controller = TextEditingController(text: field.defaultValue?.toString());
+          _cfgControllers[field.name] = controller;
+          _cfgValues[field.name] = field.defaultValue;
+          break;
+        default:
+          _cfgValues[field.name] = field.defaultValue;
+      }
+    }
+    _syncController();
+  }
+
+  void _syncController() {
+    widget.controller?._setAll(_cfgValues);
+  }
+
+  void _setValue(String name, dynamic value) {
+    _cfgValues[name] = value;
+    _syncController();
+  }
+
+  List<Widget> _buildDynamicFromConfig(FormConfig cfg) {
+    final widgets = <Widget>[];
+    for (final field in cfg.fields) {
+      final labelText = (field.label == null || field.label!.trim().isEmpty) ? '请配置label' : field.label!;
+      widgets.add(_buildLabel(labelText, isRequired: field.required));
+      widgets.add(const SizedBox(height: 8));
+      switch (field.type) {
+        case FormFieldType.text:
+          widgets.add(
+            TextFormField(
+              controller: _cfgControllers[field.name],
+              decoration: _inputDecoration(field.placeholder ?? '请输入'),
+              onChanged: (v) => _setValue(field.name, v),
+              validator: (v) {
+                if (field.required && (v == null || v.trim().isEmpty)) return '必填';
+                return null;
+              },
+            ),
+          );
+          break;
+        case FormFieldType.number:
+          // final p = field.props is NumberFieldProps ? field.props as NumberFieldProps : null; // reserved for future validation
+          widgets.add(
+            TextFormField(
+              controller: _cfgControllers[field.name],
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [
+                TextInputFormatter.withFunction((oldValue, newValue) {
+                  final text = newValue.text;
+                  if (text.isEmpty) return newValue;
+                  if (!RegExp(r'^[0-9.]*$').hasMatch(text)) return oldValue;
+                  if ('.'.allMatches(text).length > 1) return oldValue;
+                  if (text.startsWith('.')) {
+                    final fixed = '0$text';
+                    final baseOffset = newValue.selection.baseOffset + 1;
+                    final extentOffset = newValue.selection.extentOffset + 1;
+                    return TextEditingValue(
+                      text: fixed,
+                      selection: TextSelection(baseOffset: baseOffset, extentOffset: extentOffset),
+                    );
+                  }
+                  return newValue;
+                }),
+              ],
+              decoration: _inputDecoration(field.placeholder ?? '可输入小数'),
+              onChanged: (v) => _setValue(field.name, v),
+              validator: (v) {
+                if (field.required && (v == null || v.trim().isEmpty)) return '必填';
+                return null;
+              },
+            ),
+          );
+          break;
+        case FormFieldType.integer:
+          // final p = field.props is IntegerFieldProps ? field.props as IntegerFieldProps : null; // reserved for future validation
+          widgets.add(
+            TextFormField(
+              controller: _cfgControllers[field.name],
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              decoration: _inputDecoration(field.placeholder ?? '仅展示整数输入框'),
+              onChanged: (v) => _setValue(field.name, v),
+              validator: (v) {
+                if (field.required && (v == null || v.trim().isEmpty)) return '必填';
+                return null;
+              },
+            ),
+          );
+          break;
+        case FormFieldType.textarea:
+          final p = field.props is TextareaFieldProps ? field.props as TextareaFieldProps : null;
+          widgets.add(
+            TextFormField(
+              controller: _cfgControllers[field.name],
+              maxLines: p?.maxLines ?? 4,
+              decoration: _inputDecoration(field.placeholder ?? '请输入多行文本'),
+              onChanged: (v) => _setValue(field.name, v),
+              validator: (v) {
+                if (field.required && (v == null || v.trim().isEmpty)) return '必填';
+                return null;
+              },
+            ),
+          );
+          break;
+        case FormFieldType.select:
+          final List<SelectData<dynamic>> opts = field.props is SelectFieldProps ? (field.props as SelectFieldProps).options : const <SelectData<dynamic>>[];
+          widgets.add(
+            DropdownButtonFormField<dynamic>(
+              value: _cfgValues[field.name],
+              items: opts.map((o) => DropdownMenuItem(value: o.value, child: Text(o.label))).toList(),
+              onChanged: (val) => setState(() => _setValue(field.name, val)),
+              decoration: _inputDecoration(field.placeholder ?? '请选择'),
+              validator: (val) {
+                if (field.required && (val == null || (val is String && val.toString().trim().isEmpty))) return '必选';
+                return null;
+              },
+            ),
+          );
+          break;
+        case FormFieldType.radio:
+          final List<SelectData<dynamic>> opts = field.props is RadioFieldProps ? (field.props as RadioFieldProps).options : const <SelectData<dynamic>>[];
+          widgets.add(
+            FormField<dynamic>(
+              validator: (val) {
+                if (!field.required) return null;
+                final v = _cfgValues[field.name];
+                return v == null ? '必选' : null;
+              },
+              builder: (state) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildGroupContainer(
+                      Column(
+                        children: [
+                          ...opts.map(
+                            (o) => InkWell(
+                              onTap: () {
+                                setState(() => _setValue(field.name, o.value));
+                                state.didChange(o.value);
+                              },
+                              borderRadius: BorderRadius.circular(4),
+                              child: Row(
+                                children: [
+                                  Expanded(child: Text(o.label, style: const TextStyle(fontSize: 14))),
+                                  Radio<dynamic>(
+                                    value: o.value,
+                                    groupValue: _cfgValues[field.name],
+                                    onChanged: (v) {
+                                      setState(() => _setValue(field.name, v));
+                                      state.didChange(v);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (state.hasError)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(state.errorText ?? '', style: const TextStyle(color: Colors.red, fontSize: 12)),
+                      ),
+                  ],
+                );
+              },
+            ),
+          );
+          break;
+        case FormFieldType.checkbox:
+          final List selected = (_cfgValues[field.name] as List?) ?? <dynamic>[];
+          final List<SelectData<dynamic>> opts = field.props is CheckboxFieldProps ? (field.props as CheckboxFieldProps).options : const <SelectData<dynamic>>[];
+          widgets.add(
+            FormField<List<dynamic>>(
+              validator: (val) {
+                if (!field.required) return null;
+                final list = (_cfgValues[field.name] as List?) ?? <dynamic>[];
+                return list.isEmpty ? '至少选择一项' : null;
+              },
+              builder: (state) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildGroupContainer(
+                      Column(
+                        children: opts
+                            .map(
+                              (o) => CheckboxListTile(
+                                title: Text(o.label, style: const TextStyle(fontSize: 14)),
+                                value: selected.contains(o.value),
+                                onChanged: (checked) => setState(() {
+                                  if (checked == true) {
+                                    if (!selected.contains(o.value)) selected.add(o.value);
+                                  } else {
+                                    selected.remove(o.value);
+                                  }
+                                  final newList = List.from(selected);
+                                  _setValue(field.name, newList);
+                                  state.didChange(newList);
+                                }),
+                                dense: true,
+                                contentPadding: EdgeInsets.zero,
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                    if (state.hasError)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(state.errorText ?? '', style: const TextStyle(color: Colors.red, fontSize: 12)),
+                      ),
+                  ],
+                );
+              },
+            ),
+          );
+          break;
+        case FormFieldType.dropdown:
+          final p = field.props is DropdownFieldProps ? field.props as DropdownFieldProps : null;
+          final List<SelectData<dynamic>> opts = p?.options ?? const <SelectData<dynamic>>[];
+          final bool multiple = p?.multiple ?? false;
+          final bool filterable = p?.filterable ?? false;
+          final bool remote = p?.remote ?? false;
+          final dynamic defaultValue = p?.defaultValue;
+          widgets.add(
+            FormField<dynamic>(
+              validator: (val) {
+                if (!field.required) return null;
+                final v = _cfgValues[field.name];
+                if (multiple) {
+                  return (v is List && v.isNotEmpty) ? null : '至少选择一项';
+                }
+                return v == null ? '必选' : null;
+              },
+              builder: (state) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    DropdownChoose<dynamic>(
+                      list: remote ? null : opts,
+                      remoteFetch: remote ? (p?.remoteFetch == null ? null : (String? kw) => p!.remoteFetch!(kw ?? '')) : null,
+                      multiple: multiple,
+                      filterable: filterable,
+                      remote: remote,
+                      defaultValue: defaultValue,
+                      onSingleSelected: (value) {
+                        setState(() {
+                          _setValue(field.name, value.value);
+                        });
+                        state.didChange(value.value);
+                        if (p?.onSingleSelected != null) {
+                          p!.onSingleSelected!(value);
+                        }
+                      },
+                      onMultipleSelected: (values) {
+                        final list = values.map((e) => e.value).toList();
+                        setState(() {
+                          _setValue(field.name, list);
+                        });
+                        state.didChange(list);
+                        if (p?.onMultipleSelected != null) {
+                          p!.onMultipleSelected!(values);
+                        }
+                      },
+                    ),
+                    if (state.hasError)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(state.errorText ?? '', style: const TextStyle(color: Colors.red, fontSize: 12)),
+                      ),
+                  ],
+                );
+              },
+            ),
+          );
+          break;
+        case FormFieldType.date:
+          widgets.add(
+            FormField<String>(
+              validator: (val) {
+                if (field.required && (_cfgValues[field.name] == null || (_cfgValues[field.name].toString().trim().isEmpty))) return '必选';
+                return null;
+              },
+              builder: (state) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildTapContainer(
+                      placeholder: _cfgValues[field.name] == null ? (field.placeholder ?? '请选择日期') : _cfgValues[field.name].toString(),
+                      icon: Icons.calendar_today,
+                      onTap: () async {
+                        final now = DateTime.now();
+                        final picked = await showDatePicker(context: context, initialDate: now, firstDate: DateTime(1900), lastDate: DateTime(2100));
+                        if (picked != null) {
+                          final v = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+                          setState(() {
+                            _setValue(field.name, v);
+                          });
+                          state.didChange(v);
+                        }
+                      },
+                    ),
+                    if (state.hasError)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(state.errorText ?? '', style: const TextStyle(color: Colors.red, fontSize: 12)),
+                      ),
+                  ],
+                );
+              },
+            ),
+          );
+          break;
+        case FormFieldType.time:
+          widgets.add(
+            FormField<String>(
+              validator: (val) {
+                if (field.required && (_cfgValues[field.name] == null || (_cfgValues[field.name].toString().trim().isEmpty))) return '必选';
+                return null;
+              },
+              builder: (state) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildTapContainer(
+                      placeholder: _cfgValues[field.name] == null ? (field.placeholder ?? '请选择时间') : _cfgValues[field.name].toString(),
+                      icon: Icons.access_time,
+                      onTap: () async {
+                        final picked = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                        if (picked != null) {
+                          final v = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+                          setState(() {
+                            _setValue(field.name, v);
+                          });
+                          state.didChange(v);
+                        }
+                      },
+                    ),
+                    if (state.hasError)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(state.errorText ?? '', style: const TextStyle(color: Colors.red, fontSize: 12)),
+                      ),
+                  ],
+                );
+              },
+            ),
+          );
+          break;
+        case FormFieldType.datetime:
+          widgets.add(
+            FormField<String>(
+              validator: (val) {
+                if (field.required && (_cfgValues[field.name] == null || (_cfgValues[field.name].toString().trim().isEmpty))) return '必选';
+                return null;
+              },
+              builder: (state) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildTapContainer(
+                      placeholder: _cfgValues[field.name] == null ? (field.placeholder ?? '请选择日期时间') : _cfgValues[field.name].toString(),
+                      icon: Icons.event,
+                      onTap: () async {
+                        final now = DateTime.now();
+                        final date = await showDatePicker(context: context, initialDate: now, firstDate: DateTime(1900), lastDate: DateTime(2100));
+                        if (date == null) return;
+                        if (!mounted) return;
+                        final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
+                        if (time == null) return;
+                        final dt = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+                        final v =
+                            '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+                        setState(() {
+                          _setValue(field.name, v);
+                        });
+                        state.didChange(v);
+                      },
+                    ),
+                    if (state.hasError)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(state.errorText ?? '', style: const TextStyle(color: Colors.red, fontSize: 12)),
+                      ),
+                  ],
+                );
+              },
+            ),
+          );
+          break;
+        case FormFieldType.upload:
+          final p = field.props is UploadFieldProps ? field.props as UploadFieldProps : null;
+          widgets.add(
+            FormField<List<Map<String, dynamic>>>(
+              validator: (val) {
+                if (!field.required) return null;
+                final files = (_cfgValues[field.name] as List<Map<String, dynamic>>?) ?? const [];
+                return files.isEmpty ? '请上传文件' : null;
+              },
+              builder: (state) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    UploadFile(
+                      listType: (p?.listType is UploadListType) ? p?.listType as UploadListType : UploadListType.card,
+                      customUploadArea: p?.customUploadArea,
+                      uploadAreaSize: p?.uploadAreaSize,
+                      borderColor: p?.borderColor,
+                      backgroundColor: p?.backgroundColor ?? Colors.grey.shade50,
+                      borderRadius: p?.borderRadius,
+                      uploadIcon: p?.uploadIcon,
+                      iconSize: p?.iconSize,
+                      iconColor: p?.iconColor,
+                      uploadText: p?.uploadText ?? '上传文件',
+                      textStyle: p?.textStyle,
+                      initialFiles: p?.initialFiles ?? const [],
+                      onFilesChanged: (files) {
+                        setState(() {
+                          _setValue(field.name, files);
+                        });
+                        state.didChange(files);
+                        if (p?.onFilesChanged != null) {
+                          p!.onFilesChanged!(files);
+                        }
+                      },
+                      showFileList: p?.showFileList ?? true,
+                      customFileItemBuilder: p?.customFileItemBuilder,
+                      fileItemSize: p?.fileItemSize,
+                      limit: p?.limit ?? -1,
+                      fileSource: p?.fileSource ?? FileSource.all,
+                      onFileSelected: p?.onFileSelected,
+                      onImageSelected: p?.onImageSelected,
+                      uploadConfig: p?.uploadConfig,
+                      autoUpload: p?.autoUpload ?? false,
+                    ),
+                    if (state.hasError)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(state.errorText ?? '', style: const TextStyle(color: Colors.red, fontSize: 12)),
+                      ),
+                  ],
+                );
+              },
+            ),
+          );
+          break;
+        case FormFieldType.custom:
+          final p = field.props is CustomFieldProps ? field.props as CustomFieldProps : null;
+          assert(p != null, 'Custom type requires CustomFieldProps with contentBuilder');
+          if (p == null) break;
+          widgets.add(
+            p.contentBuilder(
+              context,
+              _cfgValues[field.name],
+              (newVal) => setState(() {
+                _setValue(field.name, newVal);
+              }),
+            ),
+          );
+          break;
+        // 无
+      }
+      widgets.add(const SizedBox(height: 16));
+    }
+    return widgets;
+  }
+
   @override
-  void didUpdateWidget(ConfigForm oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    // 如果formConfig发生变化，重新初始化控制器和默认值
-    if (oldWidget.formConfig != widget.formConfig) {
-      // 清理旧的控制器
-      for (var controller in _controllers.values) {
-        controller.dispose();
-      }
-      _controllers.clear();
-      _dropdownKeys.clear();
-      _formData.clear();
-      _errors.clear();
-
-      // 重新初始化控制器和默认值
-      _initializeFormData();
-    }
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTapDown: (_) {
+        FocusScope.of(context).requestFocus(_unfocusNode);
+      },
+      onPanDown: (_) {
+        FocusScope.of(context).requestFocus(_unfocusNode);
+      },
+      child: Focus(
+        focusNode: _unfocusNode,
+        descendantsAreFocusable: true,
+        canRequestFocus: true,
+        child: Form(
+          key: widget.formKey ?? _formKey,
+          autovalidateMode: AutovalidateMode.disabled,
+          child: SingleChildScrollView(
+            padding: widget.padding ?? widget.formConfig.uiOptions?.padding ?? const EdgeInsets.all(16),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [..._buildDynamicFromConfig(widget.formConfig)]),
+          ),
+        ),
+      ),
+    );
   }
 
-  /// 验证表单
-  bool _validateForm() {
-    _errors.clear();
-    bool isValid = true;
-
-    for (var field in widget.formConfig.fields) {
-      final name = field.name;
-      final required = field.required;
-      final value = _formData[name];
-
-      if (required) {
-        if (value == null || (value is String && value.trim().isEmpty) || (value is List && value.isEmpty)) {
-          _errors[name] = '${field.label}不能为空';
-          isValid = false;
-        }
-      }
-    }
-
-    setState(() {});
-
-    // 通知外部验证状态变化
-    if (widget.onValidationChanged != null) {
-      widget.onValidationChanged!(isValid, _errors);
-    }
-
-    return isValid;
-  }
-
-  /// 重置表单
-  void _resetForm() {
-    setState(() {
-      _errors.clear();
-      _formData.clear();
-
-      // 清空所有文本控制器
-      for (var controller in _controllers.values) {
-        controller.clear();
-      }
-
-      // 为DropdownChoose组件生成新的key，强制重建
-      for (var field in widget.formConfig.fields) {
-        if (field.type == FormFieldType.select) {
-          _dropdownKeys[field.name] = UniqueKey();
-        }
-      }
-
-      // 强制重建表单以重置所有字段状态
-      _formKey = UniqueKey();
-
-      // 重新初始化默认值
-      _initializeFormData();
-    });
-  }
-
-  /// 构建带红色*号的标签文本
-  Widget _buildLabel(String label, bool required) {
-    if (!required) {
-      return Text(
-        label,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black87),
-      );
-    }
+  Widget _buildLabel(String label, {bool isRequired = false}) {
+    final cfg = widget.formConfig.uiOptions;
+    final style = widget.labelStyle ?? cfg?.labelStyle ?? const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black87);
+    if (!isRequired) return Text(label, style: style);
     return RichText(
       text: TextSpan(
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black87),
         children: [
-          TextSpan(text: label),
+          TextSpan(text: label, style: style),
           const TextSpan(
             text: ' *',
-            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+            style: TextStyle(color: Colors.red, fontSize: 16, fontWeight: FontWeight.w500),
           ),
         ],
       ),
     );
   }
 
-  /// 构建错误提示
-  Widget _buildError(String? error) {
-    if (error == null) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.only(top: 8.0),
-      child: Text(error, style: const TextStyle(color: Colors.red, fontSize: 12)),
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Colors.blue, width: 2),
+      ),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     );
   }
 
-  Widget _buildField(FormFieldConfig field) {
-    final name = field.name;
-    final type = field.type;
-    final error = _errors[name];
-
-    switch (type) {
-      case FormFieldType.text:
-        return _buildTextField(field, error);
-
-      case FormFieldType.number:
-        return _buildNumberField(field, error, false);
-
-      case FormFieldType.integer:
-        return _buildNumberField(field, error, true);
-
-      case FormFieldType.double:
-        return _buildNumberField(field, error, false);
-
-      case FormFieldType.textarea:
-        return _buildTextArea(field, error);
-
-      case FormFieldType.radio:
-        return _buildRadioGroup(field, error);
-
-      case FormFieldType.checkbox:
-        return _buildCheckboxGroup(field, error);
-
-      case FormFieldType.select:
-        return _buildSelect(field, error);
-
-      case FormFieldType.dropdown:
-        return _buildSelect(field, error);
-
-      case FormFieldType.button:
-        return _buildButton(field);
-
-      case FormFieldType.switch_:
-        return _buildSwitch(field, error);
-
-      case FormFieldType.date:
-        return _buildDatePicker(field, error);
-
-      case FormFieldType.time:
-        return _buildTimePicker(field, error);
-
-      case FormFieldType.slider:
-        return _buildSlider(field, error);
-
-      case FormFieldType.upload:
-        return _buildUploadFile(field, error);
-    }
-  }
-
-  Widget _buildUploadFile(FormFieldConfig field, String? error) {
-    // 根据字段名称配置不同的上传方式
-    Set<UploadSource> allowedSources;
-    String buttonText;
-    IconData buttonIcon;
-    bool chooseImage = false;
-
-    switch (field.name) {
-      case 'basicFiles':
-        // 基础文件上传 - 支持图片、文件、相机
-        allowedSources = {UploadSource.image, UploadSource.file, UploadSource.camera};
-        buttonText = '选择文件';
-        buttonIcon = Icons.upload_file;
-        break;
-      case 'imageFiles':
-        // 仅图片上传 - 相册和相机
-        allowedSources = {UploadSource.image, UploadSource.camera};
-        buttonText = '选择图片';
-        buttonIcon = Icons.photo_library;
-        chooseImage = true;
-        break;
-      case 'docFiles':
-        // 仅文件选择
-        allowedSources = {UploadSource.file};
-        buttonText = '选择文档';
-        buttonIcon = Icons.description;
-        break;
-      case 'cameraFiles':
-        // 仅相机拍照
-        allowedSources = {UploadSource.camera};
-        buttonText = '拍照';
-        buttonIcon = Icons.camera_alt;
-        chooseImage = true;
-        break;
-      case 'requiredFiles':
-        // 必填文件上传
-        allowedSources = {UploadSource.image, UploadSource.file, UploadSource.camera};
-        buttonText = '选择文件 *';
-        buttonIcon = Icons.upload_file;
-        break;
-      default:
-        // 默认配置
-        allowedSources = {UploadSource.image, UploadSource.file, UploadSource.camera};
-        buttonText = '选择${field.label}';
-        buttonIcon = Icons.upload_file;
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(field.label, field.required),
-        const SizedBox(height: 8),
-        Upload(
-          onSelected: (result) {
-            if (field.disabled) return;
-            setState(() {
-              if (_formData[field.name] == null) {
-                _formData[field.name] = <dynamic>[];
-              }
-              final list = _formData[field.name] as List<dynamic>;
-              list.add(result);
-              _formData[field.name] = list;
-              if (error != null) {
-                _errors.remove(field.name);
-              }
-            });
-          },
-          allowedSources: allowedSources,
-          buttonText: buttonText,
-          buttonIcon: buttonIcon,
-          chooseImage: chooseImage,
-        ),
-        // 显示已选择的文件
-        if (_formData[field.name] != null && (_formData[field.name] as List<dynamic>).isNotEmpty) ...[
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade50,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.shade300),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '已选择的文件：',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.grey.shade700),
-                ),
-                const SizedBox(height: 8),
-                ...(_formData[field.name] as List<dynamic>).map((file) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      children: [
-                        Icon(Icons.insert_drive_file, color: Colors.blue.shade600, size: 20),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(file.name ?? '未知文件', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                              if (file.size != null) Text('${(file.size! / 1024).toStringAsFixed(1)} KB', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-                            ],
-                          ),
-                        ),
-                        if (!field.disabled)
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
-                            onPressed: () {
-                              setState(() {
-                                final list = _formData[field.name] as List<dynamic>;
-                                list.remove(file);
-                                _formData[field.name] = list;
-                              });
-                            },
-                          ),
-                      ],
-                    ),
-                  );
-                }),
-              ],
-            ),
-          ),
-        ],
-        _buildError(error),
-      ],
+  Widget _buildGroupContainer(Widget child) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: child,
     );
   }
 
-  Widget _buildTextField(FormFieldConfig field, String? error) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(field.label, field.required),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _controllers[field.name],
-          decoration: InputDecoration(
-            hintText: _getPlaceholder(field),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: error != null ? Colors.red : Colors.grey.shade300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: error != null ? Colors.red : Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.blue, width: 2),
-            ),
-            filled: true,
-            fillColor: field.disabled ? Colors.grey.shade100 : Colors.white,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-          enabled: !field.disabled,
-          onChanged: (value) {
-            _formData[field.name] = value;
-            if (error != null) {
-              _errors.remove(field.name);
-              setState(() {});
-            }
-          },
-        ),
-        _buildError(error),
-      ],
-    );
-  }
-
-  Widget _buildNumberField(FormFieldConfig field, String? error, bool isInteger) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(field.label, field.required),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _controllers[field.name],
-          decoration: InputDecoration(
-            hintText: _getPlaceholder(field),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: error != null ? Colors.red : Colors.grey.shade300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: error != null ? Colors.red : Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.blue, width: 2),
-            ),
-            filled: true,
-            fillColor: field.disabled ? Colors.grey.shade100 : Colors.white,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-          keyboardType: isInteger ? TextInputType.number : const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [if (isInteger) FilteringTextInputFormatter.digitsOnly else FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
-          enabled: !field.disabled,
-          onChanged: (value) {
-            _formData[field.name] = value;
-            if (error != null) {
-              _errors.remove(field.name);
-              setState(() {});
-            }
-          },
-        ),
-        _buildError(error),
-      ],
-    );
-  }
-
-  Widget _buildTextArea(FormFieldConfig field, String? error) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(field.label, field.required),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: _controllers[field.name],
-          decoration: InputDecoration(
-            hintText: _getPlaceholder(field),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: error != null ? Colors.red : Colors.grey.shade300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: error != null ? Colors.red : Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Colors.blue, width: 2),
-            ),
-            filled: true,
-            fillColor: field.disabled ? Colors.grey.shade100 : Colors.white,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-          maxLines: 4,
-          enabled: !field.disabled,
-          onChanged: (value) {
-            _formData[field.name] = value;
-            if (error != null) {
-              _errors.remove(field.name);
-              setState(() {});
-            }
-          },
-        ),
-        _buildError(error),
-      ],
-    );
-  }
-
-  Widget _buildRadioGroup(FormFieldConfig field, String? error) {
-    final options = field.options ?? [];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(field.label, field.required),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: error != null ? Colors.red : Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(8),
-            color: Colors.white,
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: Column(
-            children: options
-                .map(
-                  (option) => InkWell(
-                    onTap: field.disabled
-                        ? null
-                        : () {
-                            setState(() {
-                              _formData[field.name] = option.value;
-                              if (error != null) {
-                                _errors.remove(field.name);
-                              }
-                            });
-                          },
-                    borderRadius: BorderRadius.circular(4),
-                    child: Row(
-                      children: [
-                        Expanded(child: Text(option.label, style: const TextStyle(fontSize: 14))),
-                        Radio<dynamic>(
-                          value: option.value,
-                          groupValue: _formData[field.name],
-                          activeColor: Colors.blue,
-                          onChanged: field.disabled
-                              ? null
-                              : (value) {
-                                  setState(() {
-                                    _formData[field.name] = value;
-                                    if (error != null) {
-                                      _errors.remove(field.name);
-                                    }
-                                  });
-                                },
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
-        ),
-        _buildError(error),
-      ],
-    );
-  }
-
-  Widget _buildCheckboxGroup(FormFieldConfig field, String? error) {
-    final options = field.options ?? [];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(field.label, field.required),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: error != null ? Colors.red : Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(8),
-            color: Colors.white,
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: Column(
-            children: options
-                .map(
-                  (option) => CheckboxListTile(
-                    title: Text(option.label, style: const TextStyle(fontSize: 14)),
-                    value: (_formData[field.name] as List<dynamic>?)?.contains(option.value) ?? false,
-                    activeColor: Colors.blue,
-                    contentPadding: EdgeInsets.zero,
-                    dense: true,
-                    visualDensity: VisualDensity.compact,
-                    onChanged: field.disabled
-                        ? null
-                        : (checked) {
-                            setState(() {
-                              if (_formData[field.name] == null) {
-                                _formData[field.name] = <dynamic>[];
-                              }
-                              final list = _formData[field.name] as List<dynamic>;
-                              if (checked == true) {
-                                if (!list.contains(option.value)) {
-                                  list.add(option.value);
-                                }
-                              } else {
-                                list.remove(option.value);
-                              }
-                              if (error != null) {
-                                _errors.remove(field.name);
-                              }
-                            });
-                          },
-                  ),
-                )
-                .toList(),
-          ),
-        ),
-        _buildError(error),
-      ],
-    );
-  }
-
-  Widget _buildSelect(FormFieldConfig field, String? error) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(field.label, field.required),
-        const SizedBox(height: 8),
-        DropdownChoose<String>(
-          key: _dropdownKeys[field.name],
-          list: field.options?.map((option) => SelectData<String>(label: option.label, value: option.value as String, data: option.data)).toList(),
-          remoteFetch: field.remoteFetch != null
-              ? (String? keyword) =>
-                    field.remoteFetch!(keyword).then((list) => list.map((item) => SelectData<String>(label: item.label, value: item.value as String, data: item.data)).toList())
-              : null,
-          multiple: field.multiple,
-          filterable: field.filterable,
-          remote: field.remote,
-          defaultValue: field.defaultValue,
-          onSingleSelected: field.disabled
-              ? null
-              : (value) {
-                  setState(() {
-                    _formData[field.name] = value.value;
-                    if (error != null) {
-                      _errors.remove(field.name);
-                    }
-                  });
-                },
-          onMultipleSelected: field.disabled
-              ? null
-              : (values) {
-                  setState(() {
-                    _formData[field.name] = values.map((v) => v.value).toList();
-                    if (error != null) {
-                      _errors.remove(field.name);
-                    }
-                  });
-                },
-        ),
-        _buildError(error),
-      ],
-    );
-  }
-
-  Widget _buildSwitch(FormFieldConfig field, String? error) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(field.label, field.required),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Switch(
-              value: _formData[field.name] ?? false,
-              onChanged: field.disabled
-                  ? null
-                  : (value) {
-                      setState(() {
-                        _formData[field.name] = value;
-                        if (error != null) {
-                          _errors.remove(field.name);
-                        }
-                      });
-                    },
-            ),
-          ],
-        ),
-        _buildError(error),
-      ],
-    );
-  }
-
-  Widget _buildDatePicker(FormFieldConfig field, String? error) {
-    final hasValue = _formData[field.name] is DateTime;
-    final placeholder = _getPlaceholder(field);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(field.label, field.required),
-        const SizedBox(height: 8),
-        InkWell(
-          onTap: field.disabled
-              ? null
-              : () async {
-                  final date = await showDatePicker(context: context, initialDate: _formData[field.name] ?? DateTime.now(), firstDate: DateTime(1900), lastDate: DateTime(2100));
-                  if (date != null) {
-                    setState(() {
-                      _formData[field.name] = date;
-                      if (error != null) {
-                        _errors.remove(field.name);
-                      }
-                    });
-                  }
-                },
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: error != null ? Colors.red : Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(8),
-              color: field.disabled ? Colors.grey.shade100 : Colors.white,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: hasValue
-                      ? Text(
-                          '${_formData[field.name].year}-${_formData[field.name].month.toString().padLeft(2, '0')}-${_formData[field.name].day.toString().padLeft(2, '0')}',
-                          style: const TextStyle(fontSize: 16),
-                        )
-                      : Text(placeholder, style: TextStyle(fontSize: 16, color: Colors.grey.shade500)),
-                ),
-                const Icon(Icons.calendar_today, color: Colors.grey),
-              ],
-            ),
-          ),
-        ),
-        _buildError(error),
-      ],
-    );
-  }
-
-  Widget _buildTimePicker(FormFieldConfig field, String? error) {
-    final hasValue = _formData[field.name] is TimeOfDay;
-    final placeholder = _getPlaceholder(field);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(field.label, field.required),
-        const SizedBox(height: 8),
-        InkWell(
-          onTap: field.disabled
-              ? null
-              : () async {
-                  final time = await showTimePicker(context: context, initialTime: _formData[field.name] ?? TimeOfDay.now());
-                  if (time != null) {
-                    setState(() {
-                      _formData[field.name] = time;
-                      if (error != null) {
-                        _errors.remove(field.name);
-                      }
-                    });
-                  }
-                },
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: error != null ? Colors.red : Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(8),
-              color: field.disabled ? Colors.grey.shade100 : Colors.white,
-            ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: hasValue
-                      ? Text(
-                          '${_formData[field.name].hour.toString().padLeft(2, '0')}:${_formData[field.name].minute.toString().padLeft(2, '0')}',
-                          style: const TextStyle(fontSize: 16),
-                        )
-                      : Text(placeholder, style: TextStyle(fontSize: 16, color: Colors.grey.shade500)),
-                ),
-                const Icon(Icons.access_time, color: Colors.grey),
-              ],
-            ),
-          ),
-        ),
-        _buildError(error),
-      ],
-    );
-  }
-
-  Widget _buildSlider(FormFieldConfig field, String? error) {
-    final currentValue = (_formData[field.name] ?? 0.0).toDouble();
-    final minValue = 0.0;
-    final maxValue = 100.0;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildLabel(field.label, field.required),
-        const SizedBox(height: 8),
-        Text('${currentValue.toStringAsFixed(1)}', style: const TextStyle(fontSize: 14, color: Colors.grey)),
-        Slider(
-          value: currentValue,
-          min: minValue,
-          max: maxValue,
-          divisions: 100,
-          onChanged: field.disabled
-              ? null
-              : (value) {
-                  setState(() {
-                    _formData[field.name] = value;
-                    if (error != null) {
-                      _errors.remove(field.name);
-                    }
-                  });
-                },
-        ),
-        _buildError(error),
-      ],
-    );
-  }
-
-  Widget _buildButton(FormFieldConfig field) {
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton(
-            onPressed: field.disabled
-                ? null
-                : () {
-                    if (_validateForm()) {
-                      if (widget.onSubmit != null) {
-                        widget.onSubmit!(_formData);
-                      }
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请填写所有必填字段'), backgroundColor: Colors.red));
-                    }
-                  },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              elevation: 2,
-            ),
-            child: Text(field.label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ElevatedButton(
-            onPressed: field.disabled ? null : _resetForm,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.grey.shade300,
-              foregroundColor: Colors.black87,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              elevation: 1,
-            ),
-            child: const Text('重置', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// 获取字段的placeholder，如果没有提供则自动生成
-  String _getPlaceholder(FormFieldConfig field) {
-    if (field.placeholder != null && field.placeholder!.isNotEmpty) {
-      return field.placeholder!;
-    }
-
-    // 根据字段类型和label自动生成placeholder
-    switch (field.type) {
-      case FormFieldType.text:
-      case FormFieldType.number:
-      case FormFieldType.integer:
-      case FormFieldType.double:
-      case FormFieldType.textarea:
-        return '请输入${field.label}';
-      case FormFieldType.radio:
-      case FormFieldType.checkbox:
-        return '请选择${field.label}';
-      case FormFieldType.select:
-      case FormFieldType.dropdown:
-        return '请选择${field.label}';
-      case FormFieldType.date:
-        return '请选择${field.label}';
-      case FormFieldType.time:
-        return '请选择${field.label}';
-      case FormFieldType.upload:
-        return '请选择${field.label}';
-      default:
-        return '';
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // 点击空白区域时隐藏键盘
-        FocusScope.of(context).unfocus();
-      },
+  Widget _buildTapContainer({required String placeholder, required IconData icon, VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(20.0),
-        decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(12)),
-        child: Column(
-          key: _formKey, // 添加key来强制重建
-          crossAxisAlignment: CrossAxisAlignment.start,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(8),
+          color: Colors.white,
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
           children: [
-            if (widget.formConfig.title != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Text(
-                  widget.formConfig.title!,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: Colors.black87),
-                ),
-              ),
-            if (widget.formConfig.description != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 24.0),
-                child: Text(widget.formConfig.description!, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600], height: 1.4)),
-              ),
-            ...widget.formConfig.fields.map((field) {
-              return Padding(padding: const EdgeInsets.only(bottom: 20.0), child: _buildField(field));
-            }),
+            Expanded(
+              child: Text(placeholder, style: TextStyle(fontSize: 16, color: Colors.grey.shade500)),
+            ),
+            Icon(icon, color: Colors.grey),
           ],
         ),
       ),

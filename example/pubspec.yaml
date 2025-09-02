@@ -25,6 +25,8 @@ dependencies:
   # 添加对主包的依赖
   simple_ui:
     path: ../
+  file_picker: ^10.3.2
+  image_picker: ^1.2.0
 
 dev_dependencies:
   flutter_test:

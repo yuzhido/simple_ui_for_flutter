@@ -5,7 +5,6 @@ export 'src/dropdown_choose/index.dart';
 export 'src/cascading_select/index.dart';
 export 'src/tree_select/index.dart';
 export 'src/upload_file/index.dart';
-export 'src/upload/index.dart';
 export 'src/notice_info/index.dart';
 export 'src/config_form/index.dart';
 

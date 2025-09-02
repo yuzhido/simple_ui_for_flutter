@@ -1,6 +1,6 @@
 name: simple_ui
 description: "自定义简单 UI 组件"
-version: 1.0.2
+version: 1.0.4
 homepage: "https://github.com/yuzhido/simple_ui_for_flutter.git"
 repository: "https://github.com/yuzhido/simple_ui_for_flutter.git"
 issue_tracker: "https://github.com/yuzhido/simple_ui_for_flutter.git/issues"
@@ -10,6 +10,7 @@ environment:
   flutter: ">=1.17.0"
 
 dependencies:
+  dio: ^5.9.0
   file_picker: ^10.2.4
   flutter:
     sdk: flutter
