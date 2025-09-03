@@ -81,9 +81,14 @@ class _ConfigFormState extends State<ConfigForm> {
   List<Widget> _buildDynamicFromConfig(FormConfig cfg) {
     final widgets = <Widget>[];
     for (final field in cfg.fields) {
-      // 对于 custom 类型，不显示 label
-      if (field.type != FormFieldType.custom) {
-        final labelText = (field.label == null || field.label!.trim().isEmpty) ? '请配置label' : field.label!;
+      // label 区域：
+      // - 非 custom 类型：始终显示（为空时提示“请配置label”）
+      // - custom 类型：仅当 label 非空时显示
+      final isCustom = field.type == FormFieldType.custom;
+      final hasLabel = field.label != null && field.label!.trim().isNotEmpty;
+      final shouldShowLabel = !isCustom || (isCustom && hasLabel);
+      if (shouldShowLabel) {
+        final labelText = hasLabel ? field.label! : '请配置label';
         widgets.add(_buildLabel(labelText, isRequired: field.required));
         widgets.add(const SizedBox(height: 8));
       }
