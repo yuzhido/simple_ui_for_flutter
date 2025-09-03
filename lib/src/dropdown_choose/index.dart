@@ -18,6 +18,10 @@ class DropdownChoose<T> extends StatefulWidget {
   final String? multipleTitleText;
   // 未选择时的占位提示文案，默认“请选择选项”
   final String? placeholderText;
+  // 远程搜索时，是否在列表底部显示“去新增”提示
+  final bool showAdd;
+  // 点击“去新增”的回调，携带当前输入框关键词
+  final void Function(String keyword)? onAdd;
 
   const DropdownChoose({
     super.key,
@@ -32,7 +36,10 @@ class DropdownChoose<T> extends StatefulWidget {
     this.singleTitleText,
     this.multipleTitleText,
     this.placeholderText,
-  }) : assert(!(singleTitleText != null && multipleTitleText != null), 'DropdownChoose: singleTitleText 与 multipleTitleText 不能同时传入');
+    this.showAdd = false,
+    this.onAdd,
+  }) : assert(!(singleTitleText != null && multipleTitleText != null), 'DropdownChoose: singleTitleText 与 multipleTitleText 不能同时传入'),
+       assert((showAdd == false && onAdd == null) || (showAdd == true && onAdd != null), 'DropdownChoose: 使用新增入口时必须同时传入 showAdd: true 与 onAdd 回调');
 
   @override
   State<DropdownChoose<T>> createState() => _DropdownChooseState<T>();
@@ -339,83 +346,139 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                                   ],
                                 ),
                               )
-                            : _filteredList.isEmpty
-                            ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
-                                    const SizedBox(height: 16),
-                                    Text('暂无数据', style: TextStyle(color: Color(0xFF666666), fontSize: 16)),
-                                    const SizedBox(height: 8),
-                                    Text(widget.remote ? '请尝试其他关键词搜索' : '请尝试其他筛选条件', style: TextStyle(color: Color(0xFF999999), fontSize: 14)),
-                                  ],
-                                ),
-                              )
-                            : ListView.builder(
-                                itemCount: _filteredList.length,
-                                itemBuilder: (context, index) {
-                                  final item = _filteredList[index];
-                                  final isSelected = widget.multiple == false ? (_selectedValue?.value == item.value) : _selectedValues.any((e) => e.value == item.value);
-                                  return Container(
-                                    margin: EdgeInsets.only(top: 12, right: 12, left: 12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: isSelected ? const Color(0xFF007AFF) : Colors.grey[200]!),
-                                      boxShadow: isSelected
-                                          ? [BoxShadow(color: const Color(0xFF007AFF).withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 2))]
-                                          : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 1))],
-                                    ),
-                                    child: ListTile(
-                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                                      title: Text(
-                                        item.label,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                                          color: isSelected ? const Color(0xFF007AFF) : const Color(0xFF333333),
-                                        ),
+                            : Builder(
+                                builder: (context) {
+                                  final bool showAddFooter = widget.remote && widget.showAdd == true;
+                                  if (_filteredList.isEmpty && !showAddFooter) {
+                                    return Center(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
+                                          const SizedBox(height: 16),
+                                          Text('暂无数据', style: TextStyle(color: Color(0xFF666666), fontSize: 16)),
+                                          const SizedBox(height: 8),
+                                          Text(widget.remote ? '请尝试其他关键词搜索' : '请尝试其他筛选条件', style: TextStyle(color: Color(0xFF999999), fontSize: 14)),
+                                        ],
                                       ),
-                                      leading: widget.multiple == true
-                                          ? Checkbox(
-                                              value: isSelected,
-                                              activeColor: const Color(0xFF007AFF),
-                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                                              onChanged: (bool? value) {
-                                                setState(() {
-                                                  if (value == true) {
-                                                    _selectedValues.add(item);
-                                                  } else {
-                                                    _selectedValues.remove(item);
-                                                  }
-                                                });
-                                              },
-                                            )
-                                          : widget.multiple == false
-                                          ? Radio<SelectData<T>>(
-                                              value: item,
-                                              groupValue: _findItemInListByValue(_selectedValue?.value),
-                                              activeColor: const Color(0xFF007AFF),
-                                              onChanged: (SelectData<T>? item) {
-                                                onSelectRadio(item, setState);
-                                              },
-                                            )
-                                          : null,
-                                      onTap: () {
-                                        if (widget.multiple == false) {
-                                          onSelectRadio(item, setState);
-                                        } else if (widget.multiple == true) {
-                                          setState(() {
-                                            if (_multiSelectedContainsValue(item.value)) {
-                                              _multiSelectedRemoveByValue(item.value);
-                                            } else {
-                                              _selectedValues.add(item);
+                                    );
+                                  }
+
+                                  return ListView.builder(
+                                    itemCount: _filteredList.length + (showAddFooter ? 1 : 0),
+                                    itemBuilder: (context, index) {
+                                      final bool isFooter = showAddFooter && index == _filteredList.length;
+                                      if (isFooter) {
+                                        return InkWell(
+                                          onTap: () {
+                                            print('Add');
+                                            widget.onAdd?.call(_searchController.text);
+                                          },
+                                          child: Container(
+                                            margin: const EdgeInsets.only(top: 12, right: 12, left: 12, bottom: 16),
+                                            padding: const EdgeInsets.all(14),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.circular(12),
+                                              border: Border.all(color: Colors.grey[200]!),
+                                              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 1))],
+                                            ),
+                                            child: Row(
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              children: [
+                                                Icon(Icons.info_outline, color: Colors.grey[500], size: 18),
+                                                const SizedBox(width: 8),
+                                                Expanded(
+                                                  child: RichText(
+                                                    text: const TextSpan(
+                                                      style: TextStyle(fontSize: 14, color: Color(0xFF666666)),
+                                                      children: [
+                                                        TextSpan(text: '没有查询到你想要的内容，'),
+                                                        TextSpan(
+                                                          text: '去新增',
+                                                          style: TextStyle(color: Color(0xFF007AFF), fontWeight: FontWeight.w600),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                TextButton(
+                                                  onPressed: () {
+                                                    print('Add');
+                                                    widget.onAdd?.call(_searchController.text);
+                                                  },
+                                                  child: const Text('去新增'),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      }
+
+                                      final item = _filteredList[index];
+                                      final isSelected = widget.multiple == false ? (_selectedValue?.value == item.value) : _selectedValues.any((e) => e.value == item.value);
+                                      return Container(
+                                        margin: EdgeInsets.only(top: 12, right: 12, left: 12),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: isSelected ? const Color(0xFF007AFF) : Colors.grey[200]!),
+                                          boxShadow: isSelected
+                                              ? [BoxShadow(color: const Color(0xFF007AFF).withValues(alpha: 0.1), blurRadius: 8, offset: const Offset(0, 2))]
+                                              : [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 1))],
+                                        ),
+                                        child: ListTile(
+                                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                                          title: Text(
+                                            item.label,
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                              color: isSelected ? const Color(0xFF007AFF) : const Color(0xFF333333),
+                                            ),
+                                          ),
+                                          leading: widget.multiple == true
+                                              ? Checkbox(
+                                                  value: isSelected,
+                                                  activeColor: const Color(0xFF007AFF),
+                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                                  onChanged: (bool? value) {
+                                                    setState(() {
+                                                      if (value == true) {
+                                                        _selectedValues.add(item);
+                                                      } else {
+                                                        _selectedValues.remove(item);
+                                                      }
+                                                    });
+                                                  },
+                                                )
+                                              : widget.multiple == false
+                                              ? Radio<SelectData<T>>(
+                                                  value: item,
+                                                  groupValue: _findItemInListByValue(_selectedValue?.value),
+                                                  activeColor: const Color(0xFF007AFF),
+                                                  onChanged: (SelectData<T>? item) {
+                                                    onSelectRadio(item, setState);
+                                                  },
+                                                )
+                                              : null,
+                                          onTap: () {
+                                            if (widget.multiple == false) {
+                                              onSelectRadio(item, setState);
+                                            } else if (widget.multiple == true) {
+                                              setState(() {
+                                                if (_multiSelectedContainsValue(item.value)) {
+                                                  _multiSelectedRemoveByValue(item.value);
+                                                } else {
+                                                  _selectedValues.add(item);
+                                                }
+                                              });
                                             }
-                                          });
-                                        }
-                                      },
-                                    ),
+                                          },
+                                        ),
+                                      );
+                                    },
                                   );
                                 },
                               ),

@@ -166,6 +166,8 @@ class DropdownFieldProps {
   final Future<List<SelectData<dynamic>>> Function(String keyword)? remoteFetch;
   final Function(SelectData<dynamic>)? onSingleSelected;
   final Function(List<SelectData<dynamic>>)? onMultipleSelected;
+  final bool? showAdd;
+  final void Function(String keyword)? onAdd;
   const DropdownFieldProps({
     required this.options,
     this.multiple,
@@ -178,6 +180,8 @@ class DropdownFieldProps {
     this.placeholderText,
     this.onSingleSelected,
     this.onMultipleSelected,
+    this.showAdd,
+    this.onAdd,
   });
 }
 

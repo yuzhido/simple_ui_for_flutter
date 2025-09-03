@@ -353,6 +353,19 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
             ),
             const SizedBox(height: 24),
 
+            // 远程搜索 + 去新增入口
+            _buildSectionTitle('11. 远程搜索 + 去新增入口（showAdd）'),
+            const SizedBox(height: 8),
+            DropdownChoose<City>(
+              remote: true,
+              remoteFetch: _fetchRemoteData,
+              showAdd: true,
+              onAdd: (val) {
+                _toast('点击了去新增');
+              },
+            ),
+            const SizedBox(height: 24),
+
             // 显示当前选择状态
             _buildSectionTitle('当前选择状态'),
             const SizedBox(height: 8),
