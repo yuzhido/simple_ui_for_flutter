@@ -81,9 +81,12 @@ class _ConfigFormState extends State<ConfigForm> {
   List<Widget> _buildDynamicFromConfig(FormConfig cfg) {
     final widgets = <Widget>[];
     for (final field in cfg.fields) {
-      final labelText = (field.label == null || field.label!.trim().isEmpty) ? '请配置label' : field.label!;
-      widgets.add(_buildLabel(labelText, isRequired: field.required));
-      widgets.add(const SizedBox(height: 8));
+      // 对于 custom 类型，不显示 label
+      if (field.type != FormFieldType.custom) {
+        final labelText = (field.label == null || field.label!.trim().isEmpty) ? '请配置label' : field.label!;
+        widgets.add(_buildLabel(labelText, isRequired: field.required));
+        widgets.add(const SizedBox(height: 8));
+      }
       switch (field.type) {
         case FormFieldType.text:
           widgets.add(
@@ -99,7 +102,6 @@ class _ConfigFormState extends State<ConfigForm> {
           );
           break;
         case FormFieldType.number:
-          // final p = field.props is NumberFieldProps ? field.props as NumberFieldProps : null; // reserved for future validation
           widgets.add(
             TextFormField(
               controller: _cfgControllers[field.name],
@@ -132,7 +134,6 @@ class _ConfigFormState extends State<ConfigForm> {
           );
           break;
         case FormFieldType.integer:
-          // final p = field.props is IntegerFieldProps ? field.props as IntegerFieldProps : null; // reserved for future validation
           widgets.add(
             TextFormField(
               controller: _cfgControllers[field.name],
@@ -521,7 +522,6 @@ class _ConfigFormState extends State<ConfigForm> {
             ),
           );
           break;
-        // 无
       }
       widgets.add(const SizedBox(height: 16));
     }
