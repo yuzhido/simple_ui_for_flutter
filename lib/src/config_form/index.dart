@@ -313,10 +313,7 @@ class _ConfigFormState extends State<ConfigForm> {
                       remote: remote,
                       defaultValue: defaultValue,
                       showAdd: p?.showAdd ?? false,
-                      onAdd: (keyword) {
-                        // 将关键词透传到外部配置回调
-                        if (p?.onAdd != null) p!.onAdd!(keyword);
-                      },
+                      onAdd: p?.onAdd,
                       onSingleSelected: (value) {
                         setState(() {
                           _setValue(field.name, value.value);
