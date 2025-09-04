@@ -75,7 +75,7 @@ class FormFieldConfig {
         label: label,
         required: required,
         defaultValue: defaultValue,
-        props: props ?? DropdownFieldProps(options: const <SelectData<dynamic>>[]),
+        props: props ?? DropdownFieldProps<dynamic>(options: const <SelectData<dynamic>>[]),
       );
 
   FormFieldConfig.date({required String name, String? label, String? placeholder, bool required = false, String? defaultValue, DateFieldProps props = const DateFieldProps()})
@@ -136,26 +136,26 @@ class TextareaFieldProps {
 }
 
 // 单选
-class RadioFieldProps {
-  final List<SelectData<dynamic>> options;
+class RadioFieldProps<T> {
+  final List<SelectData<T>> options;
   const RadioFieldProps({required this.options});
 }
 
 // 多选
-class CheckboxFieldProps {
-  final List<SelectData<dynamic>> options;
+class CheckboxFieldProps<T> {
+  final List<SelectData<T>> options;
   const CheckboxFieldProps({required this.options});
 }
 
 // 下拉
-class SelectFieldProps {
-  final List<SelectData<dynamic>> options;
+class SelectFieldProps<T> {
+  final List<SelectData<T>> options;
   const SelectFieldProps({required this.options});
 }
 
 // 自定义下拉
-class DropdownFieldProps {
-  final List<SelectData<dynamic>> options;
+class DropdownFieldProps<T> {
+  final List<SelectData<T>> options;
   final bool? multiple;
   final bool? filterable;
   final bool? remote;
@@ -163,9 +163,9 @@ class DropdownFieldProps {
   final String? singleTitleText;
   final String? multipleTitleText;
   final String? placeholderText;
-  final Future<List<SelectData<dynamic>>> Function(String keyword)? remoteFetch;
-  final Function(SelectData<dynamic>)? onSingleSelected;
-  final Function(List<SelectData<dynamic>>)? onMultipleSelected;
+  final Future<List<SelectData<T>>> Function(String keyword)? remoteFetch;
+  final Function(SelectData<T>)? onSingleSelected;
+  final Function(List<SelectData<T>>)? onMultipleSelected;
   final bool? showAdd;
   final void Function(String keyword)? onAdd;
   const DropdownFieldProps({
