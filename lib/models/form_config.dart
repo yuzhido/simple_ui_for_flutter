@@ -12,11 +12,12 @@ class FormFieldConfig {
   final bool required;
   final dynamic defaultValue;
   final String? placeholder;
+  final bool isSaveInfo;
 
   /// 类型专用属性
   final Object? props;
 
-  const FormFieldConfig({required this.name, required this.type, this.label, this.required = false, this.defaultValue, this.placeholder, this.props});
+  const FormFieldConfig({required this.name, required this.type, this.label, this.required = false, this.defaultValue, this.placeholder, this.isSaveInfo = true, this.props});
 
   // 工厂构造，提供更直观的类型化参数
   FormFieldConfig.text({required String name, String? label, String? placeholder, bool required = false, String? defaultValue})
@@ -96,9 +97,9 @@ class FormFieldConfig {
   FormFieldConfig.upload({required String name, String? label, bool required = false, UploadFieldProps props = const UploadFieldProps()})
     : this(name: name, type: FormFieldType.upload, label: label, required: required, props: props);
 
-  factory FormFieldConfig.custom({required String name, String? label, bool required = false, CustomFieldProps? props}) {
+  factory FormFieldConfig.custom({required String name, String? label, bool required = false, bool isSaveInfo = true, CustomFieldProps? props}) {
     assert(props != null, 'Custom type requires CustomFieldProps with contentBuilder');
-    return FormFieldConfig(name: name, type: FormFieldType.custom, label: label, required: required, props: props);
+    return FormFieldConfig(name: name, type: FormFieldType.custom, label: label, required: required, isSaveInfo: isSaveInfo, props: props);
   }
 }
 
@@ -187,10 +188,12 @@ class DropdownFieldProps<T> {
 
 // 自定义表单项
 typedef CustomContentBuilder = Widget Function(BuildContext context, dynamic value, void Function(dynamic newValue) onChanged);
+typedef CustomValidator = String? Function(dynamic value);
 
 class CustomFieldProps {
   final CustomContentBuilder contentBuilder;
-  const CustomFieldProps({required this.contentBuilder});
+  final CustomValidator? validator;
+  const CustomFieldProps({required this.contentBuilder, this.validator});
 }
 
 // 日期/时间/日期时间（预留扩展属性）

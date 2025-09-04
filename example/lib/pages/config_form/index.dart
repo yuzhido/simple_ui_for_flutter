@@ -106,8 +106,203 @@ class _ConfigFormPageState extends State<ConfigFormPage> {
             },
           ),
         ),
+        // 带校验的自定义字段示例
         FormFieldConfig.custom(
-          name: 'extra',
+          name: 'customInput',
+          label: '自定义输入(必填)',
+          required: true,
+          props: CustomFieldProps(
+            contentBuilder: (context, value, onChanged) {
+              return TextFormField(
+                initialValue: value?.toString() ?? '',
+                decoration: const InputDecoration(hintText: '请输入自定义内容', border: OutlineInputBorder()),
+                onChanged: onChanged,
+              );
+            },
+            validator: (value) {
+              if (value == null || value.toString().trim().isEmpty) {
+                return '自定义字段不能为空';
+              }
+              if (value.toString().length < 3) {
+                return '自定义字段至少需要3个字符';
+              }
+              return null;
+            },
+          ),
+        ),
+        // 带复杂校验的自定义字段示例
+        FormFieldConfig.custom(
+          name: 'email',
+          label: '邮箱地址(自定义校验)',
+          required: true,
+          props: CustomFieldProps(
+            contentBuilder: (context, value, onChanged) {
+              return TextFormField(
+                initialValue: value?.toString() ?? '',
+                decoration: const InputDecoration(hintText: '请输入邮箱地址', border: OutlineInputBorder(), prefixIcon: Icon(Icons.email)),
+                keyboardType: TextInputType.emailAddress,
+                onChanged: onChanged,
+              );
+            },
+            validator: (value) {
+              if (value == null || value.toString().trim().isEmpty) {
+                return '邮箱地址不能为空';
+              }
+              final email = value.toString().trim();
+              final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+              if (!emailRegex.hasMatch(email)) {
+                return '请输入有效的邮箱地址';
+              }
+              return null;
+            },
+          ),
+        ),
+        // 模拟选择组件的自定义字段示例
+        FormFieldConfig.custom(
+          name: 'selectedItems',
+          label: '选择项目(模拟)',
+          required: true,
+          props: CustomFieldProps(
+            contentBuilder: (context, value, onChanged) {
+              final selectedItems = (value as List<Map<String, dynamic>>?) ?? [];
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            selectedItems.isEmpty ? '请选择项目' : '已选择 ${selectedItems.length} 个项目',
+                            style: TextStyle(color: selectedItems.isEmpty ? Colors.grey : Colors.black),
+                          ),
+                        ),
+                        Icon(Icons.arrow_drop_down),
+                      ],
+                    ),
+                  ),
+                  if (selectedItems.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: selectedItems
+                          .map(
+                            (item) => Chip(
+                              label: Text(item['name'] ?? ''),
+                              onDeleted: () {
+                                final newItems = List<Map<String, dynamic>>.from(selectedItems);
+                                newItems.removeWhere((e) => e['id'] == item['id']);
+                                onChanged(newItems);
+                              },
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () async {
+                      // 模拟选择对话框
+                      final result = await showDialog<List<Map<String, dynamic>>>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('选择项目'),
+                          content: SizedBox(
+                            width: 300,
+                            height: 200,
+                            child: ListView(
+                              children: [
+                                ListTile(
+                                  title: const Text('项目A'),
+                                  onTap: () => Navigator.pop(context, [
+                                    {'id': '1', 'name': '项目A', 'type': 'type1'},
+                                  ]),
+                                ),
+                                ListTile(
+                                  title: const Text('项目B'),
+                                  onTap: () => Navigator.pop(context, [
+                                    {'id': '2', 'name': '项目B', 'type': 'type2'},
+                                  ]),
+                                ),
+                                ListTile(
+                                  title: const Text('项目C'),
+                                  onTap: () => Navigator.pop(context, [
+                                    {'id': '3', 'name': '项目C', 'type': 'type3'},
+                                  ]),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+
+                      if (result != null) {
+                        // 关键：调用 onChanged 更新表单字段值
+                        onChanged(result);
+                        print('选中的项目: $result');
+                      }
+                    },
+                    child: const Text('选择项目'),
+                  ),
+                ],
+              );
+            },
+            validator: (value) {
+              if (value == null || (value is List && value.isEmpty)) {
+                return '请至少选择一个项目';
+              }
+              return null;
+            },
+          ),
+        ),
+        // 演示外部设置值的自定义字段
+        FormFieldConfig.custom(
+          name: 'externalSetField',
+          label: '外部设置字段',
+          required: true,
+          props: CustomFieldProps(
+            contentBuilder: (context, value, onChanged) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text('当前值: ${value?.toString() ?? 'null'}'),
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      // 模拟外部设置值
+                      final newValue = '外部设置的值 ${DateTime.now().millisecondsSinceEpoch}';
+                      onChanged(newValue);
+                      print('外部设置值: $newValue');
+                    },
+                    child: const Text('外部设置值'),
+                  ),
+                ],
+              );
+            },
+            validator: (value) {
+              print('外部设置字段校验器接收到的值: $value');
+              if (value == null || value.toString().isEmpty) {
+                return '外部设置字段不能为空';
+              }
+              return null;
+            },
+          ),
+        ),
+        FormFieldConfig.custom(
+          name: 'action_buttons',
+          isSaveInfo: false, // 不保存信息，仅用于展示按钮
           props: CustomFieldProps(
             contentBuilder: (context, value, onChanged) {
               return Row(
@@ -132,6 +327,29 @@ class _ConfigFormPageState extends State<ConfigFormPage> {
                       }
                     },
                     child: Text('确定'),
+                  ),
+                  const SizedBox(width: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      // 演示通过控制器设置值
+                      _formController.setValue('title', '通过控制器设置的标题');
+                      _formController.setValue('price', '99.99');
+                      _formController.setValue('count', '10');
+                      _formController.setValue('desc', '这是通过控制器设置的描述内容');
+                      _formController.setValue('cate', 'digital');
+                      _formController.setValue('tags', ['new', 'hot']);
+                      _formController.setValue('sex', 'male');
+                      _formController.setValue('customInput', '控制器设置的自定义内容');
+                      _formController.setValue('email', 'test@example.com');
+                      _formController.setValue('selectedItems', [
+                        {'id': '1', 'name': '项目A', 'type': 'type1'},
+                        {'id': '2', 'name': '项目B', 'type': 'type2'},
+                      ]);
+                      _formController.setValue('externalSetField', '通过控制器设置的外部字段值');
+
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已通过控制器设置表单值'), duration: Duration(milliseconds: 1000)));
+                    },
+                    child: Text('设置值'),
                   ),
                 ],
               );

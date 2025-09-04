@@ -7,10 +7,45 @@ import 'package:simple_ui/src/upload_file/index.dart';
 class ConfigFormController extends ChangeNotifier {
   final Map<String, dynamic> _values = {};
   Map<String, dynamic> get values => Map.unmodifiable(_values);
+
   void _setAll(Map<String, dynamic> source) {
     _values
       ..clear()
       ..addAll(source);
+    notifyListeners();
+  }
+
+  /// 设置单个字段的值
+  void setValue(String fieldName, dynamic value) {
+    _values[fieldName] = value;
+    notifyListeners();
+  }
+
+  /// 获取单个字段的值
+  dynamic getValue(String fieldName) {
+    return _values[fieldName];
+  }
+
+  /// 批量设置字段值
+  void setValues(Map<String, dynamic> values) {
+    _values.addAll(values);
+    notifyListeners();
+  }
+
+  /// 清空所有字段值
+  void clear() {
+    _values.clear();
+    notifyListeners();
+  }
+
+  /// 重置字段值到默认值
+  void reset(FormConfig formConfig) {
+    _values.clear();
+    for (final field in formConfig.fields) {
+      if (field.isSaveInfo && field.defaultValue != null) {
+        _values[field.name] = field.defaultValue;
+      }
+    }
     notifyListeners();
   }
 }
@@ -39,6 +74,8 @@ class _ConfigFormState extends State<ConfigForm> {
   void initState() {
     super.initState();
     _initConfigControllers();
+    // 监听控制器的变化
+    widget.controller?.addListener(_onControllerChanged);
   }
 
   @override
@@ -47,12 +84,42 @@ class _ConfigFormState extends State<ConfigForm> {
     for (final c in _cfgControllers.values) {
       c.dispose();
     }
+    // 移除监听器
+    widget.controller?.removeListener(_onControllerChanged);
     super.dispose();
+  }
+
+  void _onControllerChanged() {
+    // 当控制器值发生变化时，同步到本地状态
+    if (widget.controller != null) {
+      final controllerValues = widget.controller!.values;
+      bool hasChanges = false;
+
+      for (final entry in controllerValues.entries) {
+        if (_cfgValues[entry.key] != entry.value) {
+          _cfgValues[entry.key] = entry.value;
+          // 同步到对应的 TextEditingController
+          if (_cfgControllers.containsKey(entry.key)) {
+            _cfgControllers[entry.key]?.text = entry.value?.toString() ?? '';
+          }
+          hasChanges = true;
+        }
+      }
+
+      if (hasChanges) {
+        setState(() {});
+      }
+    }
   }
 
   void _initConfigControllers() {
     final cfg = widget.formConfig;
     for (final field in cfg.fields) {
+      // 如果不需要保存信息，跳过值存储
+      if (!field.isSaveInfo) {
+        continue;
+      }
+
       switch (field.type) {
         case FormFieldType.text:
         case FormFieldType.number:
@@ -73,7 +140,15 @@ class _ConfigFormState extends State<ConfigForm> {
     widget.controller?._setAll(_cfgValues);
   }
 
-  void _setValue(String name, dynamic value) {
+  void _setValue(String name, dynamic value, {bool forceSave = false}) {
+    // 查找对应的字段配置
+    final field = widget.formConfig.fields.firstWhere((f) => f.name == name, orElse: () => throw Exception('Field with name "$name" not found'));
+
+    // 如果不需要保存信息且不是强制保存，则跳过
+    if (!field.isSaveInfo && !forceSave) {
+      return;
+    }
+
     _cfgValues[name] = value;
     _syncController();
   }
@@ -519,15 +594,97 @@ class _ConfigFormState extends State<ConfigForm> {
           final p = field.props is CustomFieldProps ? field.props as CustomFieldProps : null;
           assert(p != null, 'Custom type requires CustomFieldProps with contentBuilder');
           if (p == null) break;
-          widgets.add(
-            p.contentBuilder(
-              context,
-              _cfgValues[field.name],
-              (newVal) => setState(() {
-                _setValue(field.name, newVal);
-              }),
-            ),
-          );
+
+          // 如果有自定义校验器，使用 FormField 包装以支持校验
+          if (p.validator != null) {
+            widgets.add(
+              FormField<dynamic>(
+                initialValue: _cfgValues[field.name],
+                validator: (val) {
+                  // 然后执行自定义校验
+                  return p.validator!(val);
+                },
+                builder: (state) {
+                  // 当控制器值改变时，同步到 FormField 状态
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    final currentValue = _cfgValues[field.name];
+                    if (state.value != currentValue) {
+                      state.didChange(currentValue);
+                    }
+                  });
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      p.contentBuilder(context, _cfgValues[field.name], (newVal) {
+                        setState(() {
+                          _setValue(field.name, newVal);
+                        });
+                        state.didChange(newVal);
+                      }),
+                      if (state.hasError)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Text(state.errorText ?? '', style: const TextStyle(color: Colors.red, fontSize: 12)),
+                        ),
+                    ],
+                  );
+                },
+              ),
+            );
+          } else {
+            // 没有自定义校验器，但仍有必填校验
+            if (field.required) {
+              widgets.add(
+                FormField<dynamic>(
+                  initialValue: _cfgValues[field.name],
+                  validator: (val) {
+                    if (val == null || (val is String && val.toString().trim().isEmpty)) {
+                      return '必填';
+                    }
+                    return null;
+                  },
+                  builder: (state) {
+                    // 当控制器值改变时，同步到 FormField 状态
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      final currentValue = _cfgValues[field.name];
+                      if (state.value != currentValue) {
+                        state.didChange(currentValue);
+                      }
+                    });
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        p.contentBuilder(context, _cfgValues[field.name], (newVal) {
+                          setState(() {
+                            _setValue(field.name, newVal);
+                          });
+                          state.didChange(newVal);
+                        }),
+                        if (state.hasError)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 6),
+                            child: Text(state.errorText ?? '', style: const TextStyle(color: Colors.red, fontSize: 12)),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              );
+            } else {
+              // 既没有自定义校验器，也不是必填，直接渲染内容
+              widgets.add(
+                p.contentBuilder(
+                  context,
+                  _cfgValues[field.name],
+                  (newVal) => setState(() {
+                    _setValue(field.name, newVal);
+                  }),
+                ),
+              );
+            }
+          }
           break;
       }
       widgets.add(const SizedBox(height: 16));
