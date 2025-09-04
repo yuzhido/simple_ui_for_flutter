@@ -115,6 +115,10 @@ class _ConfigFormState extends State<ConfigForm> {
   void _initConfigControllers() {
     final cfg = widget.formConfig;
     for (final field in cfg.fields) {
+      // 当 isShow 为 false 时不参与初始化及渲染
+      if (field.isShow == false) {
+        continue;
+      }
       // 如果不需要保存信息，跳过值存储
       if (!field.isSaveInfo) {
         continue;
@@ -156,6 +160,10 @@ class _ConfigFormState extends State<ConfigForm> {
   List<Widget> _buildDynamicFromConfig(FormConfig cfg) {
     final widgets = <Widget>[];
     for (final field in cfg.fields) {
+      // isShow 为 false 则不渲染
+      if (field.isShow == false) {
+        continue;
+      }
       // label 区域：
       // - 非 custom 类型：始终显示（为空时提示“请配置label”）
       // - custom 类型：仅当 label 非空时显示
@@ -252,7 +260,7 @@ class _ConfigFormState extends State<ConfigForm> {
               onChanged: (val) => setState(() => _setValue(field.name, val)),
               decoration: _inputDecoration(field.placeholder ?? '请选择'),
               validator: (val) {
-                if (field.required && (val == null || (val is String && val.toString().trim().isEmpty))) return '必选';
+                if (field.required && (val == null || (val is String && val.toString().trim().isEmpty))) return '请选择${field.label}';
                 return null;
               },
             ),
@@ -265,7 +273,7 @@ class _ConfigFormState extends State<ConfigForm> {
               validator: (val) {
                 if (!field.required) return null;
                 final v = _cfgValues[field.name];
-                return v == null ? '必选' : null;
+                return v == null ? '请选择${field.label}' : null;
               },
               builder: (state) {
                 return Column(
@@ -374,7 +382,7 @@ class _ConfigFormState extends State<ConfigForm> {
                 if (multiple) {
                   return (v is List && v.isNotEmpty) ? null : '至少选择一项';
                 }
-                return v == null ? '必选' : null;
+                return v == null ? '请选择${field.label}' : null;
               },
               builder: (state) {
                 return Column(
@@ -424,7 +432,7 @@ class _ConfigFormState extends State<ConfigForm> {
           widgets.add(
             FormField<String>(
               validator: (val) {
-                if (field.required && (_cfgValues[field.name] == null || (_cfgValues[field.name].toString().trim().isEmpty))) return '必选';
+                if (field.required && (_cfgValues[field.name] == null || (_cfgValues[field.name].toString().trim().isEmpty))) return '请选择${field.label}';
                 return null;
               },
               builder: (state) {
@@ -461,7 +469,7 @@ class _ConfigFormState extends State<ConfigForm> {
           widgets.add(
             FormField<String>(
               validator: (val) {
-                if (field.required && (_cfgValues[field.name] == null || (_cfgValues[field.name].toString().trim().isEmpty))) return '必选';
+                if (field.required && (_cfgValues[field.name] == null || (_cfgValues[field.name].toString().trim().isEmpty))) return '请选择${field.label}';
                 return null;
               },
               builder: (state) {
@@ -497,7 +505,7 @@ class _ConfigFormState extends State<ConfigForm> {
           widgets.add(
             FormField<String>(
               validator: (val) {
-                if (field.required && (_cfgValues[field.name] == null || (_cfgValues[field.name].toString().trim().isEmpty))) return '必选';
+                if (field.required && (_cfgValues[field.name] == null || (_cfgValues[field.name].toString().trim().isEmpty))) return '请选择${field.label}';
                 return null;
               },
               builder: (state) {

@@ -13,21 +13,55 @@ class FormFieldConfig {
   final dynamic defaultValue;
   final String? placeholder;
   final bool isSaveInfo;
+  final bool isShow; // true 表示显示，false 不显示
 
   /// 类型专用属性
   final Object? props;
 
-  const FormFieldConfig({required this.name, required this.type, this.label, this.required = false, this.defaultValue, this.placeholder, this.isSaveInfo = true, this.props});
+  const FormFieldConfig({
+    required this.name,
+    required this.type,
+    this.label,
+    this.required = false,
+    this.defaultValue,
+    this.placeholder,
+    this.isSaveInfo = true,
+    this.props,
+    this.isShow = true,
+  });
 
   // 工厂构造，提供更直观的类型化参数
-  FormFieldConfig.text({required String name, String? label, String? placeholder, bool required = false, String? defaultValue})
-    : this(name: name, type: FormFieldType.text, label: label, placeholder: placeholder, required: required, defaultValue: defaultValue, props: const TextFieldProps());
+  FormFieldConfig.text({required String name, String? label, String? placeholder, bool required = false, String? defaultValue, bool isShow = true})
+    : this(
+        name: name,
+        type: FormFieldType.text,
+        label: label,
+        placeholder: placeholder,
+        required: required,
+        defaultValue: defaultValue,
+        props: const TextFieldProps(),
+        isShow: isShow,
+      );
 
-  FormFieldConfig.number({required String name, String? label, String? placeholder, bool required = false, num? defaultValue, NumberFieldProps props = const NumberFieldProps()})
-    : this(name: name, type: FormFieldType.number, label: label, placeholder: placeholder, required: required, defaultValue: defaultValue, props: props);
+  FormFieldConfig.number({
+    required String name,
+    String? label,
+    String? placeholder,
+    bool required = false,
+    num? defaultValue,
+    NumberFieldProps props = const NumberFieldProps(),
+    bool isShow = true,
+  }) : this(name: name, type: FormFieldType.number, label: label, placeholder: placeholder, required: required, defaultValue: defaultValue, props: props, isShow: isShow);
 
-  FormFieldConfig.integer({required String name, String? label, String? placeholder, bool required = false, int? defaultValue, IntegerFieldProps props = const IntegerFieldProps()})
-    : this(name: name, type: FormFieldType.integer, label: label, placeholder: placeholder, required: required, defaultValue: defaultValue, props: props);
+  FormFieldConfig.integer({
+    required String name,
+    String? label,
+    String? placeholder,
+    bool required = false,
+    int? defaultValue,
+    IntegerFieldProps props = const IntegerFieldProps(),
+    bool isShow = true,
+  }) : this(name: name, type: FormFieldType.integer, label: label, placeholder: placeholder, required: required, defaultValue: defaultValue, props: props, isShow: isShow);
 
   FormFieldConfig.textarea({
     required String name,
@@ -36,9 +70,10 @@ class FormFieldConfig {
     bool required = false,
     String? defaultValue,
     TextareaFieldProps props = const TextareaFieldProps(),
-  }) : this(name: name, type: FormFieldType.textarea, label: label, placeholder: placeholder, required: required, defaultValue: defaultValue, props: props);
+    bool isShow = true,
+  }) : this(name: name, type: FormFieldType.textarea, label: label, placeholder: placeholder, required: required, defaultValue: defaultValue, props: props, isShow: isShow);
 
-  FormFieldConfig.select({required String name, String? label, String? placeholder, bool required = false, dynamic defaultValue, SelectFieldProps? props})
+  FormFieldConfig.select({required String name, String? label, String? placeholder, bool required = false, dynamic defaultValue, SelectFieldProps? props, bool isShow = true})
     : this(
         name: name,
         type: FormFieldType.select,
@@ -47,9 +82,10 @@ class FormFieldConfig {
         required: required,
         defaultValue: defaultValue,
         props: props ?? SelectFieldProps(options: const <SelectData<dynamic>>[]),
+        isShow: isShow,
       );
 
-  FormFieldConfig.radio({required String name, String? label, bool required = false, dynamic defaultValue, RadioFieldProps? props})
+  FormFieldConfig.radio({required String name, String? label, bool required = false, dynamic defaultValue, RadioFieldProps? props, bool isShow = true})
     : this(
         name: name,
         type: FormFieldType.radio,
@@ -57,9 +93,10 @@ class FormFieldConfig {
         required: required,
         defaultValue: defaultValue,
         props: props ?? RadioFieldProps(options: const <SelectData<dynamic>>[]),
+        isShow: isShow,
       );
 
-  FormFieldConfig.checkbox({required String name, String? label, bool required = false, List<dynamic>? defaultValue, CheckboxFieldProps? props})
+  FormFieldConfig.checkbox({required String name, String? label, bool required = false, List<dynamic>? defaultValue, CheckboxFieldProps? props, bool isShow = true})
     : this(
         name: name,
         type: FormFieldType.checkbox,
@@ -67,9 +104,10 @@ class FormFieldConfig {
         required: required,
         defaultValue: defaultValue,
         props: props ?? CheckboxFieldProps(options: const <SelectData<dynamic>>[]),
+        isShow: isShow,
       );
 
-  FormFieldConfig.dropdown({required String name, String? label, bool required = false, dynamic defaultValue, DropdownFieldProps? props})
+  FormFieldConfig.dropdown({required String name, String? label, bool required = false, dynamic defaultValue, DropdownFieldProps? props, bool isShow = true})
     : this(
         name: name,
         type: FormFieldType.dropdown,
@@ -77,13 +115,28 @@ class FormFieldConfig {
         required: required,
         defaultValue: defaultValue,
         props: props ?? DropdownFieldProps<dynamic>(options: const <SelectData<dynamic>>[]),
+        isShow: isShow,
       );
 
-  FormFieldConfig.date({required String name, String? label, String? placeholder, bool required = false, String? defaultValue, DateFieldProps props = const DateFieldProps()})
-    : this(name: name, type: FormFieldType.date, label: label, placeholder: placeholder, required: required, defaultValue: defaultValue, props: props);
+  FormFieldConfig.date({
+    required String name,
+    String? label,
+    String? placeholder,
+    bool required = false,
+    String? defaultValue,
+    DateFieldProps props = const DateFieldProps(),
+    bool isShow = true,
+  }) : this(name: name, type: FormFieldType.date, label: label, placeholder: placeholder, required: required, defaultValue: defaultValue, props: props, isShow: isShow);
 
-  FormFieldConfig.time({required String name, String? label, String? placeholder, bool required = false, String? defaultValue, TimeFieldProps props = const TimeFieldProps()})
-    : this(name: name, type: FormFieldType.time, label: label, placeholder: placeholder, required: required, defaultValue: defaultValue, props: props);
+  FormFieldConfig.time({
+    required String name,
+    String? label,
+    String? placeholder,
+    bool required = false,
+    String? defaultValue,
+    TimeFieldProps props = const TimeFieldProps(),
+    bool isShow = true,
+  }) : this(name: name, type: FormFieldType.time, label: label, placeholder: placeholder, required: required, defaultValue: defaultValue, props: props, isShow: isShow);
 
   FormFieldConfig.datetime({
     required String name,
@@ -92,14 +145,15 @@ class FormFieldConfig {
     bool required = false,
     String? defaultValue,
     DateTimeFieldProps props = const DateTimeFieldProps(),
-  }) : this(name: name, type: FormFieldType.datetime, label: label, placeholder: placeholder, required: required, defaultValue: defaultValue, props: props);
+    bool isShow = true,
+  }) : this(name: name, type: FormFieldType.datetime, label: label, placeholder: placeholder, required: required, defaultValue: defaultValue, props: props, isShow: isShow);
 
-  FormFieldConfig.upload({required String name, String? label, bool required = false, UploadFieldProps props = const UploadFieldProps()})
-    : this(name: name, type: FormFieldType.upload, label: label, required: required, props: props);
+  FormFieldConfig.upload({required String name, String? label, bool required = false, UploadFieldProps props = const UploadFieldProps(), bool isShow = true})
+    : this(name: name, type: FormFieldType.upload, label: label, required: required, props: props, isShow: isShow);
 
-  factory FormFieldConfig.custom({required String name, String? label, bool required = false, bool isSaveInfo = true, CustomFieldProps? props}) {
+  factory FormFieldConfig.custom({required String name, String? label, bool required = false, bool isSaveInfo = true, CustomFieldProps? props, bool isShow = true}) {
     assert(props != null, 'Custom type requires CustomFieldProps with contentBuilder');
-    return FormFieldConfig(name: name, type: FormFieldType.custom, label: label, required: required, isSaveInfo: isSaveInfo, props: props);
+    return FormFieldConfig(name: name, type: FormFieldType.custom, label: label, required: required, isSaveInfo: isSaveInfo, props: props, isShow: isShow);
   }
 }
 
