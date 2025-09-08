@@ -183,7 +183,7 @@ class _ConfigFormState extends State<ConfigForm> {
               decoration: _inputDecoration(field.placeholder ?? '请输入'),
               onChanged: (v) => _setValue(field.name, v),
               validator: (v) {
-                if (field.required && (v == null || v.trim().isEmpty)) return '必填';
+                if (field.required && (v == null || v.trim().isEmpty)) return '${field.label}必填';
                 return null;
               },
             ),
@@ -215,7 +215,7 @@ class _ConfigFormState extends State<ConfigForm> {
               decoration: _inputDecoration(field.placeholder ?? '可输入小数'),
               onChanged: (v) => _setValue(field.name, v),
               validator: (v) {
-                if (field.required && (v == null || v.trim().isEmpty)) return '必填';
+                if (field.required && (v == null || v.trim().isEmpty)) return '${field.label}必填';
                 return null;
               },
             ),
@@ -230,7 +230,7 @@ class _ConfigFormState extends State<ConfigForm> {
               decoration: _inputDecoration(field.placeholder ?? '仅展示整数输入框'),
               onChanged: (v) => _setValue(field.name, v),
               validator: (v) {
-                if (field.required && (v == null || v.trim().isEmpty)) return '必填';
+                if (field.required && (v == null || v.trim().isEmpty)) return '${field.label}必填';
                 return null;
               },
             ),
@@ -242,10 +242,10 @@ class _ConfigFormState extends State<ConfigForm> {
             TextFormField(
               controller: _cfgControllers[field.name],
               maxLines: p?.maxLines ?? 4,
-              decoration: _inputDecoration(field.placeholder ?? '请输入多行文本'),
+              decoration: _textareaDecoration(field.placeholder ?? '请输入'),
               onChanged: (v) => _setValue(field.name, v),
               validator: (v) {
-                if (field.required && (v == null || v.trim().isEmpty)) return '必填';
+                if (field.required && (v == null || v.trim().isEmpty)) return '${field.label}必填';
                 return null;
               },
             ),
@@ -545,10 +545,10 @@ class _ConfigFormState extends State<ConfigForm> {
         case FormFieldType.upload:
           final p = field.props is UploadFieldProps ? field.props as UploadFieldProps : null;
           widgets.add(
-            FormField<List<Map<String, dynamic>>>(
+            FormField<List<UploadedFile>>(
               validator: (val) {
                 if (!field.required) return null;
-                final files = (_cfgValues[field.name] as List<Map<String, dynamic>>?) ?? const [];
+                final files = (_cfgValues[field.name] as List<UploadedFile>?) ?? const <UploadedFile>[];
                 return files.isEmpty ? '请上传文件' : null;
               },
               builder: (state) {
@@ -648,7 +648,7 @@ class _ConfigFormState extends State<ConfigForm> {
                   initialValue: _cfgValues[field.name],
                   validator: (val) {
                     if (val == null || (val is String && val.toString().trim().isEmpty)) {
-                      return '必填';
+                      return '${field.label}必填';
                     }
                     return null;
                   },
@@ -758,9 +758,52 @@ class _ConfigFormState extends State<ConfigForm> {
         borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: Colors.blue, width: 2),
       ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Colors.red, width: 1),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
+      ),
+      errorStyle: const TextStyle(color: Colors.red),
       filled: true,
       fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    );
+  }
+
+  InputDecoration _textareaDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Colors.blue, width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Colors.red, width: 1),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
+      ),
+      errorStyle: const TextStyle(color: Colors.red, fontSize: 12, height: 1.0),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      isDense: true,
+      errorMaxLines: 1,
+      // 尝试通过设置对齐方式来解决左对齐问题
+      alignLabelWithHint: true,
     );
   }
 

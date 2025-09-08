@@ -24,6 +24,67 @@ enum FileSource {
   imageOrCamera, // 只允许选择图片或拍照
 }
 
+// 强类型的上传文件实体，替代 Map<String, dynamic>
+class UploadedFile {
+  final String fileName;
+  final UploadStatus status;
+  final int timestamp;
+  final int fileSize;
+  final String? filePath;
+  final bool isImage;
+  final File? file;
+  final double uploadProgress;
+  final String? errorMessage;
+  final Map<String, dynamic>? responseData;
+  final String? fileUrl;
+  final Map<String, dynamic>? data; // 后端响应中的 data 字段（若存在）
+
+  const UploadedFile({
+    required this.fileName,
+    required this.status,
+    required this.timestamp,
+    this.fileSize = 0,
+    this.filePath,
+    this.isImage = false,
+    this.file,
+    this.uploadProgress = 0.0,
+    this.errorMessage,
+    this.responseData,
+    this.fileUrl,
+    this.data,
+  });
+
+  UploadedFile copyWith({
+    String? fileName,
+    UploadStatus? status,
+    int? timestamp,
+    int? fileSize,
+    String? filePath,
+    bool? isImage,
+    File? file,
+    double? uploadProgress,
+    String? errorMessage,
+    Map<String, dynamic>? responseData,
+    String? fileUrl,
+    Map<String, dynamic>? data,
+  }) {
+    return UploadedFile(
+      fileName: fileName ?? this.fileName,
+      status: status ?? this.status,
+      timestamp: timestamp ?? this.timestamp,
+      fileSize: fileSize ?? this.fileSize,
+      filePath: filePath ?? this.filePath,
+      isImage: isImage ?? this.isImage,
+      file: file ?? this.file,
+      uploadProgress: uploadProgress ?? this.uploadProgress,
+      errorMessage: errorMessage ?? this.errorMessage,
+      responseData: responseData ?? this.responseData,
+      fileUrl: fileUrl ?? this.fileUrl,
+      data: data ?? this.data,
+    );
+  }
+}
+
 // 上传配置类
 class UploadConfig {
   final String uploadUrl; // 上传接口地址
@@ -34,6 +95,7 @@ class UploadConfig {
   final Function(String)? onUploadError; // 上传失败回调
   final Function(double)? onUploadProgress; // 上传进度回调
   final Duration timeout; // 请求超时时间
+  final Function(UploadedFile)? onFileRemoved; // 文件移除回调
 
   const UploadConfig({
     required this.uploadUrl,
@@ -44,6 +106,7 @@ class UploadConfig {
     this.onUploadError,
     this.onUploadProgress,
     this.timeout = const Duration(seconds: 60),
+    this.onFileRemoved,
   });
 }
 
@@ -70,10 +133,10 @@ class UploadFile extends StatefulWidget {
   final Color? iconColor;
   final String? uploadText;
   final TextStyle? textStyle;
-  final List<Map<String, dynamic>> initialFiles; // 包含文件名和状态的文件列表
-  final Function(List<Map<String, dynamic>>)? onFilesChanged;
+  final List<UploadedFile> initialFiles; // 包含文件名和状态的文件列表
+  final Function(List<UploadedFile>)? onFilesChanged;
   final bool showFileList;
-  final Widget? Function(Map<String, dynamic>)? customFileItemBuilder;
+  final Widget? Function(UploadedFile)? customFileItemBuilder;
   final double? fileItemSize; // 文件项尺寸（正方形）
   final int limit; // 文件数量限制，-1表示无限制
   final FileSource fileSource; // 文件来源控制
@@ -113,12 +176,12 @@ class UploadFile extends StatefulWidget {
 }
 
 class _UploadFileState extends State<UploadFile> {
-  late List<Map<String, dynamic>> uploadedFiles;
+  late List<UploadedFile> uploadedFiles;
 
   @override
   void initState() {
     super.initState();
-    uploadedFiles = List.from(widget.initialFiles);
+    uploadedFiles = List<UploadedFile>.from(widget.initialFiles);
   }
 
   void _addFile(String fileName, {int? fileSize, String? filePath, bool isImage = false, File? file}) {
@@ -130,16 +193,18 @@ class _UploadFileState extends State<UploadFile> {
 
     final fileIndex = uploadedFiles.length;
     setState(() {
-      uploadedFiles.add({
-        'fileName': fileName,
-        'status': widget.autoUpload && widget.uploadConfig != null ? UploadStatus.uploading : UploadStatus.success,
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
-        'fileSize': fileSize ?? 0, // 文件大小（字节）
-        'filePath': filePath, // 文件路径（用于图片预览）
-        'isImage': isImage, // 是否为图片文件
-        'file': file, // 文件对象
-        'uploadProgress': 0.0, // 上传进度
-      });
+      uploadedFiles.add(
+        UploadedFile(
+          fileName: fileName,
+          status: widget.autoUpload && widget.uploadConfig != null ? UploadStatus.uploading : UploadStatus.success,
+          timestamp: DateTime.now().millisecondsSinceEpoch,
+          fileSize: fileSize ?? 0,
+          filePath: filePath,
+          isImage: isImage,
+          file: file,
+          uploadProgress: 0.0,
+        ),
+      );
     });
     widget.onFilesChanged?.call(uploadedFiles);
 
@@ -150,9 +215,18 @@ class _UploadFileState extends State<UploadFile> {
   }
 
   void _removeFile(int index) {
+    if (index < 0 || index >= uploadedFiles.length) {
+      return;
+    }
+
+    // 在移除前获取文件信息，便于回调使用
+    final UploadedFile removedFile = uploadedFiles[index];
+
     setState(() {
       uploadedFiles.removeAt(index);
     });
+    // 触发移除回调
+    widget.uploadConfig?.onFileRemoved?.call(removedFile);
     widget.onFilesChanged?.call(uploadedFiles);
   }
 
@@ -249,7 +323,7 @@ class _UploadFileState extends State<UploadFile> {
   void _updateUploadProgress(int index, double progress) {
     if (index >= 0 && index < uploadedFiles.length) {
       setState(() {
-        uploadedFiles[index]['uploadProgress'] = progress;
+        uploadedFiles[index] = uploadedFiles[index].copyWith(uploadProgress: progress);
       });
       widget.onFilesChanged?.call(uploadedFiles);
     }
@@ -259,19 +333,31 @@ class _UploadFileState extends State<UploadFile> {
   void _updateFileStatus(int index, UploadStatus status, {String? errorMessage, Map<String, dynamic>? responseData}) {
     if (index >= 0 && index < uploadedFiles.length) {
       setState(() {
-        uploadedFiles[index]['status'] = status;
-        if (errorMessage != null) {
-          uploadedFiles[index]['errorMessage'] = errorMessage;
-        }
+        String? nextFileUrl = uploadedFiles[index].fileUrl;
+        Map<String, dynamic>? nextCoreData = uploadedFiles[index].data;
         if (responseData != null) {
-          uploadedFiles[index]['responseData'] = responseData;
-          // 尝试从响应中提取文件URL
+          // 提取核心 data
+          if (responseData['data'] is Map<String, dynamic>) {
+            nextCoreData = (responseData['data'] as Map<String, dynamic>);
+          }
+
+          // 尝试从响应或核心 data 中提取文件URL
           if (responseData['url'] != null) {
-            uploadedFiles[index]['fileUrl'] = responseData['url'];
+            nextFileUrl = responseData['url'] as String?;
           } else if (responseData['data'] != null && responseData['data']['url'] != null) {
-            uploadedFiles[index]['fileUrl'] = responseData['data']['url'];
+            nextFileUrl = (responseData['data']['url']) as String?;
+          } else if (nextCoreData != null && nextCoreData['url'] != null) {
+            nextFileUrl = nextCoreData['url'] as String?;
           }
         }
+
+        uploadedFiles[index] = uploadedFiles[index].copyWith(
+          status: status,
+          errorMessage: errorMessage ?? uploadedFiles[index].errorMessage,
+          responseData: responseData ?? uploadedFiles[index].responseData,
+          data: nextCoreData,
+          fileUrl: nextFileUrl,
+        );
       });
       widget.onFilesChanged?.call(uploadedFiles);
     }
@@ -565,7 +651,7 @@ class _UploadFileState extends State<UploadFile> {
     );
   }
 
-  Widget _buildFileItem(Map<String, dynamic> fileInfo, int index) {
+  Widget _buildFileItem(UploadedFile fileInfo, int index) {
     // 如果提供了自定义文件项构建器，使用它
     if (widget.customFileItemBuilder != null) {
       return widget.customFileItemBuilder!(fileInfo) ?? _buildCardFileItem(fileInfo, index);
@@ -579,14 +665,14 @@ class _UploadFileState extends State<UploadFile> {
     }
   }
 
-  Widget _buildCardFileItem(Map<String, dynamic> fileInfo, int index) {
-    final fileName = fileInfo['fileName'] as String;
-    final status = fileInfo['status'] as UploadStatus;
-    final fileSize = fileInfo['fileSize'] as int? ?? 0;
-    final filePath = fileInfo['filePath'] as String?;
-    final isImage = fileInfo['isImage'] as bool? ?? false;
-    final uploadProgress = fileInfo['uploadProgress'] as double? ?? 0.0;
-    final errorMessage = fileInfo['errorMessage'] as String?;
+  Widget _buildCardFileItem(UploadedFile fileInfo, int index) {
+    final fileName = fileInfo.fileName;
+    final status = fileInfo.status;
+    final fileSize = fileInfo.fileSize;
+    final filePath = fileInfo.filePath;
+    final isImage = fileInfo.isImage;
+    final uploadProgress = fileInfo.uploadProgress;
+    final errorMessage = fileInfo.errorMessage;
 
     // 使用传入的尺寸，如果没有则使用默认值
     final size = widget.fileItemSize ?? 120;
@@ -646,7 +732,7 @@ class _UploadFileState extends State<UploadFile> {
             Container(
               width: double.infinity,
               height: double.infinity,
-              decoration: BoxDecoration(color: Colors.black.withOpacity(0.6), borderRadius: BorderRadius.circular(8)),
+              decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.6), borderRadius: BorderRadius.circular(8)),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -672,7 +758,7 @@ class _UploadFileState extends State<UploadFile> {
                     Container(
                       width: size * 0.6,
                       height: 2,
-                      decoration: BoxDecoration(color: Colors.white.withOpacity(0.3), borderRadius: BorderRadius.circular(1)),
+                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(1)),
                       child: FractionallySizedBox(
                         alignment: Alignment.centerLeft,
                         widthFactor: uploadProgress,
@@ -717,12 +803,12 @@ class _UploadFileState extends State<UploadFile> {
     );
   }
 
-  Widget _buildListFileItem(Map<String, dynamic> fileInfo, int index) {
-    final fileName = fileInfo['fileName'] as String;
-    final status = fileInfo['status'] as UploadStatus;
-    final fileSize = fileInfo['fileSize'] as int? ?? 0;
-    final uploadProgress = fileInfo['uploadProgress'] as double? ?? 0.0;
-    final errorMessage = fileInfo['errorMessage'] as String?;
+  Widget _buildListFileItem(UploadedFile fileInfo, int index) {
+    final fileName = fileInfo.fileName;
+    final status = fileInfo.status;
+    final fileSize = fileInfo.fileSize;
+    final uploadProgress = fileInfo.uploadProgress;
+    final errorMessage = fileInfo.errorMessage;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),

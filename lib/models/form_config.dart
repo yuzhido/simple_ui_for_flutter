@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'select_data.dart';
+import 'package:simple_ui/src/upload_file/index.dart';
 
 /// 表单字段类型枚举
 enum FormFieldType { text, number, integer, textarea, radio, checkbox, select, dropdown, date, time, datetime, upload, custom }
@@ -281,15 +282,15 @@ class UploadFieldProps {
   final double? iconSize;
   final Color? iconColor;
   final TextStyle? textStyle;
-  final List<Map<String, dynamic>>? initialFiles;
-  final Function(List<Map<String, dynamic>>)? onFilesChanged;
-  final Widget Function(Map<String, dynamic>)? customFileItemBuilder;
+  final List<UploadedFile>? initialFiles;
+  final Function(List<UploadedFile>)? onFilesChanged;
+  final Widget Function(UploadedFile)? customFileItemBuilder;
   final double? fileItemSize;
   final int? limit;
   final dynamic fileSource; // 与组件枚举保持解耦
   final dynamic onFileSelected; // 回调透传
   final dynamic onImageSelected; // 回调透传
-  final dynamic uploadConfig; // 上传配置透传
+  final UploadConfig? uploadConfig; // 上传配置
   const UploadFieldProps({
     this.uploadText,
     this.autoUpload,
