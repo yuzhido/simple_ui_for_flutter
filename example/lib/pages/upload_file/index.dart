@@ -8,10 +8,10 @@ class UploadFilePage extends StatefulWidget {
 }
 
 class _NewUploadFilePageState extends State<UploadFilePage> {
-  List<Map<String, dynamic>> files1 = [];
-  List<Map<String, dynamic>> files2 = [];
-  List<Map<String, dynamic>> files3 = [];
-  List<Map<String, dynamic>> files4 = [];
+  List<UploadedFile> files1 = [];
+  List<UploadedFile> files2 = [];
+  List<UploadedFile> files3 = [];
+  List<UploadedFile> files4 = [];
 
   @override
   void initState() {
@@ -23,26 +23,22 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
   void _initSampleFiles() {
     // 示例1：成功状态的文件
     files1 = [
-      {'fileName': 'M.11_全球热爱季.jpg', 'status': UploadStatus.success, 'timestamp': DateTime.now().millisecondsSinceEpoch, 'fileSize': 2048576, 'isImage': true},
-      {'fileName': '产品宣传图.png', 'status': UploadStatus.failed, 'timestamp': DateTime.now().millisecondsSinceEpoch, 'fileSize': 1536000, 'isImage': true},
+      UploadedFile(fileName: 'M.11_全球热爱季.jpg', status: UploadStatus.success, timestamp: DateTime.now().millisecondsSinceEpoch, fileSize: 2048576, isImage: true),
+      UploadedFile(fileName: '产品宣传图.png', status: UploadStatus.failed, timestamp: DateTime.now().millisecondsSinceEpoch, fileSize: 1536000, isImage: true),
     ];
 
     // 示例2：混合状态的文件
     files2 = [
-      {'fileName': 'M.11_全球热爱季.jpg', 'status': UploadStatus.success, 'timestamp': DateTime.now().millisecondsSinceEpoch, 'fileSize': 2048576, 'isImage': true},
-      {'fileName': '上传失败文件.txt', 'status': UploadStatus.failed, 'timestamp': DateTime.now().millisecondsSinceEpoch, 'fileSize': 51200, 'isImage': false},
-      {'fileName': '正在上传.pdf', 'status': UploadStatus.uploading, 'timestamp': DateTime.now().millisecondsSinceEpoch, 'fileSize': 1048576, 'isImage': false},
+      UploadedFile(fileName: 'M.11_全球热爱季.jpg', status: UploadStatus.success, timestamp: DateTime.now().millisecondsSinceEpoch, fileSize: 2048576, isImage: true),
+      UploadedFile(fileName: '上传失败文件.txt', status: UploadStatus.failed, timestamp: DateTime.now().millisecondsSinceEpoch, fileSize: 51200, isImage: false),
+      UploadedFile(fileName: '正在上传.pdf', status: UploadStatus.uploading, timestamp: DateTime.now().millisecondsSinceEpoch, fileSize: 1048576, isImage: false),
     ];
 
     // 示例3：自定义样式的文件
-    files3 = [
-      {'fileName': '绿色主题文件.jpg', 'status': UploadStatus.success, 'timestamp': DateTime.now().millisecondsSinceEpoch, 'fileSize': 3072000, 'isImage': true},
-    ];
+    files3 = [UploadedFile(fileName: '绿色主题文件.jpg', status: UploadStatus.success, timestamp: DateTime.now().millisecondsSinceEpoch, fileSize: 3072000, isImage: true)];
 
     // 示例4：完全自定义的文件
-    files4 = [
-      {'fileName': '自定义样式文件.txt', 'status': UploadStatus.success, 'timestamp': DateTime.now().millisecondsSinceEpoch, 'fileSize': 25600, 'isImage': false},
-    ];
+    files4 = [UploadedFile(fileName: '自定义样式文件.txt', status: UploadStatus.success, timestamp: DateTime.now().millisecondsSinceEpoch, fileSize: 25600, isImage: false)];
   }
 
   @override
@@ -131,13 +127,15 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
                 child: InkWell(
                   onTap: () {
                     setState(() {
-                      files4.add({
-                        'fileName': '自定义样式文件_${DateTime.now().millisecondsSinceEpoch}.txt',
-                        'status': UploadStatus.success,
-                        'timestamp': DateTime.now().millisecondsSinceEpoch,
-                        'fileSize': 25600,
-                        'isImage': false,
-                      });
+                      files4.add(
+                        UploadedFile(
+                          fileName: '自定义样式文件_${DateTime.now().millisecondsSinceEpoch}.txt',
+                          status: UploadStatus.success,
+                          timestamp: DateTime.now().millisecondsSinceEpoch,
+                          fileSize: 25600,
+                          isImage: false,
+                        ),
+                      );
                     });
                   },
                   child: Column(
@@ -177,9 +175,9 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
               listType: UploadListType.card,
               // uploadAreaSize: 120, // 默认120x120的卡片
               customFileItemBuilder: (fileInfo) {
-                final fileName = fileInfo['fileName'] as String;
-                final status = fileInfo['status'] as UploadStatus;
-                final fileSize = fileInfo['fileSize'] as int? ?? 0;
+                final String fileName = fileInfo.fileName;
+                final UploadStatus status = fileInfo.status;
+                final int fileSize = fileInfo.fileSize;
 
                 return Container(
                   width: 120,

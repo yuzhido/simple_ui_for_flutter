@@ -439,14 +439,21 @@ class _ConfigFormState extends State<ConfigForm> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildTapContainer(
+                    _buildDateTapContainer(
                       placeholder: _cfgValues[field.name] == null ? (field.placeholder ?? '请选择日期') : _cfgValues[field.name].toString(),
+                      hasValue: _cfgValues[field.name] != null,
                       icon: Icons.calendar_today,
                       onTap: () async {
                         final now = DateTime.now();
-                        final picked = await showDatePicker(context: context, initialDate: now, firstDate: DateTime(1900), lastDate: DateTime(2100));
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: now,
+                          firstDate: DateTime(1900),
+                          lastDate: DateTime(2100),
+                          locale: const Locale('zh', 'CN'),
+                        );
                         if (picked != null) {
-                          final v = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+                          final v = '${picked.year}年${picked.month}月${picked.day}日';
                           setState(() {
                             _setValue(field.name, v);
                           });
@@ -476,8 +483,9 @@ class _ConfigFormState extends State<ConfigForm> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildTapContainer(
+                    _buildDateTapContainer(
                       placeholder: _cfgValues[field.name] == null ? (field.placeholder ?? '请选择时间') : _cfgValues[field.name].toString(),
+                      hasValue: _cfgValues[field.name] != null,
                       icon: Icons.access_time,
                       onTap: () async {
                         final picked = await showTimePicker(context: context, initialTime: TimeOfDay.now());
@@ -512,19 +520,25 @@ class _ConfigFormState extends State<ConfigForm> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildTapContainer(
+                    _buildDateTapContainer(
                       placeholder: _cfgValues[field.name] == null ? (field.placeholder ?? '请选择日期时间') : _cfgValues[field.name].toString(),
+                      hasValue: _cfgValues[field.name] != null,
                       icon: Icons.event,
                       onTap: () async {
                         final now = DateTime.now();
-                        final date = await showDatePicker(context: context, initialDate: now, firstDate: DateTime(1900), lastDate: DateTime(2100));
+                        final date = await showDatePicker(
+                          context: context,
+                          initialDate: now,
+                          firstDate: DateTime(1900),
+                          lastDate: DateTime(2100),
+                          locale: const Locale('zh', 'CN'),
+                        );
                         if (date == null) return;
                         if (!mounted) return;
                         final time = await showTimePicker(context: context, initialTime: TimeOfDay.now());
                         if (time == null) return;
                         final dt = DateTime(date.year, date.month, date.day, time.hour, time.minute);
-                        final v =
-                            '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+                        final v = '${dt.year}年${dt.month}月${dt.day}日 ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
                         setState(() {
                           _setValue(field.name, v);
                         });
@@ -819,7 +833,7 @@ class _ConfigFormState extends State<ConfigForm> {
     );
   }
 
-  Widget _buildTapContainer({required String placeholder, required IconData icon, VoidCallback? onTap}) {
+  Widget _buildDateTapContainer({required String placeholder, required bool hasValue, required IconData icon, VoidCallback? onTap}) {
     return InkWell(
       onTap: onTap,
       child: Container(
@@ -832,7 +846,7 @@ class _ConfigFormState extends State<ConfigForm> {
         child: Row(
           children: [
             Expanded(
-              child: Text(placeholder, style: TextStyle(fontSize: 16, color: Colors.grey.shade500)),
+              child: Text(placeholder, style: TextStyle(fontSize: 16, color: hasValue ? Colors.black87 : Colors.grey.shade500)),
             ),
             Icon(icon, color: Colors.grey),
           ],

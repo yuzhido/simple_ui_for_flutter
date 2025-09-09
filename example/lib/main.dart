@@ -6,6 +6,7 @@ import 'package:example/pages/upload_file/index.dart';
 import 'package:example/pages/database_demo/index.dart';
 import 'package:example/pages/permission_request/index.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'pages/dropdown_select/index.dart';
 import 'pages/cascading_select/index.dart';
 import 'pages/config_form/index.dart';
@@ -22,6 +23,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Simple UI 组件示例',
       theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
+      localizationsDelegates: const [GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate, GlobalCupertinoLocalizations.delegate],
+      supportedLocales: const [
+        Locale('zh', 'CN'), // 中文
+        Locale('en', 'US'), // 英文
+      ],
+      locale: const Locale('zh', 'CN'),
       home: const HomePage(),
     );
   }
