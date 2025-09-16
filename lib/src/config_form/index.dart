@@ -227,7 +227,7 @@ class _ConfigFormState extends State<ConfigForm> {
               controller: _cfgControllers[field.name],
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: _inputDecoration(field.placeholder ?? '仅展示整数输入框'),
+              decoration: _inputDecoration(field.placeholder ?? '请输入${field.label}'),
               onChanged: (v) => _setValue(field.name, v),
               validator: (v) {
                 if (field.required && (v == null || v.trim().isEmpty)) return '${field.label}必填';
@@ -594,8 +594,18 @@ class _ConfigFormState extends State<ConfigForm> {
                       showFileList: p?.showFileList ?? true,
                       customFileItemBuilder: p?.customFileItemBuilder,
                       fileItemSize: p?.fileItemSize,
-                      limit: p?.limit ?? -1,
-                      fileSource: p?.fileSource ?? FileSource.all,
+                      // 优先使用字段 props.limit；若未配置则回退到 UploadConfig.limit；均未设置则 -1
+                      limit: () {
+                        if (p?.limit != null) return p!.limit!;
+                        final cfgLimit = p?.uploadConfig?.limit;
+                        return cfgLimit ?? -1;
+                      }(),
+                      // 优先使用字段 props.fileSource；若未配置则回退到 UploadConfig.fileSource；均未设置则 FileSource.all
+                      fileSource: () {
+                        if (p?.fileSource != null) return p!.fileSource!;
+                        final cfgSource = p?.uploadConfig?.fileSource;
+                        return cfgSource ?? FileSource.all;
+                      }(),
                       onFileSelected: p?.onFileSelected,
                       onImageSelected: p?.onImageSelected,
                       uploadConfig: p?.uploadConfig,

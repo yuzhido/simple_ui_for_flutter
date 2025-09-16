@@ -87,7 +87,7 @@ class UploadedFile {
 
 // 上传配置类
 class UploadConfig {
-  final String uploadUrl; // 上传接口地址
+  final String? uploadUrl; // 上传接口地址（当提供 customUpload 时可不传）
   final Map<String, String> headers; // 请求头
   final String? fileFieldName; // 文件字段名，默认为 'file'
   final Map<String, String>? additionalFields; // 额外的表单字段
@@ -96,9 +96,17 @@ class UploadConfig {
   final Function(double)? onUploadProgress; // 上传进度回调
   final Duration timeout; // 请求超时时间
   final Function(UploadedFile)? onFileRemoved; // 文件移除回调
+  final int? limit; // 文件数量限制，优先级低于 UploadFile.limit（-1 表示无限制）
+  final FileSource? fileSource; // 文件来源控制，优先级低于 UploadFile.fileSource
+  // 自定义上传回调：如果提供，组件将把文件交给该方法处理上传
+  // 要求：
+  // - 调用者负责实际上传
+  // - 返回 Map 作为服务端响应体（与原生 Dio 逻辑保持一致）
+  // - 可在上传过程中调用 onProgress 更新进度 [0,1]
+  final Future<Map<String, dynamic>> Function({required File file, required void Function(double progress) onProgress})? customUpload;
 
   const UploadConfig({
-    required this.uploadUrl,
+    this.uploadUrl,
     this.headers = const {},
     this.fileFieldName = 'file',
     this.additionalFields,
@@ -107,6 +115,9 @@ class UploadConfig {
     this.onUploadProgress,
     this.timeout = const Duration(seconds: 60),
     this.onFileRemoved,
+    this.limit,
+    this.fileSource,
+    this.customUpload,
   });
 }
 
@@ -178,6 +189,14 @@ class UploadFile extends StatefulWidget {
 class _UploadFileState extends State<UploadFile> {
   late List<UploadedFile> uploadedFiles;
 
+  int _effectiveLimit() {
+    // 优先使用组件自身的 limit；当为 -1 时回退到 UploadConfig.limit；仍为 null 或 -1 则视为无限制
+    final componentLimit = widget.limit;
+    if (componentLimit != -1) return componentLimit;
+    final configLimit = widget.uploadConfig?.limit;
+    return configLimit ?? -1;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -186,7 +205,8 @@ class _UploadFileState extends State<UploadFile> {
 
   void _addFile(String fileName, {int? fileSize, String? filePath, bool isImage = false, File? file}) {
     // 检查文件数量限制
-    if (widget.limit > 0 && uploadedFiles.length >= widget.limit) {
+    final limit = _effectiveLimit();
+    if (limit > 0 && uploadedFiles.length >= limit) {
       // 可以在这里添加提示信息，比如显示一个SnackBar
       return;
     }
@@ -237,7 +257,35 @@ class _UploadFileState extends State<UploadFile> {
     try {
       final config = widget.uploadConfig!;
 
+      // 如果提供了自定义上传方法，则优先使用
+      if (config.customUpload != null) {
+        try {
+          final responseData = await config.customUpload!(
+            file: file,
+            onProgress: (progress) {
+              _updateUploadProgress(fileIndex, progress);
+              config.onUploadProgress?.call(progress);
+            },
+          );
+          _updateFileStatus(fileIndex, UploadStatus.success, responseData: responseData);
+          config.onUploadSuccess?.call(responseData);
+          return;
+        } catch (e) {
+          final errorMessage = '自定义上传失败: $e';
+          _updateFileStatus(fileIndex, UploadStatus.failed, errorMessage: errorMessage);
+          config.onUploadError?.call(errorMessage);
+          return;
+        }
+      }
+
       // 创建Dio实例
+      if (config.uploadUrl == null || config.uploadUrl!.isEmpty) {
+        final errorMessage = '上传失败: 未提供 uploadUrl，且未配置自定义上传 customUpload';
+        _updateFileStatus(fileIndex, UploadStatus.failed, errorMessage: errorMessage);
+        config.onUploadError?.call(errorMessage);
+        return;
+      }
+
       final dio = Dio();
 
       // 设置请求头
@@ -257,7 +305,7 @@ class _UploadFileState extends State<UploadFile> {
 
       // 发送请求并监听进度
       final response = await dio.post(
-        config.uploadUrl,
+        config.uploadUrl!,
         data: formData,
         onSendProgress: (sent, total) {
           // 更新上传进度
@@ -554,7 +602,8 @@ class _UploadFileState extends State<UploadFile> {
   }
 
   Widget _buildButtonStyle() {
-    final bool canUpload = widget.limit == -1 || uploadedFiles.length < widget.limit;
+    final limit = _effectiveLimit();
+    final bool canUpload = limit == -1 || uploadedFiles.length < limit;
 
     return ElevatedButton.icon(
       onPressed: canUpload
@@ -576,7 +625,8 @@ class _UploadFileState extends State<UploadFile> {
   Widget _buildCardStyle() {
     // 使用传入的尺寸，如果没有则使用默认值
     final size = widget.uploadAreaSize ?? 120;
-    final bool canUpload = widget.limit == -1 || uploadedFiles.length < widget.limit;
+    final limit = _effectiveLimit();
+    final bool canUpload = limit == -1 || uploadedFiles.length < limit;
 
     return Container(
       width: size,
@@ -615,7 +665,8 @@ class _UploadFileState extends State<UploadFile> {
   Widget _buildCustomStyle() {
     // 使用传入的尺寸，如果没有则使用默认值
     final size = widget.uploadAreaSize ?? 120;
-    final bool canUpload = widget.limit == -1 || uploadedFiles.length < widget.limit;
+    final limit = _effectiveLimit();
+    final bool canUpload = limit == -1 || uploadedFiles.length < limit;
 
     return Container(
       width: size,
@@ -928,7 +979,11 @@ class _UploadFileState extends State<UploadFile> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 非卡片模式时，上传区域在上方（只有在未达到限制时才显示）
-          if (widget.listType != UploadListType.card && (widget.limit == -1 || uploadedFiles.length < widget.limit)) ...[_buildUploadArea(), const SizedBox(height: 16)],
+          if (widget.listType != UploadListType.card)
+            ...(() {
+              final limit = _effectiveLimit();
+              return (limit == -1 || uploadedFiles.length < limit) ? <Widget>[_buildUploadArea(), const SizedBox(height: 16)] : <Widget>[];
+            }()),
           // 文件列表 - 根据模式决定布局
           if (widget.showFileList)
             widget.listType == UploadListType.card
@@ -970,7 +1025,11 @@ class _UploadFileState extends State<UploadFile> {
                             return SizedBox(width: finalItemWidth, height: finalItemWidth, child: _buildFileItem(fileInfo, index));
                           }),
                           // 最后显示上传按钮区域（只有在未达到限制时才显示）
-                          if (widget.limit == -1 || uploadedFiles.length < widget.limit) SizedBox(width: finalItemWidth, height: finalItemWidth, child: _buildUploadArea()),
+                          if (() {
+                            final limit = _effectiveLimit();
+                            return limit == -1 || uploadedFiles.length < limit;
+                          }())
+                            SizedBox(width: finalItemWidth, height: finalItemWidth, child: _buildUploadArea()),
                         ],
                       );
                     },
