@@ -1,479 +1,5 @@
-// import 'package:flutter/material.dart';
-// import 'package:simple_ui/simple_ui.dart';
-// import 'package:http/http.dart' as http;
-// import 'dart:convert';
-
-// class DataForFormPage extends StatefulWidget {
-//   const DataForFormPage({super.key});
-//   @override
-//   State<DataForFormPage> createState() => _DataForFormPageState();
-// }
-
-// class _DataForFormPageState extends State<DataForFormPage> {
-//   late final FormConfig formConfig;
-
-//   // 添加表单的GlobalKey，用于外部调用验证方法
-//   final GlobalKey<State<ConfigForm>> _formKey = GlobalKey<State<ConfigForm>>();
-
-//   // 添加验证状态
-//   bool _isFormValid = false;
-//   Map<String, String?> _currentErrors = {};
-
-//   @override
-//   void initState() {
-//     super.initState();
-
-//     // 使用新的类型约束创建表单配置
-//     formConfig = FormConfig(
-//       title: '用户信息表单',
-//       description: '请填写您的个人信息',
-//       fields: [
-//         FormFieldConfig(
-//           label: '姓名',
-//           name: 'name',
-//           type: FormFieldType.text,
-//           required: true,
-//           defaultValue: '张三',
-//           textFieldProps: TextFieldProps(placeholder: '请输入您的姓名'),
-//         ),
-//         FormFieldConfig(
-//           label: '年龄',
-//           name: 'age',
-//           type: FormFieldType.integer,
-//           required: true,
-//           defaultValue: 25,
-//           numberFieldProps: NumberFieldProps(placeholder: '请输入您的年龄'),
-//         ),
-//         FormFieldConfig(
-//           label: '身高',
-//           name: 'height',
-//           type: FormFieldType.double,
-//           required: true,
-//           defaultValue: 1.75,
-//           numberFieldProps: NumberFieldProps(placeholder: '请输入您的身高(米)'),
-//         ),
-//         FormFieldConfig(
-//           label: '性别',
-//           name: 'gender',
-//           type: FormFieldType.radio,
-//           required: true,
-//           defaultValue: 'male',
-//           radioFieldProps: RadioFieldProps(
-//             options: [
-//               SelectData(label: '男', value: 'male', data: 'male'),
-//               SelectData(label: '女', value: 'female', data: 'female'),
-//             ],
-//           ),
-//         ),
-//         FormFieldConfig(
-//           label: '学历',
-//           name: 'education',
-//           type: FormFieldType.checkbox,
-//           checkboxFieldProps: CheckboxFieldProps(
-//             options: [
-//               SelectData(label: '小学', value: 'primary', data: 'primary'),
-//               SelectData(label: '初中', value: 'junior', data: 'junior'),
-//               SelectData(label: '高中', value: 'senior', data: 'senior'),
-//               SelectData(label: '大学', value: 'university', data: 'university'),
-//             ],
-//           ),
-//         ),
-//         FormFieldConfig(
-//           label: '职业',
-//           name: 'profession',
-//           type: FormFieldType.select,
-//           required: true,
-//           defaultValue: SelectData(label: '工程师', value: 'engineer', data: 'engineer'),
-//           selectFieldProps: SelectFieldProps(
-//             options: [
-//               SelectData(label: '医生', value: 'doctor', data: 'doctor'),
-//               SelectData(label: '教师', value: 'teacher', data: 'teacher'),
-//               SelectData(label: '工程师', value: 'engineer', data: 'engineer'),
-//               SelectData(label: '律师', value: 'lawyer', data: 'lawyer'),
-//               SelectData(label: '设计师', value: 'designer', data: 'designer'),
-//               SelectData(label: '销售', value: 'sales', data: 'sales'),
-//               SelectData(label: '市场', value: 'marketing', data: 'marketing'),
-//               SelectData(label: '财务', value: 'finance', data: 'finance'),
-//               SelectData(label: '人力资源', value: 'hr', data: 'hr'),
-//               SelectData(label: '运营', value: 'operations', data: 'operations'),
-//             ],
-//           ),
-//         ),
-//         FormFieldConfig(
-//           label: '测试本地搜索',
-//           name: 'test_local',
-//           type: FormFieldType.select,
-//           required: false,
-//           selectFieldProps: SelectFieldProps(
-//             options: [
-//               SelectData(label: '苹果', value: 'apple', data: 'apple'),
-//               SelectData(label: '香蕉', value: 'banana', data: 'banana'),
-//               SelectData(label: '橙子', value: 'orange', data: 'orange'),
-//               SelectData(label: '葡萄', value: 'grape', data: 'grape'),
-//               SelectData(label: '草莓', value: 'strawberry', data: 'strawberry'),
-//               SelectData(label: '蓝莓', value: 'blueberry', data: 'blueberry'),
-//               SelectData(label: '樱桃', value: 'cherry', data: 'cherry'),
-//               SelectData(label: '桃子', value: 'peach', data: 'peach'),
-//               SelectData(label: '梨子', value: 'pear', data: 'pear'),
-//               SelectData(label: '西瓜', value: 'watermelon', data: 'watermelon'),
-//             ],
-//           ),
-//         ),
-//         FormFieldConfig(
-//           label: '城市',
-//           name: 'city',
-//           type: FormFieldType.dropdown,
-//           required: true,
-//           defaultValue: SelectData<String>(label: '广州', value: 'guangzhou', data: 'guangzhou'),
-//           dropdownFieldProps: DropdownFieldProps(options: [], remote: true, remoteFetch: (keyword) => _fetchCities(keyword), multiple: false),
-//         ),
-//         FormFieldConfig(
-//           label: '技能',
-//           name: 'skills',
-//           type: FormFieldType.dropdown,
-//           required: true,
-//           defaultValue: [
-//             SelectData<String>(label: 'Flutter开发', value: 'flutter', data: 'flutter'),
-//             SelectData<String>(label: 'React开发', value: 'react', data: 'react'),
-//           ],
-//           dropdownFieldProps: DropdownFieldProps(options: [], remote: true, remoteFetch: (keyword) => _fetchSkills(keyword), multiple: true),
-//         ),
-//         FormFieldConfig(
-//           label: '待办事项',
-//           name: 'todos',
-//           type: FormFieldType.dropdown,
-//           required: true,
-//           dropdownFieldProps: DropdownFieldProps(options: [], remote: true, remoteFetch: (keyword) => _fetchTodos(keyword), multiple: false),
-//         ),
-//         FormFieldConfig(
-//           label: '多选待办事项',
-//           name: 'multiple_todos',
-//           type: FormFieldType.dropdown,
-//           required: true,
-//           dropdownFieldProps: DropdownFieldProps(options: [], remote: true, remoteFetch: (keyword) => _fetchTodos(keyword), multiple: true),
-//         ),
-//         FormFieldConfig(
-//           label: '兴趣爱好',
-//           name: 'hobbies',
-//           type: FormFieldType.checkbox,
-//           required: true,
-//           defaultValue: ['reading', 'programming'],
-//           checkboxFieldProps: CheckboxFieldProps(
-//             options: [
-//               SelectData(label: '阅读', value: 'reading', data: 'reading'),
-//               SelectData(label: '写作', value: 'writing', data: 'writing'),
-//               SelectData(label: '编程', value: 'programming', data: 'programming'),
-//               SelectData(label: '音乐', value: 'music', data: 'music'),
-//               SelectData(label: '电影', value: 'movie', data: 'movie'),
-//             ],
-//           ),
-//         ),
-//         FormFieldConfig(
-//           label: '自我介绍',
-//           name: 'introduction',
-//           type: FormFieldType.textarea,
-//           required: true,
-//           defaultValue: '我是一名热爱编程的开发者，喜欢学习新技术。',
-//           textareaFieldProps: TextareaFieldProps(placeholder: '请简单介绍一下自己...'),
-//         ),
-//         FormFieldConfig(label: '提交', name: 'submit', type: FormFieldType.button, required: false, buttonFieldProps: ButtonFieldProps()),
-//       ],
-//     );
-//   }
-
-//   // 模拟从后端获取城市数据
-//   Future<List<SelectData<String>>> _fetchCities(String? keyword) async {
-//     // 模拟网络延迟
-//     await Future.delayed(const Duration(milliseconds: 500));
-
-//     return [
-//       SelectData<String>(label: '北京', value: 'beijing', data: 'beijing'),
-//       SelectData<String>(label: '上海', value: 'shanghai', data: 'shanghai'),
-//       SelectData<String>(label: '广州', value: 'guangzhou', data: 'guangzhou'),
-//       SelectData<String>(label: '深圳', value: 'shenzhen', data: 'shenzhen'),
-//       SelectData<String>(label: '杭州', value: 'hangzhou', data: 'hangzhou'),
-//       SelectData<String>(label: '南京', value: 'nanjing', data: 'nanjing'),
-//       SelectData<String>(label: '成都', value: 'chengdu', data: 'chengdu'),
-//       SelectData<String>(label: '武汉', value: 'wuhan', data: 'wuhan'),
-//       SelectData<String>(label: '西安', value: 'xian', data: 'xian'),
-//       SelectData<String>(label: '重庆', value: 'chongqing', data: 'chongqing'),
-//     ];
-//   }
-
-//   // 模拟从后端获取技能数据
-//   Future<List<SelectData<String>>> _fetchSkills(String? keyword) async {
-//     // 模拟网络延迟
-//     await Future.delayed(const Duration(milliseconds: 800));
-
-//     return [
-//       SelectData<String>(label: 'Flutter开发', value: 'flutter', data: 'flutter'),
-//       SelectData<String>(label: 'React开发', value: 'react', data: 'react'),
-//       SelectData<String>(label: 'Vue开发', value: 'vue', data: 'vue'),
-//       SelectData<String>(label: 'Java开发', value: 'java', data: 'java'),
-//       SelectData<String>(label: 'Python开发', value: 'python', data: 'python'),
-//       SelectData<String>(label: 'UI设计', value: 'ui_design', data: 'ui_design'),
-//       SelectData<String>(label: '产品经理', value: 'product_manager', data: 'product_manager'),
-//       SelectData<String>(label: '数据分析', value: 'data_analysis', data: 'data_analysis'),
-//       SelectData<String>(label: '项目管理', value: 'project_management', data: 'project_management'),
-//       SelectData<String>(label: '测试工程师', value: 'test_engineer', data: 'test_engineer'),
-//     ];
-//   }
-
-//   // 从真实API获取待办事项数据
-//   Future<List<SelectData<String>>> _fetchTodos(String? keyword) async {
-//     try {
-//       // 从 https://jsonplaceholder.typicode.com/todos 获取数据
-//       final response = await http.get(Uri.parse('https://jsonplaceholder.typicode.com/todos'));
-
-//       if (response.statusCode == 200) {
-//         final List<dynamic> todos = json.decode(response.body);
-
-//         // 将API数据转换为SelectData格式
-//         return todos.map((todo) {
-//           final completed = todo['completed'] as bool;
-//           final title = todo['title'] as String;
-//           final id = todo['id'] as int;
-
-//           // 添加完成状态到标签中
-//           final label = completed ? '✅ $title' : '⏳ $title';
-
-//           return SelectData<String>(label: label, value: id.toString(), data: title);
-//         }).toList();
-//       } else {
-//         throw Exception('获取数据失败: ${response.statusCode}');
-//       }
-//     } catch (e) {
-//       print('获取待办事项数据时出错: $e');
-//       // 返回空列表或默认数据
-//       return [SelectData<String>(label: '获取数据失败', value: 'error', data: 'error')];
-//     }
-//   }
-
-//   // 外部验证表单的方法
-//   void _validateFormExternally() {
-//     if (_formKey.currentState != null) {
-//       // 通过GlobalKey调用表单的验证方法
-//       final formState = _formKey.currentState as dynamic;
-//       if (formState.validateForm != null) {
-//         final isValid = formState.validateForm();
-//         print('外部验证结果: $isValid');
-
-//         if (isValid) {
-//           // 获取表单数据
-//           final formData = formState.getFormData();
-//           print('表单数据: $formData');
-
-//           // 显示成功消息
-//           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('表单验证通过！'), backgroundColor: Colors.green));
-//         } else {
-//           // 获取错误信息
-//           final errors = formState.getErrors();
-//           print('验证错误: $errors');
-
-//           // 显示错误消息
-//           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('表单验证失败，请检查错误信息'), backgroundColor: Colors.red));
-//         }
-//       }
-//     }
-//   }
-
-//   // 外部重置表单的方法
-//   void _resetFormExternally() {
-//     if (_formKey.currentState != null) {
-//       final formState = _formKey.currentState as dynamic;
-//       if (formState.resetForm != null) {
-//         formState.resetForm();
-//         print('表单已重置');
-
-//         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('表单已重置'), backgroundColor: Colors.blue));
-//       }
-//     }
-//   }
-
-//   // 获取表单数据的方法
-//   void _getFormDataExternally() {
-//     if (_formKey.currentState != null) {
-//       final formState = _formKey.currentState as dynamic;
-//       if (formState.getFormData != null) {
-//         try {
-//           final formData = formState.getFormData();
-//           print('当前表单数据: $formData');
-//           print('数据类型: ${formData.runtimeType}');
-//           print('数据长度: ${formData.length}');
-
-//           // 显示数据对话框
-//           showDialog(
-//             context: context,
-//             builder: (context) => AlertDialog(
-//               title: const Text('当前表单数据'),
-//               content: SingleChildScrollView(
-//                 child: Column(
-//                   crossAxisAlignment: CrossAxisAlignment.start,
-//                   mainAxisSize: MainAxisSize.min,
-//                   children: formData.isEmpty
-//                       ? [
-//                           const Text(
-//                             '暂无数据',
-//                             style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
-//                           ),
-//                         ]
-//                       : formData.entries.map((entry) {
-//                           final value = entry.value;
-//                           final displayValue = value == null ? "未填写" : value.toString();
-
-//                           return Padding(padding: const EdgeInsets.symmetric(vertical: 4), child: Text('${entry.key}: $displayValue'));
-//                         }).toList(),
-//                 ),
-//               ),
-//               actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('确定'))],
-//             ),
-//           );
-//         } catch (e) {
-//           print('获取表单数据时出错: $e');
-//           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('获取数据失败: $e'), backgroundColor: Colors.red));
-//         }
-//       } else {
-//         print('getFormData方法不存在');
-//         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('获取数据方法不存在'), backgroundColor: Colors.red));
-//       }
-//     } else {
-//       print('表单状态为空');
-//       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('表单状态为空'), backgroundColor: Colors.red));
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: const Text('跳转查看数据驱动表单（DataForForm）示例')),
-//       body: SingleChildScrollView(
-//         padding: const EdgeInsets.all(16),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             // 外部控制按钮区域
-//             Container(
-//               width: double.infinity,
-//               padding: const EdgeInsets.all(16),
-//               decoration: BoxDecoration(
-//                 color: Colors.blue.shade50,
-//                 borderRadius: BorderRadius.circular(8),
-//                 border: Border.all(color: Colors.blue.shade200),
-//               ),
-//               child: Column(
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   Text(
-//                     '外部控制区域',
-//                     style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.blue.shade700),
-//                   ),
-//                   const SizedBox(height: 12),
-//                   Row(
-//                     children: [
-//                       Expanded(
-//                         child: ElevatedButton.icon(
-//                           onPressed: _validateFormExternally,
-//                           icon: const Icon(Icons.check_circle),
-//                           label: const Text('验证表单'),
-//                           style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
-//                         ),
-//                       ),
-//                       const SizedBox(width: 8),
-//                       Expanded(
-//                         child: ElevatedButton.icon(
-//                           onPressed: _resetFormExternally,
-//                           icon: const Icon(Icons.refresh),
-//                           label: const Text('重置表单'),
-//                           style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white),
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                   const SizedBox(height: 8),
-//                   Row(
-//                     children: [
-//                       Expanded(
-//                         child: ElevatedButton.icon(
-//                           onPressed: _getFormDataExternally,
-//                           icon: const Icon(Icons.data_usage),
-//                           label: const Text('获取数据'),
-//                           style: ElevatedButton.styleFrom(backgroundColor: Colors.purple, foregroundColor: Colors.white),
-//                         ),
-//                       ),
-//                       const SizedBox(width: 8),
-//                       Expanded(
-//                         child: Container(
-//                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-//                           decoration: BoxDecoration(
-//                             color: _isFormValid ? Colors.green.shade100 : Colors.red.shade100,
-//                             borderRadius: BorderRadius.circular(4),
-//                             border: Border.all(color: _isFormValid ? Colors.green.shade300 : Colors.red.shade300),
-//                           ),
-//                           child: Row(
-//                             mainAxisSize: MainAxisSize.min,
-//                             children: [
-//                               Icon(_isFormValid ? Icons.check_circle : Icons.error, color: _isFormValid ? Colors.green : Colors.red, size: 16),
-//                               const SizedBox(width: 4),
-//                               Text(
-//                                 _isFormValid ? '验证通过' : '验证失败',
-//                                 style: TextStyle(color: _isFormValid ? Colors.green.shade700 : Colors.red.shade700, fontSize: 12, fontWeight: FontWeight.w500),
-//                               ),
-//                             ],
-//                           ),
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                   if (_currentErrors.isNotEmpty) ...[
-//                     const SizedBox(height: 8),
-//                     Container(
-//                       width: double.infinity,
-//                       padding: const EdgeInsets.all(8),
-//                       decoration: BoxDecoration(
-//                         color: Colors.red.shade50,
-//                         borderRadius: BorderRadius.circular(4),
-//                         border: Border.all(color: Colors.red.shade200),
-//                       ),
-//                       child: Column(
-//                         crossAxisAlignment: CrossAxisAlignment.start,
-//                         children: [
-//                           Text(
-//                             '当前错误信息:',
-//                             style: TextStyle(color: Colors.red.shade700, fontWeight: FontWeight.w500),
-//                           ),
-//                           const SizedBox(height: 4),
-//                           ..._currentErrors.entries.map((entry) => Text('• ${entry.key}: ${entry.value}', style: TextStyle(color: Colors.red.shade600, fontSize: 12))),
-//                         ],
-//                       ),
-//                     ),
-//                   ],
-//                 ],
-//               ),
-//             ),
-//             const SizedBox(height: 20),
-//             // 表单组件
-//             ConfigForm(
-//               key: _formKey,
-//               formConfig: formConfig,
-//               onValidationChanged: (isValid, errors) {
-//                 setState(() {
-//                   _isFormValid = isValid;
-//                   _currentErrors = errors;
-//                 });
-//                 print('验证状态变化: isValid=$isValid, errors=$errors');
-//               },
-//               onSubmit: (formData) {
-//                 print('表单数据: $formData');
-//                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('表单提交成功！数据: $formData')));
-//               },
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
 import 'package:flutter/material.dart';
+import 'package:simple_ui/simple_ui.dart';
 
 class DataForFormPage extends StatefulWidget {
   const DataForFormPage({super.key});
@@ -482,11 +8,668 @@ class DataForFormPage extends StatefulWidget {
 }
 
 class _DataForFormPageState extends State<DataForFormPage> {
+  final ConfigFormController _controller = ConfigFormController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('导航栏标题')),
-      body: const Text('页面内容正在开发中...'),
+      appBar: AppBar(title: const Text('配置表单使用示例')),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 示例1：直接使用（无默认值）
+            _buildSectionTitle('示例1：直接使用（无默认值）'),
+            const SizedBox(height: 16),
+            _buildBasicForm(),
+            const SizedBox(height: 32),
+
+            // 示例2：有默认值
+            _buildSectionTitle('示例2：有默认值'),
+            const SizedBox(height: 16),
+            _buildFormWithDefaults(),
+            const SizedBox(height: 32),
+
+            // 示例3：使用控制器
+            _buildSectionTitle('示例3：使用控制器'),
+            const SizedBox(height: 16),
+            _buildFormWithController(),
+            const SizedBox(height: 32),
+
+            // 示例4：使用FormFieldType直接配置
+            _buildSectionTitle('示例4：使用FormFieldType直接配置'),
+            const SizedBox(height: 16),
+            _buildFormWithFieldType(),
+            const SizedBox(height: 32),
+
+            // 示例5：从后端获取数据回显
+            _buildSectionTitle('示例5：从后端获取数据回显'),
+            const SizedBox(height: 16),
+            _buildFormWithBackendData(),
+            const SizedBox(height: 32),
+
+            // 显示当前表单值
+            _buildSectionTitle('当前表单值'),
+            const SizedBox(height: 16),
+            _buildFormValues(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue),
+    );
+  }
+
+  // 示例1：基础表单（无默认值）
+  Widget _buildBasicForm() {
+    final formConfig = FormConfig(
+      fields: [
+        FormFieldConfig.text(name: 'name', label: '姓名', placeholder: '请输入姓名', required: true),
+        FormFieldConfig.number(name: 'age', label: '年龄', placeholder: '请输入年龄', required: true),
+        FormFieldConfig.select(
+          name: 'gender',
+          label: '性别',
+          placeholder: '请选择性别',
+          required: true,
+          props: SelectFieldProps(
+            options: const [
+              SelectData(label: '男', value: 'male', data: 'male'),
+              SelectData(label: '女', value: 'female', data: 'female'),
+            ],
+          ),
+        ),
+        FormFieldConfig.textarea(name: 'description', label: '个人描述', placeholder: '请输入个人描述', props: const TextareaFieldProps(maxLines: 3)),
+      ],
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: ConfigForm(formConfig: formConfig),
+    );
+  }
+
+  // 示例2：有默认值的表单
+  Widget _buildFormWithDefaults() {
+    final formConfig = FormConfig(
+      fields: [
+        FormFieldConfig.text(name: 'username', label: '用户名', placeholder: '请输入用户名', defaultValue: 'admin', required: true),
+        FormFieldConfig.number(name: 'score', label: '分数', placeholder: '请输入分数', defaultValue: 85.5, required: true),
+        FormFieldConfig.radio(
+          name: 'level',
+          label: '等级',
+          defaultValue: 'intermediate',
+          required: true,
+          props: const RadioFieldProps(
+            options: [
+              SelectData(label: '初级', value: 'beginner', data: 'beginner'),
+              SelectData(label: '中级', value: 'intermediate', data: 'intermediate'),
+              SelectData(label: '高级', value: 'advanced', data: 'advanced'),
+            ],
+          ),
+        ),
+        FormFieldConfig.checkbox(
+          name: 'skills',
+          label: '技能',
+          defaultValue: ['flutter', 'dart'],
+          props: const CheckboxFieldProps(
+            options: [
+              SelectData(label: 'Flutter', value: 'flutter', data: 'flutter'),
+              SelectData(label: 'Dart', value: 'dart', data: 'dart'),
+              SelectData(label: 'React', value: 'react', data: 'react'),
+              SelectData(label: 'Vue', value: 'vue', data: 'vue'),
+            ],
+          ),
+        ),
+        FormFieldConfig.date(name: 'birthday', label: '生日', placeholder: '请选择生日', defaultValue: '1990年1月1日'),
+        FormFieldConfig.time(name: 'workTime', label: '工作时间', placeholder: '请选择工作时间', defaultValue: '09:00'),
+      ],
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: ConfigForm(formConfig: formConfig),
+    );
+  }
+
+  // 示例3：使用控制器的表单
+  Widget _buildFormWithController() {
+    final formConfig = FormConfig(
+      fields: [
+        FormFieldConfig.text(name: 'email', label: '邮箱', placeholder: '请输入邮箱', required: true),
+        FormFieldConfig.integer(name: 'phone', label: '电话', placeholder: '请输入电话号码', required: true),
+        FormFieldConfig.dropdown(
+          name: 'city',
+          label: '城市',
+          required: true,
+          props: DropdownFieldProps(
+            options: const [
+              SelectData(label: '北京', value: 'beijing', data: 'beijing'),
+              SelectData(label: '上海', value: 'shanghai', data: 'shanghai'),
+              SelectData(label: '广州', value: 'guangzhou', data: 'guangzhou'),
+              SelectData(label: '深圳', value: 'shenzhen', data: 'shenzhen'),
+            ],
+            filterable: true,
+            placeholderText: '请选择城市',
+          ),
+        ),
+        FormFieldConfig.upload(
+          name: 'avatar',
+          label: '头像',
+          props: const UploadFieldProps(uploadText: '上传头像', limit: 1),
+        ),
+      ],
+    );
+
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: ConfigForm(formConfig: formConfig, controller: _controller, formKey: _formKey),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState?.validate() ?? false) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('表单验证通过！')));
+                }
+              },
+              child: const Text('验证表单'),
+            ),
+            const SizedBox(width: 16),
+            ElevatedButton(
+              onPressed: () {
+                _controller.clear();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('表单已清空')));
+              },
+              child: const Text('清空表单'),
+            ),
+            const SizedBox(width: 16),
+            ElevatedButton(
+              onPressed: () {
+                _controller.setValues({'email': 'test@example.com', 'phone': '13800138000', 'city': 'beijing'});
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已设置默认值')));
+              },
+              child: const Text('设置默认值'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // 示例4：使用FormFieldType直接配置
+  Widget _buildFormWithFieldType() {
+    final formConfig = FormConfig(
+      fields: [
+        // 文本输入 - 使用FormFieldType直接配置
+        const FormFieldConfig(name: 'productName', type: FormFieldType.text, label: '产品名称', placeholder: '请输入产品名称', required: true, defaultValue: 'Flutter开发工具'),
+        // 数字输入 - 使用FormFieldType直接配置
+        const FormFieldConfig(name: 'price', type: FormFieldType.number, label: '价格', placeholder: '请输入价格', required: true, defaultValue: 99.99),
+        // 整数输入 - 使用FormFieldType直接配置
+        const FormFieldConfig(name: 'stock', type: FormFieldType.integer, label: '库存数量', placeholder: '请输入库存数量', required: true, defaultValue: 100),
+        // 文本域 - 使用FormFieldType直接配置
+        const FormFieldConfig(
+          name: 'description',
+          type: FormFieldType.textarea,
+          label: '产品描述',
+          placeholder: '请输入产品描述',
+          props: TextareaFieldProps(maxLines: 4),
+          defaultValue: '这是一个优秀的产品，具有以下特点：\n1. 功能强大\n2. 易于使用\n3. 性能卓越',
+        ),
+        // 单选按钮 - 使用FormFieldType直接配置
+        const FormFieldConfig(
+          name: 'category',
+          type: FormFieldType.radio,
+          label: '产品分类',
+          required: true,
+          defaultValue: 'software',
+          props: RadioFieldProps(
+            options: [
+              SelectData(label: '软件', value: 'software', data: 'software'),
+              SelectData(label: '硬件', value: 'hardware', data: 'hardware'),
+              SelectData(label: '服务', value: 'service', data: 'service'),
+            ],
+          ),
+        ),
+        // 复选框 - 使用FormFieldType直接配置
+        const FormFieldConfig(
+          name: 'tags',
+          type: FormFieldType.checkbox,
+          label: '产品标签',
+          defaultValue: ['mobile', 'cross-platform'],
+          props: CheckboxFieldProps(
+            options: [
+              SelectData(label: '移动端', value: 'mobile', data: 'mobile'),
+              SelectData(label: '跨平台', value: 'cross-platform', data: 'cross-platform'),
+              SelectData(label: '开源', value: 'open-source', data: 'open-source'),
+              SelectData(label: '免费', value: 'free', data: 'free'),
+            ],
+          ),
+        ),
+        // 下拉选择 - 使用FormFieldType直接配置
+        const FormFieldConfig(
+          name: 'status',
+          type: FormFieldType.select,
+          label: '产品状态',
+          placeholder: '请选择产品状态',
+          required: true,
+          defaultValue: 'active',
+          props: SelectFieldProps(
+            options: [
+              SelectData(label: '上架', value: 'active', data: 'active'),
+              SelectData(label: '下架', value: 'inactive', data: 'inactive'),
+              SelectData(label: '维护中', value: 'maintenance', data: 'maintenance'),
+            ],
+          ),
+        ),
+        // 自定义下拉选择 - 使用FormFieldType直接配置
+        const FormFieldConfig(
+          name: 'priority',
+          type: FormFieldType.dropdown,
+          label: '优先级',
+          required: true,
+          props: DropdownFieldProps(
+            options: [
+              SelectData(label: '高', value: 'high', data: 'high'),
+              SelectData(label: '中', value: 'medium', data: 'medium'),
+              SelectData(label: '低', value: 'low', data: 'low'),
+            ],
+            filterable: true,
+            placeholderText: '请选择优先级',
+            defaultValue: SelectData(label: '高', value: 'high', data: 'high'),
+          ),
+        ),
+        // 日期选择 - 使用FormFieldType直接配置
+        const FormFieldConfig(name: 'releaseDate', type: FormFieldType.date, label: '发布日期', placeholder: '请选择发布日期', defaultValue: '2024年1月1日'),
+        // 时间选择 - 使用FormFieldType直接配置
+        const FormFieldConfig(name: 'updateTime', type: FormFieldType.time, label: '更新时间', placeholder: '请选择更新时间', defaultValue: '14:30'),
+        // 日期时间选择 - 使用FormFieldType直接配置
+        const FormFieldConfig(name: 'lastModified', type: FormFieldType.datetime, label: '最后修改时间', placeholder: '请选择最后修改时间', defaultValue: '2024年1月1日 14:30'),
+        // 文件上传 - 使用FormFieldType直接配置
+        const FormFieldConfig(
+          name: 'productImages',
+          type: FormFieldType.upload,
+          label: '产品图片',
+          props: UploadFieldProps(uploadText: '上传产品图片', limit: 3, listType: UploadListType.card),
+        ),
+      ],
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: ConfigForm(formConfig: formConfig),
+    );
+  }
+
+  // 示例5：从后端获取数据回显
+  Widget _buildFormWithBackendData() {
+    return _BackendDataForm();
+  }
+
+  // 显示当前表单值
+  Widget _buildFormValues() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('控制器中的表单值：', style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, child) {
+              final values = _controller.values;
+              if (values.isEmpty) {
+                return const Text('暂无数据', style: TextStyle(color: Colors.grey));
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: values.entries.map((entry) {
+                  return Padding(padding: const EdgeInsets.symmetric(vertical: 2), child: Text('${entry.key}: ${entry.value}'));
+                }).toList(),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// 专门用于处理后端数据的 StatefulWidget
+class _BackendDataForm extends StatefulWidget {
+  @override
+  State<_BackendDataForm> createState() => _BackendDataFormState();
+}
+
+class _BackendDataFormState extends State<_BackendDataForm> {
+  final ConfigFormController _backendDataController = ConfigFormController();
+  String _currentUserId = 'U001'; // 当前用户ID
+  bool _isLoading = false;
+  String _loadingMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    // 初始化时加载数据
+    _loadBackendData();
+  }
+
+  // 加载后端数据
+  Future<void> _loadBackendData() async {
+    setState(() {
+      _isLoading = true;
+      _loadingMessage = '正在从后端加载数据...';
+    });
+
+    try {
+      // 模拟从后端获取数据
+      final backendData = await _fetchBackendData(_currentUserId);
+
+      // 设置数据到控制器
+      _backendDataController.setValues(backendData);
+
+      setState(() {
+        _isLoading = false;
+        _loadingMessage = '数据加载完成';
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _loadingMessage = '数据加载失败: $e';
+      });
+    }
+  }
+
+  // 模拟从后端获取数据的函数
+  Future<Map<String, dynamic>> _fetchBackendData(String userId) async {
+    // 模拟网络延迟
+    await Future.delayed(const Duration(seconds: 1));
+
+    // 模拟根据用户ID返回不同的数据
+    if (userId == 'U001') {
+      return {
+        'userId': 'U001',
+        'username': '张三',
+        'email': 'zhangsan@example.com',
+        'phone': '13800138000',
+        'age': 28,
+        'salary': 15000.50,
+        'department': '技术部',
+        'position': '高级工程师',
+        'skills': ['Flutter', 'Dart', 'React'],
+        'level': 'senior',
+        'status': 'active',
+        'joinDate': '2020年3月15日',
+        'lastLogin': '2024年1月15日 09:30',
+        'description': '具有5年开发经验，擅长移动端开发，熟悉Flutter、React Native等技术栈。',
+      };
+    } else if (userId == 'U002') {
+      return {
+        'userId': 'U002',
+        'username': '李四',
+        'email': 'lisi@example.com',
+        'phone': '13900139000',
+        'age': 32,
+        'salary': 18000.00,
+        'department': '产品部',
+        'position': '产品经理',
+        'skills': ['Vue', 'Angular', 'Node.js'],
+        'level': 'expert',
+        'status': 'active',
+        'joinDate': '2018年6月10日',
+        'lastLogin': '2024年1月16日 14:20',
+        'description': '资深产品经理，具有8年产品设计经验，熟悉用户体验设计和产品规划。',
+      };
+    } else {
+      // 默认返回空数据
+      return {
+        'userId': userId,
+        'username': '',
+        'email': '',
+        'phone': '',
+        'age': 0,
+        'salary': 0.0,
+        'department': '',
+        'position': '',
+        'skills': [],
+        'level': '',
+        'status': '',
+        'joinDate': '',
+        'lastLogin': '',
+        'description': '',
+      };
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final formConfig = FormConfig(
+      fields: [
+        FormFieldConfig.text(name: 'userId', label: '用户ID', placeholder: '请输入用户ID', required: true),
+        FormFieldConfig.text(name: 'username', label: '用户名', placeholder: '请输入用户名', required: true),
+        FormFieldConfig.text(name: 'email', label: '邮箱', placeholder: '请输入邮箱', required: true),
+        FormFieldConfig.integer(name: 'phone', label: '电话', placeholder: '请输入电话号码', required: true),
+        FormFieldConfig.number(name: 'age', label: '年龄', placeholder: '请输入年龄', required: true),
+        FormFieldConfig.number(name: 'salary', label: '薪资', placeholder: '请输入薪资'),
+        FormFieldConfig.select(
+          name: 'department',
+          label: '部门',
+          placeholder: '请选择部门',
+          required: true,
+          props: SelectFieldProps(
+            options: const [
+              SelectData(label: '技术部', value: '技术部', data: '技术部'),
+              SelectData(label: '产品部', value: '产品部', data: '产品部'),
+              SelectData(label: '运营部', value: '运营部', data: '运营部'),
+              SelectData(label: '人事部', value: '人事部', data: '人事部'),
+            ],
+          ),
+        ),
+        FormFieldConfig.text(name: 'position', label: '职位', placeholder: '请输入职位', required: true),
+        FormFieldConfig.checkbox(
+          name: 'skills',
+          label: '技能',
+          props: CheckboxFieldProps(
+            options: const [
+              SelectData(label: 'Flutter', value: 'Flutter', data: 'Flutter'),
+              SelectData(label: 'Dart', value: 'Dart', data: 'Dart'),
+              SelectData(label: 'React', value: 'React', data: 'React'),
+              SelectData(label: 'Vue', value: 'Vue', data: 'Vue'),
+              SelectData(label: 'Angular', value: 'Angular', data: 'Angular'),
+            ],
+          ),
+        ),
+        FormFieldConfig.radio(
+          name: 'level',
+          label: '级别',
+          required: true,
+          props: RadioFieldProps(
+            options: const [
+              SelectData(label: '初级', value: 'junior', data: 'junior'),
+              SelectData(label: '中级', value: 'intermediate', data: 'intermediate'),
+              SelectData(label: '高级', value: 'senior', data: 'senior'),
+              SelectData(label: '专家', value: 'expert', data: 'expert'),
+            ],
+          ),
+        ),
+        FormFieldConfig.dropdown(
+          name: 'status',
+          label: '状态',
+          required: true,
+          props: DropdownFieldProps(
+            options: const [
+              SelectData(label: '在职', value: 'active', data: 'active'),
+              SelectData(label: '离职', value: 'inactive', data: 'inactive'),
+              SelectData(label: '休假', value: 'vacation', data: 'vacation'),
+            ],
+            filterable: true,
+            placeholderText: '请选择状态',
+          ),
+        ),
+        FormFieldConfig.date(name: 'joinDate', label: '入职日期', placeholder: '请选择入职日期'),
+        FormFieldConfig.datetime(name: 'lastLogin', label: '最后登录时间', placeholder: '请选择最后登录时间'),
+        FormFieldConfig.textarea(name: 'description', label: '个人描述', placeholder: '请输入个人描述', props: const TextareaFieldProps(maxLines: 3)),
+      ],
+    );
+
+    return Column(
+      children: [
+        // 加载状态提示
+        if (_isLoading)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.orange.shade50,
+              border: Border.all(color: Colors.orange.shade200),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                const SizedBox(width: 12),
+                Text(_loadingMessage, style: TextStyle(color: Colors.orange.shade700)),
+              ],
+            ),
+          ),
+
+        if (_isLoading) const SizedBox(height: 16),
+
+        // 表单
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: ConfigForm(formConfig: formConfig, controller: _backendDataController),
+        ),
+        const SizedBox(height: 16),
+
+        // 操作按钮
+        Row(
+          children: [
+            ElevatedButton(
+              onPressed: _isLoading
+                  ? null
+                  : () {
+                      _currentUserId = 'U001';
+                      _loadBackendData();
+                    },
+              child: const Text('加载用户U001'),
+            ),
+            const SizedBox(width: 16),
+            ElevatedButton(
+              onPressed: _isLoading
+                  ? null
+                  : () {
+                      _currentUserId = 'U002';
+                      _loadBackendData();
+                    },
+              child: const Text('加载用户U002'),
+            ),
+            const SizedBox(width: 16),
+            ElevatedButton(
+              onPressed: _isLoading
+                  ? null
+                  : () {
+                      _currentUserId = 'U003';
+                      _loadBackendData();
+                    },
+              child: const Text('加载用户U003'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // 保存和清空按钮
+        Row(
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                // 模拟保存到后端
+                final currentData = _backendDataController.values;
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('已保存数据到后端：${currentData.length}个字段')));
+              },
+              child: const Text('保存到后端'),
+            ),
+            const SizedBox(width: 16),
+            ElevatedButton(
+              onPressed: () {
+                _backendDataController.clear();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('已清空表单')));
+              },
+              child: const Text('清空表单'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // 显示当前后端数据
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.blue.shade50,
+            border: Border.all(color: Colors.blue.shade200),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '当前后端数据：',
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue),
+              ),
+              const SizedBox(height: 8),
+              AnimatedBuilder(
+                animation: _backendDataController,
+                builder: (context, child) {
+                  final values = _backendDataController.values;
+                  if (values.isEmpty) {
+                    return const Text('暂无数据', style: TextStyle(color: Colors.grey));
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: values.entries.map((entry) {
+                      return Padding(padding: const EdgeInsets.symmetric(vertical: 2), child: Text('${entry.key}: ${entry.value}'));
+                    }).toList(),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

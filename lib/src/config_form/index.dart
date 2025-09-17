@@ -373,7 +373,8 @@ class _ConfigFormState extends State<ConfigForm> {
           final bool multiple = p?.multiple ?? false;
           final bool filterable = p?.filterable ?? false;
           final bool remote = p?.remote ?? false;
-          final dynamic defaultValue = p?.defaultValue;
+          // 优先使用控制器中的值，如果没有则使用props中的默认值
+          final dynamic defaultValue = _cfgValues[field.name] ?? p?.defaultValue;
           widgets.add(
             FormField<dynamic>(
               validator: (val) {
