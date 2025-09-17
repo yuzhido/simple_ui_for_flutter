@@ -12,16 +12,71 @@ class User {
   User({this.id, this.name, this.age, this.address, this.school, this.birthday, this.createdAt, this.updatedAt});
 
   factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      id: json['_id'],
-      name: json['name'],
-      age: json['age'],
-      address: json['address'],
-      school: json['school'],
-      birthday: json['birthday'],
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
-      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
-    );
+    try {
+      print('User.fromJson 接收数据: $json');
+
+      // 安全地处理每个字段
+      String? id;
+      String? name;
+      int? age;
+      String? address;
+      String? school;
+      String? birthday;
+      DateTime? createdAt;
+      DateTime? updatedAt;
+
+      // 处理 id 字段
+      if (json['_id'] != null) {
+        id = json['_id'].toString();
+      }
+
+      // 处理 name 字段
+      if (json['name'] != null) {
+        name = json['name'].toString();
+      }
+
+      // 处理 age 字段
+      if (json['age'] != null) {
+        if (json['age'] is int) {
+          age = json['age'];
+        } else if (json['age'] is String) {
+          age = int.tryParse(json['age']);
+        } else if (json['age'] is double) {
+          age = json['age'].toInt();
+        }
+      }
+
+      // 处理其他字符串字段
+      if (json['address'] != null) {
+        address = json['address'].toString();
+      }
+
+      if (json['school'] != null) {
+        school = json['school'].toString();
+      }
+
+      if (json['birthday'] != null) {
+        birthday = json['birthday'].toString();
+      }
+
+      // 处理日期字段
+      if (json['createdAt'] != null) {
+        createdAt = DateTime.tryParse(json['createdAt'].toString());
+      }
+
+      if (json['updatedAt'] != null) {
+        updatedAt = DateTime.tryParse(json['updatedAt'].toString());
+      }
+
+      final user = User(id: id, name: name, age: age, address: address, school: school, birthday: birthday, createdAt: createdAt, updatedAt: updatedAt);
+
+      print('User.fromJson 创建成功: ${user.name}');
+      return user;
+    } catch (e) {
+      print('User.fromJson 解析失败: $e');
+      // 返回一个默认的用户对象
+      return User(id: 'error', name: '解析失败', age: 0, address: '', school: '', birthday: '');
+    }
   }
 
   Map<String, dynamic> toJson() {
