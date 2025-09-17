@@ -1,3 +1,5 @@
+// 导出模型数据结构
+export 'models/index.dart';
 // 导出下拉选择组件
 export 'src/dropdown_choose/index.dart';
 // 导出级联多选组件
@@ -14,5 +16,5 @@ export 'src/config_form/index.dart';
 export 'src/table_show/index.dart';
 // 导出FormBuilder组件
 export 'src/form_builder/index.dart';
-// 导出模型数据结构
-export 'models/index.dart';
+// 导出加载数据组件
+export 'src/loading_data/index.dart';
