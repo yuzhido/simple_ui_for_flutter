@@ -7,7 +7,7 @@ import 'package:example/pages/database_demo/index.dart';
 import 'package:example/pages/permission_request/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'pages/dropdown_select/index.dart';
+import 'pages/dropdown_choose/index.dart';
 import 'pages/cascading_select/index.dart';
 import 'pages/config_form/index.dart';
 

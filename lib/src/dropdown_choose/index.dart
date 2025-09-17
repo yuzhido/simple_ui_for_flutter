@@ -264,68 +264,69 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                         ],
                       ),
                     ),
-                    // 搜索区域
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border(bottom: BorderSide(color: Colors.grey[100]!, width: 1)),
-                      ),
-                      child: Row(
-                        spacing: 10,
-                        children: [
-                          Expanded(
-                            child: Container(
-                              height: 45,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[50],
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.grey[200]!),
-                              ),
-                              child: TextField(
-                                controller: _searchController,
-                                decoration: InputDecoration(
-                                  hintText: widget.remote ? '请输入关键字搜索' : '请输入关键字筛选',
-                                  hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-                                  border: InputBorder.none,
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                                  prefixIcon: Icon(Icons.search, color: Colors.grey[400], size: 20),
+                    // 搜索区域 - 只在启用搜索功能时显示
+                    if (widget.filterable || widget.remote)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border(bottom: BorderSide(color: Colors.grey[100]!, width: 1)),
+                        ),
+                        child: Row(
+                          spacing: 10,
+                          children: [
+                            Expanded(
+                              child: Container(
+                                height: 45,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[50],
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.grey[200]!),
                                 ),
-                                onChanged: (value) {
-                                  _onSearchChanged(setState);
-                                },
+                                child: TextField(
+                                  controller: _searchController,
+                                  decoration: InputDecoration(
+                                    hintText: widget.remote ? '请输入关键字搜索' : '请输入关键字筛选',
+                                    hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+                                    border: InputBorder.none,
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                    prefixIcon: Icon(Icons.search, color: Colors.grey[400], size: 20),
+                                  ),
+                                  onChanged: (value) {
+                                    _onSearchChanged(setState);
+                                  },
+                                ),
                               ),
                             ),
-                          ),
-                          if (widget.remote && widget.remoteFetch != null)
-                            SizedBox(
-                              height: 45,
-                              child: ElevatedButton.icon(
-                                onPressed: _isLoading
-                                    ? null
-                                    : () async {
-                                        await _performRemoteSearchInModal(setState);
-                                      },
-                                style: ElevatedButton.styleFrom(
-                                  padding: EdgeInsets.symmetric(horizontal: 15),
-                                  backgroundColor: _isLoading ? Colors.grey[300] : const Color(0xFF007AFF),
-                                  foregroundColor: _isLoading ? Colors.grey[500] : Colors.white,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  elevation: 0,
+                            if (widget.remote && widget.remoteFetch != null)
+                              SizedBox(
+                                height: 45,
+                                child: ElevatedButton.icon(
+                                  onPressed: _isLoading
+                                      ? null
+                                      : () async {
+                                          await _performRemoteSearchInModal(setState);
+                                        },
+                                  style: ElevatedButton.styleFrom(
+                                    padding: EdgeInsets.symmetric(horizontal: 15),
+                                    backgroundColor: _isLoading ? Colors.grey[300] : const Color(0xFF007AFF),
+                                    foregroundColor: _isLoading ? Colors.grey[500] : Colors.white,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    elevation: 0,
+                                  ),
+                                  icon: _isLoading
+                                      ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.grey)),
+                                        )
+                                      : const Icon(Icons.search, size: 18),
+                                  label: Text(_isLoading ? '搜索中...' : '搜索', style: const TextStyle(fontSize: 14)),
                                 ),
-                                icon: _isLoading
-                                    ? const SizedBox(
-                                        width: 18,
-                                        height: 18,
-                                        child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.grey)),
-                                      )
-                                    : const Icon(Icons.search, size: 18),
-                                label: Text(_isLoading ? '搜索中...' : '搜索', style: const TextStyle(fontSize: 14)),
                               ),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
                     // 选项列表
                     Expanded(
                       child: Container(
