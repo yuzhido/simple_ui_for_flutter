@@ -5,6 +5,7 @@ import 'package:example/pages/tree_select/index.dart';
 import 'package:example/pages/upload_file/index.dart';
 import 'package:example/pages/database_demo/index.dart';
 import 'package:example/pages/permission_request/index.dart';
+import 'package:example/pages/table_show/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'pages/dropdown_choose/index.dart';
@@ -49,6 +50,11 @@ class HomePage extends StatelessWidget {
             ElevatedButton(
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DropdownSelectPage())),
               child: const Text('下拉选择（DropdownChoose）示例'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TableShowPage())),
+              child: const Text('表格展示（TableShow）示例'),
             ),
             const SizedBox(height: 12),
             ElevatedButton(
