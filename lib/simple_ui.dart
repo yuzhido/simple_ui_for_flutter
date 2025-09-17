@@ -1,15 +1,18 @@
 // 导出下拉选择组件
 export 'src/dropdown_choose/index.dart';
-
 // 导出级联多选组件
 export 'src/cascading_select/index.dart';
+// 导出树选择组件
 export 'src/tree_select/index.dart';
+// 导出上传文件组件
 export 'src/upload_file/index.dart';
+// 导出通知组件
 export 'src/notice_info/index.dart';
+// 导出配置表单组件
 export 'src/config_form/index.dart';
-
+// 导出表格展示组件
+export 'src/table_show/index.dart';
 // 导出FormBuilder组件
 export 'src/form_builder/index.dart';
-
 // 导出模型数据结构
 export 'models/index.dart';
