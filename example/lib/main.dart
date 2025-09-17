@@ -1,4 +1,5 @@
 import 'package:example/pages/data_for_form/index.dart';
+import 'package:example/pages/form_builder_demo/default_value.dart';
 import 'package:example/pages/notice_info/index.dart';
 import 'package:example/pages/tree_select/index.dart';
 import 'package:example/pages/upload_file/index.dart';
@@ -120,6 +121,13 @@ class HomePage extends StatelessWidget {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const UserListPage()));
               },
               child: Text('跳转查看数据驱动表单（UserListPage）用户管理页面示例'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const DefaultValuePage()));
+              },
+              child: Text('跳转查看数据驱动表单（DefaultValuePage）自定义显示表单默认值示例'),
             ),
           ],
         ),

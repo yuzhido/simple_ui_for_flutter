@@ -58,6 +58,8 @@ class FormBuilderConfig {
   final Object? props;
   // 占位符文本
   final String? placeholder;
+  // 自定义验证器
+  final String? Function(dynamic)? validator;
 
   const FormBuilderConfig({
     required this.name,
@@ -69,16 +71,17 @@ class FormBuilderConfig {
     this.props,
     this.isShow = true,
     this.placeholder,
+    this.validator,
   });
 
   // 工厂构造方法 - 单选
-  factory FormBuilderConfig.radio({required String name, String? label, bool required = false, dynamic defaultValue, List<SelectOption>? options, bool isShow = true}) {
-    return FormBuilderConfig(name: name, type: FormBuilderType.radio, label: label, required: required, defaultValue: defaultValue, props: options ?? [], isShow: isShow);
+  factory FormBuilderConfig.radio({required String name, String? label, bool required = false, dynamic defaultValue, List<SelectOption>? options, bool isShow = true, String? Function(dynamic)? validator}) {
+    return FormBuilderConfig(name: name, type: FormBuilderType.radio, label: label, required: required, defaultValue: defaultValue, props: options ?? [], isShow: isShow, validator: validator);
   }
 
   // 工厂构造方法 - 多选
-  factory FormBuilderConfig.checkbox({required String name, String? label, bool required = false, List<dynamic>? defaultValue, List<SelectOption>? options, bool isShow = true}) {
-    return FormBuilderConfig(name: name, type: FormBuilderType.checkbox, label: label, required: required, defaultValue: defaultValue ?? [], props: options ?? [], isShow: isShow);
+  factory FormBuilderConfig.checkbox({required String name, String? label, bool required = false, List<dynamic>? defaultValue, List<SelectOption>? options, bool isShow = true, String? Function(dynamic)? validator}) {
+    return FormBuilderConfig(name: name, type: FormBuilderType.checkbox, label: label, required: required, defaultValue: defaultValue ?? [], props: options ?? [], isShow: isShow, validator: validator);
   }
 
   // 工厂构造方法 - 下拉选择
@@ -90,6 +93,7 @@ class FormBuilderConfig {
     List<SelectOption>? options,
     String? placeholder,
     bool isShow = true,
+    String? Function(dynamic)? validator,
   }) {
     return FormBuilderConfig(
       name: name,
@@ -100,6 +104,7 @@ class FormBuilderConfig {
       props: options ?? [],
       placeholder: placeholder,
       isShow: isShow,
+      validator: validator,
     );
   }
 
@@ -120,6 +125,7 @@ class FormBuilderConfig {
     bool showAdd = false,
     void Function(String keyword)? onAdd,
     bool isShow = true,
+    String? Function(dynamic)? validator,
   }) {
     return FormBuilderConfig(
       name: name,
@@ -140,6 +146,7 @@ class FormBuilderConfig {
       ),
       placeholder: placeholder,
       isShow: isShow,
+      validator: validator,
     );
   }
 
@@ -172,6 +179,7 @@ class FormBuilderConfig {
     Function(dynamic)? onImageSelected,
     dynamic uploadConfig,
     bool isShow = true,
+    String? Function(dynamic)? validator,
   }) {
     return FormBuilderConfig(
       name: name,
@@ -204,6 +212,7 @@ class FormBuilderConfig {
         uploadConfig: uploadConfig,
       ),
       isShow: isShow,
+      validator: validator,
     );
   }
 }
