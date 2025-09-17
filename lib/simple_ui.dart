@@ -8,5 +8,8 @@ export 'src/upload_file/index.dart';
 export 'src/notice_info/index.dart';
 export 'src/config_form/index.dart';
 
+// 导出FormBuilder组件
+export 'src/form_builder/index.dart';
+
 // 导出模型数据结构
 export 'models/index.dart';

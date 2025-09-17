@@ -6,6 +6,8 @@ import 'package:example/pages/upload_file/index.dart';
 import 'package:example/pages/database_demo/index.dart';
 import 'package:example/pages/permission_request/index.dart';
 import 'package:example/pages/table_show/index.dart';
+import 'package:example/pages/form_builder_demo/index.dart';
+import 'package:example/pages/user_list/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'pages/dropdown_choose/index.dart';
@@ -111,6 +113,20 @@ class HomePage extends StatelessWidget {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const AssetTransferPage()));
               },
               child: Text('跳转查看资产转移（AssetTransfer）示例'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const FormBuilderDemo()));
+              },
+              child: Text('跳转查看数据驱动表单（FormBuilder）示例'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const UserListPage()));
+              },
+              child: Text('跳转查看数据驱动表单（UserListPage）用户管理页面示例'),
             ),
           ],
         ),
