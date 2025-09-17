@@ -39,7 +39,25 @@ class UserApi {
   ///
   /// [user] 用户数据
   static Future<Map<String, dynamic>> createUser(User user) async {
-    final body = {'name': user.name, 'age': user.age, 'address': user.address, 'school': user.school, 'birthday': user.birthday};
+    // 验证必填字段
+    if (user.name == null || user.name!.trim().isEmpty) {
+      throw ApiException('姓名不能为空');
+    }
+    if (user.age == null || user.age! <= 0) {
+      throw ApiException('年龄必须大于0');
+    }
+
+    // 构造请求体，确保所有必填字段都有值
+    final body = <String, dynamic>{
+      'name': user.name!.trim(),
+      'age': user.age!,
+      'address': user.address?.trim() ?? '',
+      'school': user.school?.trim() ?? '',
+      'birthday': user.birthday?.trim() ?? '',
+    };
+
+    // 添加调试信息
+    print('创建用户请求体: $body');
 
     return await _httpClient.post('/users', body: body);
   }

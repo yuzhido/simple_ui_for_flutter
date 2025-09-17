@@ -13,8 +13,6 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     try {
-      print('User.fromJson 接收数据: $json');
-
       // 安全地处理每个字段
       String? id;
       String? name;
@@ -47,8 +45,12 @@ class User {
       }
 
       // 处理其他字符串字段
+      // 处理address字段，同时兼容可能的拼写错误
       if (json['address'] != null) {
         address = json['address'].toString();
+      } else if (json['addres'] != null) {
+        // 兼容API返回数据中可能的拼写错误
+        address = json['addres'].toString();
       }
 
       if (json['school'] != null) {
@@ -68,12 +70,19 @@ class User {
         updatedAt = DateTime.tryParse(json['updatedAt'].toString());
       }
 
-      final user = User(id: id, name: name, age: age, address: address, school: school, birthday: birthday, createdAt: createdAt, updatedAt: updatedAt);
+      final user = User(
+        id: id,
+        name: name,
+        age: age,
+        address: address,
+        school: school,
+        birthday: birthday,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+      );
 
-      print('User.fromJson 创建成功: ${user.name}');
       return user;
     } catch (e) {
-      print('User.fromJson 解析失败: $e');
       // 返回一个默认的用户对象
       return User(id: 'error', name: '解析失败', age: 0, address: '', school: '', birthday: '');
     }
