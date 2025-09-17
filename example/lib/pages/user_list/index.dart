@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../api/user_api.dart';
 import '../../api/models/user.dart';
 import 'add_user.dart';
-import 'user_detail.dart';
 
 class UserListPage extends StatefulWidget {
   const UserListPage({super.key});
@@ -202,78 +201,80 @@ class UserInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _navigateToUserDetail(context),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              // 头像区域
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(colors: [Colors.blue[400]!, Colors.purple[400]!]),
-                  boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2))],
-                ),
-                child: Center(
-                  child: Text(
-                    (user.name?.isNotEmpty == true) ? user.name![0].toUpperCase() : '?',
-                    style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 2))],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            // 头像区域
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(colors: [Colors.blue[400]!, Colors.purple[400]!]),
+                boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2))],
+              ),
+              child: Center(
+                child: Text(
+                  (user.name?.isNotEmpty == true) ? user.name![0].toUpperCase() : '?',
+                  style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
                 ),
               ),
-              const SizedBox(width: 16),
-              // 用户信息区域
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 姓名
-                    Text(
-                      user.name ?? '未知',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+            ),
+            const SizedBox(width: 16),
+            // 用户信息区域
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 姓名
+                  Text(
+                    user.name ?? '未知',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 8),
+                  // 年龄
+                  if (user.age != null)
+                    Row(
+                      children: [_buildInfoChip(icon: Icons.cake, label: '${user.age}岁', color: Colors.orange)],
                     ),
-                    const SizedBox(height: 8),
-                    // 年龄
-                    if (user.age != null)
-                      Row(
-                        children: [_buildInfoChip(icon: Icons.cake, label: '${user.age}岁', color: Colors.orange)],
-                      ),
-                    if (user.age != null) const SizedBox(height: 8),
-                    // 城市（从地址中提取）
+                  if (user.age != null) const SizedBox(height: 8),
+                  // 城市（从地址中提取）
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
+                      const SizedBox(width: 4),
+                      Text(_extractCityFromAddress(user.address) ?? '未知', style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+                    ],
+                  ),
+                  // 学校
+                  if (user.school != null) ...[
+                    const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
+                        Icon(Icons.school, size: 16, color: Colors.grey[600]),
                         const SizedBox(width: 4),
-                        Text(_extractCityFromAddress(user.address) ?? '未知', style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+                        Text(user.school!, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
                       ],
                     ),
-                    // 学校
-                    if (user.school != null) ...[
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(Icons.school, size: 16, color: Colors.grey[600]),
-                          const SizedBox(width: 4),
-                          Text(user.school!, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
-                        ],
-                      ),
-                    ],
                   ],
-                ),
+                ],
               ),
-              // 箭头图标，表示可以点击查看详情
-              Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
-            ],
-          ),
+            ),
+            // 更多信息按钮
+            IconButton(
+              onPressed: () {
+                _showUserDetails(context);
+              },
+              icon: Icon(Icons.more_vert, color: Colors.grey[600]),
+            ),
+          ],
         ),
       ),
     );
@@ -301,11 +302,98 @@ class UserInfo extends StatelessWidget {
     );
   }
 
-  void _navigateToUserDetail(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => UserDetailPage(user: user),
+  void _showUserDetails(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            // 拖拽指示器
+            Container(
+              margin: const EdgeInsets.only(top: 8),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+            ),
+            // 用户详细信息
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 用户头像和基本信息
+                    Center(
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(colors: [Colors.blue[400]!, Colors.purple[400]!]),
+                            ),
+                            child: Center(
+                              child: Text(
+                                (user.name?.isNotEmpty == true) ? user.name![0].toUpperCase() : '?',
+                                style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(user.name ?? '未知', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          Text(user.age != null ? '${user.age}岁' : '年龄未知', style: TextStyle(fontSize: 16, color: Colors.grey[600])),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // 详细信息
+                    _buildDetailItem('城市', _extractCityFromAddress(user.address) ?? '未知', Icons.location_on),
+                    if (user.school != null) _buildDetailItem('学校', user.school!, Icons.school),
+                    if (user.address != null) _buildDetailItem('地址', user.address!, Icons.home),
+                    if (user.birthday != null) _buildDetailItem('生日', user.birthday!, Icons.cake),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailItem(String label, String value, IconData icon) {
+    if (value.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: Colors.blue[600]),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600], fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 4),
+                Text(value, style: const TextStyle(fontSize: 16, color: Colors.black87)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

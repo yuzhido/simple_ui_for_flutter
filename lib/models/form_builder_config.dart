@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:simple_ui/models/select_data.dart';
 
 /// 表单字段类型枚举
 enum FormBuilderType {
@@ -108,14 +109,14 @@ class FormBuilderConfig {
     String? label,
     bool required = false,
     dynamic defaultValue,
-    List<SelectOption>? options,
+    List<SelectData>? options,
     String? placeholder,
     bool multiple = false,
     bool filterable = false,
     bool remote = false,
-    Future<List<SelectOption>> Function(String keyword)? remoteFetch,
-    Function(SelectOption)? onSingleSelected,
-    Function(List<SelectOption>)? onMultipleSelected,
+    Future<List<SelectData>> Function(String keyword)? remoteFetch,
+    Function(SelectData)? onSingleSelected,
+    Function(List<SelectData>)? onMultipleSelected,
     bool showAdd = false,
     void Function(String keyword)? onAdd,
     bool isShow = true,
@@ -209,13 +210,13 @@ class FormBuilderConfig {
 
 // 自定义下拉属性
 class DropdownProps {
-  final List<SelectOption> options;
+  final List<SelectData> options;
   final bool multiple;
   final bool filterable;
   final bool remote;
-  final Future<List<SelectOption>> Function(String keyword)? remoteFetch;
-  final Function(SelectOption)? onSingleSelected;
-  final Function(List<SelectOption>)? onMultipleSelected;
+  final Future<List<SelectData>> Function(String keyword)? remoteFetch;
+  final Function(SelectData)? onSingleSelected;
+  final Function(List<SelectData>)? onMultipleSelected;
   final bool showAdd;
   final void Function(String keyword)? onAdd;
 

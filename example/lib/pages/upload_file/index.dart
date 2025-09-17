@@ -56,7 +56,56 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.grey.shade800),
             ),
             const SizedBox(height: 8),
-            Text('支持小巧的卡片样式、水平排列的文件列表、不同的上传状态显示、文件数量限制、多种文件来源控制', style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+            Text('支持小巧的卡片样式、水平排列的文件列表、不同的上传状态显示、文件数量限制、多种文件来源控制、默认值显示', style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+            const SizedBox(height: 32),
+
+            // 新增：默认值功能展示
+            _buildSectionTitle('0. 默认值功能展示 (defaultValue)'),
+
+            // 0.1 单个默认文件
+            _buildSubSectionTitle('0.1 单个默认文件'),
+            UploadFile(
+              listType: UploadListType.card,
+              defaultValue: [
+                FileInfo(id: 111, fileName: 'default_image.jpeg', requestPath: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg'),
+                FileInfo(id: 111, fileName: 'default_image.jpeg', requestPath: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg'),
+                FileInfo(id: 111, fileName: 'default_image.jpeg', requestPath: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg'),
+              ],
+              uploadText: '单个默认',
+              onFilesChanged: (files) {
+                print('单个默认文件变化: ${files.length} 个文件');
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // 0.2 多个默认文件
+            _buildSubSectionTitle('0.2 多个默认文件'),
+            UploadFile(
+              listType: UploadListType.card,
+              defaultValue: [
+                FileInfo(id: 111, fileName: 'image1.jpeg', requestPath: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg'),
+                FileInfo(id: 222, fileName: 'document.pdf', requestPath: 'http://192.168.8.188:3000/uploads/document-123456789.pdf'),
+                FileInfo(id: '333', fileName: 'image2.png', requestPath: 'http://192.168.8.188:3000/uploads/image-987654321.png'),
+              ],
+              uploadText: '多个默认',
+              limit: 5,
+              onFilesChanged: (files) {
+                print('多个默认文件变化: ${files.length} 个文件');
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // 0.3 按钮样式的默认值
+            _buildSubSectionTitle('0.3 按钮样式的默认值'),
+            UploadFile(
+              listType: UploadListType.button,
+              defaultValue: [FileInfo(id: 'btn_001', fileName: 'button_default.jpg', requestPath: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg')],
+              uploadText: '按钮默认值',
+              backgroundColor: Colors.green,
+              onFilesChanged: (files) {
+                print('按钮样式默认文件变化: ${files.length} 个文件');
+              },
+            ),
             const SizedBox(height: 32),
 
             // 1. 默认按钮样式

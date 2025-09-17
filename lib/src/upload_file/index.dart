@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:simple_ui/models/file_info.dart';
 
 enum UploadListType {
   button, // 默认按钮样式
@@ -145,6 +146,7 @@ class UploadFile extends StatefulWidget {
   final String? uploadText;
   final TextStyle? textStyle;
   final List<UploadedFile> initialFiles; // 包含文件名和状态的文件列表
+  final List<FileInfo>? defaultValue; // 默认值，支持FileInfo列表
   final Function(List<UploadedFile>)? onFilesChanged;
   final bool showFileList;
   final Widget? Function(UploadedFile)? customFileItemBuilder;
@@ -170,6 +172,7 @@ class UploadFile extends StatefulWidget {
     this.uploadText,
     this.textStyle,
     this.initialFiles = const [],
+    this.defaultValue, // 新增的默认值属性
     this.onFilesChanged,
     this.showFileList = true,
     this.customFileItemBuilder,
@@ -197,10 +200,80 @@ class _UploadFileState extends State<UploadFile> {
     return configLimit ?? -1;
   }
 
+  /// 将FileInfo转换为UploadedFile
+  UploadedFile _fileInfoToUploadedFile(FileInfo fileInfo) {
+    // 判断是否为图片文件
+    final isImage = _isImageFile(fileInfo.fileName);
+
+    return UploadedFile(
+      fileName: fileInfo.fileName,
+      status: UploadStatus.success, // 默认值文件状态为成功
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      fileSize: 0, // 默认值文件大小未知
+      filePath: fileInfo.requestPath,
+      isImage: isImage,
+      fileUrl: fileInfo.requestPath,
+      data: {'id': fileInfo.id, 'fileName': fileInfo.fileName, 'requestPath': fileInfo.requestPath, 'url': fileInfo.requestPath},
+    );
+  }
+
+  /// 判断文件是否为图片
+  bool _isImageFile(String fileName) {
+    final imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
+    final lowerFileName = fileName.toLowerCase();
+    return imageExtensions.any((ext) => lowerFileName.endsWith(ext));
+  }
+
+  /// 构建图片显示组件，支持网络图片和本地文件
+  Widget _buildImageWidget(String imagePath) {
+    // 判断是否为网络URL
+    final isNetworkUrl = imagePath.startsWith('http://') || imagePath.startsWith('https://');
+
+    if (isNetworkUrl) {
+      // 网络图片
+      return Image.network(
+        imagePath,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        errorBuilder: (context, error, stackTrace) {
+          return Icon(Icons.image, color: Colors.blue.shade600, size: 24);
+        },
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: CircularProgressIndicator(
+              value: loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null,
+            ),
+          );
+        },
+      );
+    } else {
+      // 本地文件
+      return Image.file(
+        File(imagePath),
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        errorBuilder: (context, error, stackTrace) {
+          return Icon(Icons.image, color: Colors.blue.shade600, size: 24);
+        },
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+
+    // 初始化文件列表
     uploadedFiles = List<UploadedFile>.from(widget.initialFiles);
+
+    // 如果有默认值，将其转换为UploadedFile并添加到列表中
+    if (widget.defaultValue != null && widget.defaultValue!.isNotEmpty) {
+      final defaultFiles = widget.defaultValue!.map((fileInfo) => _fileInfoToUploadedFile(fileInfo)).toList();
+      uploadedFiles.addAll(defaultFiles);
+    }
   }
 
   void _addFile(String fileName, {int? fileSize, String? filePath, bool isImage = false, File? file}) {
@@ -579,11 +652,6 @@ class _UploadFileState extends State<UploadFile> {
     }
   }
 
-  bool _isImageFile(String fileName) {
-    final extension = fileName.toLowerCase().split('.').last;
-    return ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'ico'].contains(extension);
-  }
-
   Widget _buildUploadArea() {
     // 如果提供了自定义上传区域，直接使用
     if (widget.customUploadArea != null) {
@@ -750,18 +818,7 @@ class _UploadFileState extends State<UploadFile> {
                 // 文件图标或图片预览
                 if (isImage && filePath != null)
                   Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: Image.file(
-                        File(filePath),
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(Icons.image, color: Colors.blue.shade600, size: 24);
-                        },
-                      ),
-                    ),
+                    child: ClipRRect(borderRadius: BorderRadius.circular(4), child: _buildImageWidget(filePath)),
                   )
                 else
                   Icon(Icons.insert_drive_file, color: Colors.blue.shade600, size: 24),

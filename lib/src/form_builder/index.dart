@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:simple_ui/models/file_info.dart';
 import 'package:simple_ui/models/form_builder_config.dart';
 import 'package:simple_ui/models/select_data.dart';
 import 'package:simple_ui/src/dropdown_choose/index.dart';
@@ -518,7 +519,7 @@ class _FormBuilderState extends State<FormBuilder> {
                   _setValue(config.name, value.value);
                 });
                 state.didChange(value.value);
-                props.onSingleSelected?.call(SelectOption(label: value.label, value: value.value));
+                props.onSingleSelected?.call(SelectData(label: value.label, value: value.value));
               },
               onMultipleSelected: (values) {
                 final list = values.map((e) => e.value).toList();
@@ -526,7 +527,7 @@ class _FormBuilderState extends State<FormBuilder> {
                   _setValue(config.name, list);
                 });
                 state.didChange(list);
-                props.onMultipleSelected?.call(values.map((e) => SelectOption(label: e.label, value: e.value)).toList());
+                props.onMultipleSelected?.call(values.map((e) => SelectData(label: e.label, value: e.value)).toList());
               },
             ),
             if (state.hasError)
@@ -636,6 +637,14 @@ class _FormBuilderState extends State<FormBuilder> {
       }).toList();
     }
 
+    // 处理默认值 - 将FileInfo转换为UploadedFile
+    List<FileInfo>? defaultFileInfos;
+    if (config.defaultValue != null) {
+      if (config.defaultValue is List) {
+        defaultFileInfos = (config.defaultValue as List).whereType<FileInfo>().toList();
+      }
+    }
+
     return FormField<List<dynamic>>(
       validator: (val) {
         if (!config.required) return null;
@@ -659,6 +668,7 @@ class _FormBuilderState extends State<FormBuilder> {
               uploadText: props.uploadText ?? '上传文件',
               textStyle: props.textStyle,
               initialFiles: initialFiles,
+              defaultValue: defaultFileInfos, // 传递默认值
               onFilesChanged: (files) {
                 setState(() {
                   _setValue(config.name, files);
