@@ -208,7 +208,11 @@ class _FormBuilderState extends State<FormBuilder> {
   Widget _buildField(FormBuilderConfig config, Function(String, dynamic) onChanged) {
     final currentValue = widget.controller?.getValue(config.name);
 
-    void onFieldChanged(value) => onChanged(config.name, value);
+    void onFieldChanged(value) {
+      onChanged(config.name, value);
+      // 调用配置中的 onChange 回调
+      config.onChange?.call(config.name, value);
+    }
 
     switch (config.type) {
       case FormBuilderType.text:

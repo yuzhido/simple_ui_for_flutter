@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/form_builder_config.dart';
+import 'package:intl/intl.dart';
 
 /// 日期时间字段组件
 class DateTimeFieldWidget extends StatefulWidget {
@@ -14,6 +15,19 @@ class DateTimeFieldWidget extends StatefulWidget {
 }
 
 class _DateTimeFieldWidgetState extends State<DateTimeFieldWidget> {
+  /// 格式化日期时间
+  String _formatDateTime(DateTime dateTime) {
+    if (widget.config.valueFormat != null && widget.config.valueFormat!.isNotEmpty) {
+      try {
+        return DateFormat(widget.config.valueFormat!).format(dateTime);
+      } catch (e) {
+        // 如果格式化失败，使用默认格式
+        return '${dateTime.year}年${dateTime.month}月${dateTime.day}日 ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+      }
+    }
+    return '${dateTime.year}年${dateTime.month}月${dateTime.day}日 ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return _buildDateTapContainer(
@@ -28,8 +42,8 @@ class _DateTimeFieldWidgetState extends State<DateTimeFieldWidget> {
           final pickedTime = await showTimePicker(context: context, initialTime: TimeOfDay.now());
 
           if (pickedTime != null && mounted) {
-            final dateTimeValue =
-                '${pickedDate.year}年${pickedDate.month}月${pickedDate.day}日 ${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}';
+            final dateTime = DateTime(pickedDate.year, pickedDate.month, pickedDate.day, pickedTime.hour, pickedTime.minute);
+            final dateTimeValue = _formatDateTime(dateTime);
             widget.onChanged(dateTimeValue);
           }
         }

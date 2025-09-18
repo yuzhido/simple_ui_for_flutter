@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/form_builder_config.dart';
+import 'package:intl/intl.dart';
 
 /// 日期字段组件
 class DateFieldWidget extends StatelessWidget {
@@ -8,6 +9,19 @@ class DateFieldWidget extends StatelessWidget {
   final Function(dynamic) onChanged;
 
   const DateFieldWidget({super.key, required this.config, this.value, required this.onChanged});
+
+  /// 格式化日期
+  String _formatDate(DateTime date) {
+    if (config.valueFormat != null && config.valueFormat!.isNotEmpty) {
+      try {
+        return DateFormat(config.valueFormat!).format(date);
+      } catch (e) {
+        // 如果格式化失败，使用默认格式
+        return '${date.year}年${date.month}月${date.day}日';
+      }
+    }
+    return '${date.year}年${date.month}月${date.day}日';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +33,7 @@ class DateFieldWidget extends StatelessWidget {
         final now = DateTime.now();
         final picked = await showDatePicker(context: context, initialDate: now, firstDate: DateTime(1900), lastDate: DateTime(2100), locale: const Locale('zh', 'CN'));
         if (picked != null) {
-          final dateValue = '${picked.year}年${picked.month}月${picked.day}日';
+          final dateValue = _formatDate(picked);
           onChanged(dateValue);
         }
       },

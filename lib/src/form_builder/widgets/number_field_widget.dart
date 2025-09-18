@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:simple_ui/models/form_builder_config.dart';
 
 /// 数字字段组件
@@ -14,6 +15,9 @@ class NumberFieldWidget extends StatelessWidget {
     return TextFormField(
       initialValue: value?.toString(),
       keyboardType: TextInputType.number,
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')), // 只允许数字和小数点
+      ],
       decoration: _inputDecoration('请输入${config.label ?? ''}'),
       onChanged: (text) {
         final number = double.tryParse(text);

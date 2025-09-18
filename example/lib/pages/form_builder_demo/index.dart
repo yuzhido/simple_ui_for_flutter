@@ -25,13 +25,83 @@ class _FormBuilderDemoState extends State<FormBuilderDemo> {
 
   void _initConfigs() {
     _configs = [
-      FormBuilderConfig(name: 'name', label: '姓名', type: FormBuilderType.text, required: true, defaultValue: ''),
-      FormBuilderConfig(name: 'age', label: '年龄', type: FormBuilderType.integer, required: true, defaultValue: null),
-      FormBuilderConfig(name: 'salary', label: '薪资', type: FormBuilderType.number, required: false, defaultValue: null),
-      FormBuilderConfig(name: 'description', label: '个人描述', type: FormBuilderType.textarea, required: false, defaultValue: ''),
-      FormBuilderConfig(name: 'birthday', label: '生日', type: FormBuilderType.date, required: false, defaultValue: null),
-      FormBuilderConfig(name: 'workTime', label: '工作时间', type: FormBuilderType.time, required: false, defaultValue: null),
-      FormBuilderConfig(name: 'appointment', label: '预约时间', type: FormBuilderType.datetime, required: false, defaultValue: null),
+      FormBuilderConfig(
+        name: 'name',
+        label: '姓名',
+        type: FormBuilderType.text,
+        required: true,
+        defaultValue: '',
+        onChange: (fieldName, value) {
+          print('字段 $fieldName 值变更为: $value');
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('姓名已更改为: $value'), duration: Duration(seconds: 1)));
+        },
+      ),
+      FormBuilderConfig(
+        name: 'age',
+        label: '年龄',
+        type: FormBuilderType.integer,
+        required: true,
+        defaultValue: null,
+        onChange: (fieldName, value) {
+          print('字段 $fieldName 值变更为: $value');
+          if (value != null && value > 0) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('年龄设置为: $value 岁'), duration: Duration(seconds: 1)));
+          }
+        },
+      ),
+      FormBuilderConfig(
+        name: 'salary',
+        label: '薪资',
+        type: FormBuilderType.number,
+        required: false,
+        defaultValue: null,
+        onChange: (fieldName, value) {
+          print('字段 $fieldName 值变更为: $value');
+        },
+      ),
+      FormBuilderConfig(
+        name: 'description',
+        label: '个人描述',
+        type: FormBuilderType.textarea,
+        required: false,
+        defaultValue: '',
+        onChange: (fieldName, value) {
+          print('字段 $fieldName 值变更为: $value');
+        },
+      ),
+      FormBuilderConfig.date(
+        name: 'birthday',
+        label: '生日',
+        required: false,
+        defaultValue: null,
+        valueFormat: 'yyyy-MM-dd', // 使用 ISO 格式
+        onChange: (fieldName, value) {
+          print('字段 $fieldName 值变更为: $value');
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('生日设置为: $value'), duration: Duration(seconds: 1)));
+        },
+      ),
+      FormBuilderConfig.time(
+        name: 'workTime',
+        label: '工作时间',
+        required: false,
+        defaultValue: null,
+        valueFormat: 'HH:mm', // 24小时格式
+        onChange: (fieldName, value) {
+          print('字段 $fieldName 值变更为: $value');
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('工作时间设置为: $value'), duration: Duration(seconds: 1)));
+        },
+      ),
+      FormBuilderConfig.datetime(
+        name: 'appointment',
+        label: '预约时间',
+        required: false,
+        defaultValue: null,
+        valueFormat: 'yyyy-MM-dd HH:mm', // 完整的日期时间格式
+        onChange: (fieldName, value) {
+          print('字段 $fieldName 值变更为: $value');
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('预约时间设置为: $value'), duration: Duration(seconds: 1)));
+        },
+      ),
       FormBuilderConfig.radio(
         name: 'gender',
         label: '性别',
@@ -42,6 +112,15 @@ class _FormBuilderDemoState extends State<FormBuilderDemo> {
           SelectOption(label: '女', value: 'female'),
           SelectOption(label: '其他', value: 'other'),
         ],
+        onChange: (fieldName, value) {
+          print('字段 $fieldName 值变更为: $value');
+          String genderText = value == 'male'
+              ? '男'
+              : value == 'female'
+              ? '女'
+              : '其他';
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('性别选择: $genderText'), duration: Duration(seconds: 1)));
+        },
       ),
       FormBuilderConfig.checkbox(
         name: 'hobbies',
@@ -55,6 +134,11 @@ class _FormBuilderDemoState extends State<FormBuilderDemo> {
           SelectOption(label: '旅行', value: 'travel'),
           SelectOption(label: '游戏', value: 'gaming'),
         ],
+        onChange: (fieldName, value) {
+          print('字段 $fieldName 值变更为: $value');
+          List<dynamic> hobbies = value ?? [];
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('已选择 ${hobbies.length} 个爱好'), duration: Duration(seconds: 1)));
+        },
       ),
       FormBuilderConfig.select(
         name: 'city',
@@ -70,6 +154,12 @@ class _FormBuilderDemoState extends State<FormBuilderDemo> {
           SelectOption(label: '杭州', value: 'hangzhou'),
           SelectOption(label: '成都', value: 'chengdu'),
         ],
+        onChange: (fieldName, value) {
+          print('字段 $fieldName 值变更为: $value');
+          if (value != null) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('城市选择: $value'), duration: Duration(seconds: 1)));
+          }
+        },
       ),
       FormBuilderConfig.dropdown(
         name: 'skills',
@@ -89,8 +179,13 @@ class _FormBuilderDemoState extends State<FormBuilderDemo> {
           SelectData(label: 'Python', value: 'python'),
           SelectData(label: 'Java', value: 'java'),
         ],
+        onChange: (fieldName, value) {
+          print('字段 $fieldName 值变更为: $value');
+          List<dynamic> skills = value ?? [];
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('已选择 ${skills.length} 项技能'), duration: Duration(seconds: 1)));
+        },
       ),
-      FormBuilderConfig.dropdown(
+      FormBuilderConfig.dropdown<User>(
         name: 'remoteUsers',
         label: '远程用户',
         required: false,
@@ -101,7 +196,15 @@ class _FormBuilderDemoState extends State<FormBuilderDemo> {
         onAdd: (val) {
           debugPrint('添加新项: $val');
         },
-        onSingleSelected: (val) {},
+        onSingleSelected: (val) {
+          print(val.data);
+        },
+        onChange: (fieldName, value) {
+          print('字段 $fieldName 值变更为: $value');
+          if (value != null) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('远程用户已选择'), duration: Duration(seconds: 1)));
+          }
+        },
       ),
       FormBuilderConfig.upload(
         name: 'avatar',
@@ -116,6 +219,26 @@ class _FormBuilderDemoState extends State<FormBuilderDemo> {
         listType: UploadListType.card,
         limit: 3,
         fileSource: FileSource.imageOrCamera,
+        onChange: (fieldName, value) {
+          print('字段 $fieldName 值变更为: $value');
+          List<dynamic> files = value ?? [];
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('已上传 ${files.length} 个文件'), duration: Duration(seconds: 1)));
+        },
+        onUploadCallback: (uploadedFile) {
+          // 文件操作成功后的自定义回调函数
+          print('文件操作成功: ${uploadedFile.fileName}');
+          print('文件大小: ${uploadedFile.fileSize} bytes');
+          print('文件路径: ${uploadedFile.filePath}');
+          print('是否为图片: ${uploadedFile.isImage}');
+
+          // 显示文件操作成功的提示
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('文件 "${uploadedFile.fileName}" 操作成功！'), duration: Duration(seconds: 2), backgroundColor: Colors.green));
+
+          // 这里可以执行其他自定义逻辑，比如：
+          // - 发送文件信息到服务器
+          // - 更新其他UI状态
+          // - 触发其他业务逻辑
+        },
       ),
       FormBuilderConfig(name: 'customField', label: '自定义字段', type: FormBuilderType.custom, required: false, defaultValue: null),
     ];

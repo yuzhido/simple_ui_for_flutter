@@ -13,9 +13,9 @@ class DropdownFieldWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final DropdownProps? props = config.props is DropdownProps ? config.props as DropdownProps : null;
-
-    if (props == null) {
+    // 支持任何类型的 DropdownProps
+    final dynamic propsRaw = config.props;
+    if (propsRaw == null) {
       return Container(
         height: 56,
         decoration: BoxDecoration(
@@ -27,12 +27,12 @@ class DropdownFieldWidget extends StatelessWidget {
     }
 
     // 使用DropdownProps中的options（已经是SelectData类型）
-    final List<SelectData<dynamic>> selectDataList = props.options;
+    final List<SelectData<dynamic>> selectDataList = propsRaw.options;
 
     // 处理默认值
     dynamic defaultValue;
     if (config.defaultValue != null) {
-      if (props.multiple) {
+      if (propsRaw.multiple) {
         // 多选模式：defaultValue可以是List<SelectOption>或List<SelectData>
         if (config.defaultValue is List<SelectOption>) {
           defaultValue = config.defaultValue.map((option) => SelectData(label: option.label, value: option.value, data: null)).toList();
@@ -54,7 +54,7 @@ class DropdownFieldWidget extends StatelessWidget {
           config.validator ??
           (val) {
             if (!config.required) return null;
-            if (props.multiple) {
+            if (propsRaw.multiple) {
               final list = (value as List?) ?? <dynamic>[];
               return list.isEmpty ? '至少选择一项' : null;
             }
@@ -65,35 +65,34 @@ class DropdownFieldWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             DropdownChoose<dynamic>(
-              list: props.remote ? null : selectDataList,
-              remoteFetch: props.remote
+              list: propsRaw.remote ? null : selectDataList,
+              remoteFetch: propsRaw.remote
                   ? (String? kw) async {
-                      if (props.remoteFetch != null) {
-                        final options = await props.remoteFetch!(kw ?? '');
-                        return options.map((option) => SelectData(label: option.label, value: option.value, data: null)).toList();
+                      if (propsRaw.remoteFetch != null) {
+                        return await propsRaw.remoteFetch!(kw ?? '');
                       }
                       return <SelectData<dynamic>>[];
                     }
                   : null,
-              multiple: props.multiple,
-              filterable: props.filterable,
-              remote: props.remote,
+              multiple: propsRaw.multiple,
+              filterable: propsRaw.filterable,
+              remote: propsRaw.remote,
               defaultValue: defaultValue,
-              singleTitleText: props.multiple ? null : config.placeholder,
-              multipleTitleText: props.multiple ? config.placeholder : null,
+              singleTitleText: propsRaw.multiple ? null : config.placeholder,
+              multipleTitleText: propsRaw.multiple ? config.placeholder : null,
               placeholderText: config.placeholder ?? '请选择',
-              showAdd: props.showAdd,
-              onAdd: props.onAdd,
+              showAdd: propsRaw.showAdd,
+              onAdd: propsRaw.onAdd,
               onSingleSelected: (value) {
                 onChanged(value.value);
                 state.didChange(value.value);
-                props.onSingleSelected?.call(SelectData(label: value.label, value: value.value));
+                propsRaw.onSingleSelected?.call(value);
               },
               onMultipleSelected: (values) {
                 final list = values.map((e) => e.value).toList();
                 onChanged(list);
                 state.didChange(list);
-                props.onMultipleSelected?.call(values.map((e) => SelectData(label: e.label, value: e.value)).toList());
+                propsRaw.onMultipleSelected?.call(values);
               },
             ),
             if (state.hasError)

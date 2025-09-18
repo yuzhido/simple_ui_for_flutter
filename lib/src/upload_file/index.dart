@@ -157,6 +157,7 @@ class UploadFile extends StatefulWidget {
   final Function(XFile)? onImageSelected; // 图片选择回调
   final UploadConfig? uploadConfig; // 上传配置
   final bool autoUpload; // 是否自动上传，默认为true
+  final Function(UploadedFile)? onUploadCallback; // 文件操作成功后的回调函数
 
   const UploadFile({
     super.key,
@@ -183,6 +184,7 @@ class UploadFile extends StatefulWidget {
     this.onImageSelected,
     this.uploadConfig,
     this.autoUpload = true, // 默认自动上传
+    this.onUploadCallback,
   });
 
   @override
@@ -285,21 +287,24 @@ class _UploadFileState extends State<UploadFile> {
     }
 
     final fileIndex = uploadedFiles.length;
+    final uploadedFile = UploadedFile(
+      fileName: fileName,
+      status: widget.autoUpload && widget.uploadConfig != null ? UploadStatus.uploading : UploadStatus.success,
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      fileSize: fileSize ?? 0,
+      filePath: filePath,
+      isImage: isImage,
+      file: file,
+      uploadProgress: 0.0,
+    );
+    
     setState(() {
-      uploadedFiles.add(
-        UploadedFile(
-          fileName: fileName,
-          status: widget.autoUpload && widget.uploadConfig != null ? UploadStatus.uploading : UploadStatus.success,
-          timestamp: DateTime.now().millisecondsSinceEpoch,
-          fileSize: fileSize ?? 0,
-          filePath: filePath,
-          isImage: isImage,
-          file: file,
-          uploadProgress: 0.0,
-        ),
-      );
+      uploadedFiles.add(uploadedFile);
     });
     widget.onFilesChanged?.call(uploadedFiles);
+
+    // 调用文件操作成功回调
+    widget.onUploadCallback?.call(uploadedFile);
 
     // 如果配置了自动上传，则开始上传
     if (widget.autoUpload && widget.uploadConfig != null && file != null) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/form_builder_config.dart';
+import 'package:intl/intl.dart';
 
 /// 时间字段组件
 class TimeFieldWidget extends StatelessWidget {
@@ -8,6 +9,22 @@ class TimeFieldWidget extends StatelessWidget {
   final Function(dynamic) onChanged;
 
   const TimeFieldWidget({super.key, required this.config, this.value, required this.onChanged});
+
+  /// 格式化时间
+  String _formatTime(TimeOfDay time) {
+    if (config.valueFormat != null && config.valueFormat!.isNotEmpty) {
+      try {
+        // 创建一个临时的 DateTime 对象来使用 DateFormat
+        final now = DateTime.now();
+        final dateTime = DateTime(now.year, now.month, now.day, time.hour, time.minute);
+        return DateFormat(config.valueFormat!).format(dateTime);
+      } catch (e) {
+        // 如果格式化失败，使用默认格式
+        return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+      }
+    }
+    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +35,7 @@ class TimeFieldWidget extends StatelessWidget {
       onTap: () async {
         final picked = await showTimePicker(context: context, initialTime: TimeOfDay.now());
         if (picked != null) {
-          final timeValue = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+          final timeValue = _formatTime(picked);
           onChanged(timeValue);
         }
       },

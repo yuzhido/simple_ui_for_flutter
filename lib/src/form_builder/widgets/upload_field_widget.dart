@@ -91,6 +91,7 @@ class UploadFieldWidget extends StatelessWidget {
               onFileSelected: props.onFileSelected,
               onImageSelected: props.onImageSelected,
               uploadConfig: props.uploadConfig,
+              onUploadCallback: props.onUploadCallback,
               onFilesChanged: (files) {
                 onChanged(files);
                 state.didChange(files);

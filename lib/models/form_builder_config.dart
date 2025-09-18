@@ -60,6 +60,10 @@ class FormBuilderConfig {
   final String? placeholder;
   // 自定义验证器
   final String? Function(dynamic)? validator;
+  // 数据改变时的回调函数
+  final void Function(String fieldName, dynamic value)? onChange;
+  // 值格式化字符串（用于 date、time、datetime 类型）
+  final String? valueFormat;
 
   const FormBuilderConfig({
     required this.name,
@@ -72,16 +76,56 @@ class FormBuilderConfig {
     this.isShow = true,
     this.placeholder,
     this.validator,
+    this.onChange,
+    this.valueFormat,
   });
 
   // 工厂构造方法 - 单选
-  factory FormBuilderConfig.radio({required String name, String? label, bool required = false, dynamic defaultValue, List<SelectOption>? options, bool isShow = true, String? Function(dynamic)? validator}) {
-    return FormBuilderConfig(name: name, type: FormBuilderType.radio, label: label, required: required, defaultValue: defaultValue, props: options ?? [], isShow: isShow, validator: validator);
+  factory FormBuilderConfig.radio({
+    required String name,
+    String? label,
+    bool required = false,
+    dynamic defaultValue,
+    List<SelectOption>? options,
+    bool isShow = true,
+    String? Function(dynamic)? validator,
+    void Function(String fieldName, dynamic value)? onChange,
+  }) {
+    return FormBuilderConfig(
+      name: name,
+      type: FormBuilderType.radio,
+      label: label,
+      required: required,
+      defaultValue: defaultValue,
+      props: options ?? [],
+      isShow: isShow,
+      validator: validator,
+      onChange: onChange,
+    );
   }
 
   // 工厂构造方法 - 多选
-  factory FormBuilderConfig.checkbox({required String name, String? label, bool required = false, List<dynamic>? defaultValue, List<SelectOption>? options, bool isShow = true, String? Function(dynamic)? validator}) {
-    return FormBuilderConfig(name: name, type: FormBuilderType.checkbox, label: label, required: required, defaultValue: defaultValue ?? [], props: options ?? [], isShow: isShow, validator: validator);
+  factory FormBuilderConfig.checkbox({
+    required String name,
+    String? label,
+    bool required = false,
+    List<dynamic>? defaultValue,
+    List<SelectOption>? options,
+    bool isShow = true,
+    String? Function(dynamic)? validator,
+    void Function(String fieldName, dynamic value)? onChange,
+  }) {
+    return FormBuilderConfig(
+      name: name,
+      type: FormBuilderType.checkbox,
+      label: label,
+      required: required,
+      defaultValue: defaultValue ?? [],
+      props: options ?? [],
+      isShow: isShow,
+      validator: validator,
+      onChange: onChange,
+    );
   }
 
   // 工厂构造方法 - 下拉选择
@@ -94,6 +138,7 @@ class FormBuilderConfig {
     String? placeholder,
     bool isShow = true,
     String? Function(dynamic)? validator,
+    void Function(String fieldName, dynamic value)? onChange,
   }) {
     return FormBuilderConfig(
       name: name,
@@ -105,27 +150,29 @@ class FormBuilderConfig {
       placeholder: placeholder,
       isShow: isShow,
       validator: validator,
+      onChange: onChange,
     );
   }
 
   // 工厂构造方法 - 自定义下拉
-  factory FormBuilderConfig.dropdown({
+  static FormBuilderConfig dropdown<T>({
     required String name,
     String? label,
     bool required = false,
     dynamic defaultValue,
-    List<SelectData>? options,
+    List<SelectData<T>>? options,
     String? placeholder,
     bool multiple = false,
     bool filterable = false,
     bool remote = false,
-    Future<List<SelectData>> Function(String keyword)? remoteFetch,
-    Function(SelectData)? onSingleSelected,
-    Function(List<SelectData>)? onMultipleSelected,
+    Future<List<SelectData<T>>> Function(String keyword)? remoteFetch,
+    Function(SelectData<T>)? onSingleSelected,
+    Function(List<SelectData<T>>)? onMultipleSelected,
     bool showAdd = false,
     void Function(String keyword)? onAdd,
     bool isShow = true,
     String? Function(dynamic)? validator,
+    void Function(String fieldName, dynamic value)? onChange,
   }) {
     return FormBuilderConfig(
       name: name,
@@ -133,7 +180,7 @@ class FormBuilderConfig {
       label: label,
       required: required,
       defaultValue: defaultValue,
-      props: DropdownProps(
+      props: DropdownProps<T>(
         options: options ?? [],
         multiple: multiple,
         filterable: filterable,
@@ -147,6 +194,7 @@ class FormBuilderConfig {
       placeholder: placeholder,
       isShow: isShow,
       validator: validator,
+      onChange: onChange,
     );
   }
 
@@ -178,8 +226,10 @@ class FormBuilderConfig {
     Function(dynamic)? onFileSelected,
     Function(dynamic)? onImageSelected,
     dynamic uploadConfig,
+    Function(dynamic)? onUploadCallback, // 文件操作成功后的回调函数
     bool isShow = true,
     String? Function(dynamic)? validator,
+    void Function(String fieldName, dynamic value)? onChange,
   }) {
     return FormBuilderConfig(
       name: name,
@@ -210,22 +260,102 @@ class FormBuilderConfig {
         onFileSelected: onFileSelected,
         onImageSelected: onImageSelected,
         uploadConfig: uploadConfig,
+        onUploadCallback: onUploadCallback,
       ),
       isShow: isShow,
       validator: validator,
+      onChange: onChange,
+    );
+  }
+
+  // 工厂构造方法 - 日期
+  factory FormBuilderConfig.date({
+    required String name,
+    String? label,
+    bool required = false,
+    dynamic defaultValue,
+    String? placeholder,
+    String? valueFormat,
+    bool isShow = true,
+    String? Function(dynamic)? validator,
+    void Function(String fieldName, dynamic value)? onChange,
+  }) {
+    return FormBuilderConfig(
+      name: name,
+      type: FormBuilderType.date,
+      label: label,
+      required: required,
+      defaultValue: defaultValue,
+      placeholder: placeholder,
+      valueFormat: valueFormat,
+      isShow: isShow,
+      validator: validator,
+      onChange: onChange,
+    );
+  }
+
+  // 工厂构造方法 - 时间
+  factory FormBuilderConfig.time({
+    required String name,
+    String? label,
+    bool required = false,
+    dynamic defaultValue,
+    String? placeholder,
+    String? valueFormat,
+    bool isShow = true,
+    String? Function(dynamic)? validator,
+    void Function(String fieldName, dynamic value)? onChange,
+  }) {
+    return FormBuilderConfig(
+      name: name,
+      type: FormBuilderType.time,
+      label: label,
+      required: required,
+      defaultValue: defaultValue,
+      placeholder: placeholder,
+      valueFormat: valueFormat,
+      isShow: isShow,
+      validator: validator,
+      onChange: onChange,
+    );
+  }
+
+  // 工厂构造方法 - 日期时间
+  factory FormBuilderConfig.datetime({
+    required String name,
+    String? label,
+    bool required = false,
+    dynamic defaultValue,
+    String? placeholder,
+    String? valueFormat,
+    bool isShow = true,
+    String? Function(dynamic)? validator,
+    void Function(String fieldName, dynamic value)? onChange,
+  }) {
+    return FormBuilderConfig(
+      name: name,
+      type: FormBuilderType.datetime,
+      label: label,
+      required: required,
+      defaultValue: defaultValue,
+      placeholder: placeholder,
+      valueFormat: valueFormat,
+      isShow: isShow,
+      validator: validator,
+      onChange: onChange,
     );
   }
 }
 
 // 自定义下拉属性
-class DropdownProps {
-  final List<SelectData> options;
+class DropdownProps<T> {
+  final List<SelectData<T>> options;
   final bool multiple;
   final bool filterable;
   final bool remote;
-  final Future<List<SelectData>> Function(String keyword)? remoteFetch;
-  final Function(SelectData)? onSingleSelected;
-  final Function(List<SelectData>)? onMultipleSelected;
+  final Future<List<SelectData<T>>> Function(String keyword)? remoteFetch;
+  final Function(SelectData<T>)? onSingleSelected;
+  final Function(List<SelectData<T>>)? onMultipleSelected;
   final bool showAdd;
   final void Function(String keyword)? onAdd;
 
@@ -266,6 +396,7 @@ class UploadProps {
   final Function(dynamic)? onFileSelected;
   final Function(dynamic)? onImageSelected;
   final dynamic uploadConfig;
+  final Function(dynamic)? onUploadCallback; // 文件操作成功后的回调函数
 
   const UploadProps({
     this.uploadText,
@@ -290,5 +421,6 @@ class UploadProps {
     this.onFileSelected,
     this.onImageSelected,
     this.uploadConfig,
+    this.onUploadCallback,
   });
 }
