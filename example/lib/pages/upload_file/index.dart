@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:simple_ui/models/file_upload.dart';
 import 'package:simple_ui/simple_ui.dart';
 
 class UploadFilePage extends StatefulWidget {
@@ -65,7 +66,7 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
             // 0.1 单个默认文件
             _buildSubSectionTitle('0.1 单个默认文件'),
             UploadFile(
-              listType: UploadListType.card,
+              listType: FileListType.card,
               defaultValue: [
                 FileInfo(id: 111, fileName: 'default_image.jpeg', requestPath: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg'),
                 FileInfo(id: 111, fileName: 'default_image.jpeg', requestPath: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg'),
@@ -81,7 +82,7 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
             // 0.2 多个默认文件
             _buildSubSectionTitle('0.2 多个默认文件'),
             UploadFile(
-              listType: UploadListType.card,
+              listType: FileListType.card,
               defaultValue: [
                 FileInfo(id: 111, fileName: 'image1.jpeg', requestPath: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg'),
                 FileInfo(id: 222, fileName: 'document.pdf', requestPath: 'http://192.168.8.188:3000/uploads/document-123456789.pdf'),
@@ -98,7 +99,7 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
             // 0.3 按钮样式的默认值
             _buildSubSectionTitle('0.3 按钮样式的默认值'),
             UploadFile(
-              listType: UploadListType.button,
+              listType: FileListType.textInfo,
               defaultValue: [FileInfo(id: 'btn_001', fileName: 'button_default.jpg', requestPath: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg')],
               uploadText: '按钮默认值',
               backgroundColor: Colors.green,
@@ -109,9 +110,9 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
             const SizedBox(height: 32),
 
             // 1. 默认按钮样式
-            _buildSectionTitle('1. 默认按钮样式 (UploadListType.button)'),
+            _buildSectionTitle('1. 默认按钮样式 (FileListType.button)'),
             UploadFile(
-              listType: UploadListType.button,
+              listType: FileListType.textInfo,
               onFilesChanged: (files) {
                 setState(() {
                   files1 = files;
@@ -122,9 +123,9 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
             const SizedBox(height: 32),
 
             // 2. 卡片样式 - 默认尺寸
-            _buildSectionTitle('2. 卡片样式 (UploadListType.card) - 默认120x120'),
+            _buildSectionTitle('2. 卡片样式 (FileListType.card) - 默认120x120'),
             UploadFile(
-              listType: UploadListType.card,
+              listType: FileListType.card,
               // uploadAreaSize: 120, // 默认120x120的卡片
               borderColor: Colors.grey.shade300,
               backgroundColor: Colors.grey.shade50,
@@ -141,9 +142,9 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
             const SizedBox(height: 32),
 
             // 3. 自定义卡片样式
-            _buildSectionTitle('3. 自定义卡片样式 (UploadListType.custom)'),
+            _buildSectionTitle('3. 自定义卡片样式 (FileListType.custom)'),
             UploadFile(
-              listType: UploadListType.custom,
+              listType: FileListType.custom,
               uploadAreaSize: 100, // 100x100的卡片
               backgroundColor: Colors.green.shade50,
               borderColor: Colors.green.shade400,
@@ -215,13 +216,13 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
 
             // 5. 隐藏文件列表的示例
             _buildSectionTitle('5. 隐藏文件列表 (showFileList: false)'),
-            UploadFile(listType: UploadListType.card, showFileList: false, uploadAreaSize: 120, uploadIcon: Icons.upload_file, uploadText: '静默'),
+            UploadFile(listType: FileListType.card, showFileList: false, uploadAreaSize: 120, uploadIcon: Icons.upload_file, uploadText: '静默'),
             const SizedBox(height: 32),
 
             // 6. 自定义文件项样式
             _buildSectionTitle('6. 自定义文件项样式 (customFileItemBuilder)'),
             UploadFile(
-              listType: UploadListType.card,
+              listType: FileListType.card,
               // uploadAreaSize: 120, // 默认120x120的卡片
               customFileItemBuilder: (fileInfo) {
                 final String fileName = fileInfo.fileName;
@@ -324,7 +325,7 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
             // 7. 文件数量限制示例
             _buildSectionTitle('7. 文件数量限制 (limit参数)'),
             UploadFile(
-              listType: UploadListType.card,
+              listType: FileListType.card,
               limit: 3, // 限制最多上传3个文件
               uploadText: '最多3个',
               onFilesChanged: (files) {
@@ -336,7 +337,7 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
             // 8. 按钮样式的数量限制
             _buildSectionTitle('8. 按钮样式的数量限制'),
             UploadFile(
-              listType: UploadListType.button,
+              listType: FileListType.textInfo,
               limit: 5, // 限制最多上传5个文件
               uploadText: '最多5个文件',
               backgroundColor: Colors.orange,
@@ -349,7 +350,7 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
             // 9.1 只允许选择文件
             _buildSubSectionTitle('9.1 只允许选择文件 (FileSource.file)'),
             UploadFile(
-              listType: UploadListType.card,
+              listType: FileListType.card,
               fileSource: FileSource.file,
               uploadText: '选择文件',
               uploadIcon: Icons.folder_open,
@@ -362,7 +363,7 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
             // 9.2 只允许选择图片
             _buildSubSectionTitle('9.2 只允许选择图片 (FileSource.image)'),
             UploadFile(
-              listType: UploadListType.card,
+              listType: FileListType.card,
               fileSource: FileSource.image,
               uploadText: '选择图片',
               uploadIcon: Icons.photo_library,
@@ -375,7 +376,7 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
             // 9.3 只允许拍照
             _buildSubSectionTitle('9.3 只允许拍照 (FileSource.camera)'),
             UploadFile(
-              listType: UploadListType.card,
+              listType: FileListType.card,
               fileSource: FileSource.camera,
               uploadText: '拍照',
               uploadIcon: Icons.camera_alt,
@@ -388,7 +389,7 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
             // 9.4 允许选择图片或拍照
             _buildSubSectionTitle('9.4 允许选择图片或拍照 (FileSource.imageOrCamera)'),
             UploadFile(
-              listType: UploadListType.card,
+              listType: FileListType.card,
               fileSource: FileSource.imageOrCamera,
               uploadText: '图片/拍照',
               uploadIcon: Icons.photo_camera,
@@ -401,7 +402,7 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
             // 9.5 允许所有类型（默认）
             _buildSubSectionTitle('9.5 允许所有类型 (FileSource.all)'),
             UploadFile(
-              listType: UploadListType.card,
+              listType: FileListType.card,
               fileSource: FileSource.all,
               uploadText: '所有类型',
               uploadIcon: Icons.add_a_photo,
@@ -420,8 +421,8 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
             // 10.1 基本上传示例
             _buildSubSectionTitle('10.1 基本上传示例'),
             UploadFile(
-              listType: UploadListType.card,
-              uploadConfig: UploadConfig(
+              listType: FileListType.card,
+              uploadConfig: LegacyUploadConfig(
                 uploadUrl: 'http://dev.asset.jingfang.site/api/admin/basic-upload/image-upload', // 测试接口
                 headers: {
                   'Authorization':
@@ -453,8 +454,8 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
             // 10.2 带进度显示的上传示例
             _buildSubSectionTitle('10.2 带进度显示的上传示例'),
             UploadFile(
-              listType: UploadListType.card,
-              uploadConfig: UploadConfig(
+              listType: FileListType.card,
+              uploadConfig: LegacyUploadConfig(
                 uploadUrl: 'https://httpbin.org/post',
                 headers: {'Content-Type': 'multipart/form-data'},
                 fileFieldName: 'file',
@@ -480,8 +481,8 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
             // 10.3 手动上传示例
             _buildSubSectionTitle('10.3 手动上传示例 (autoUpload: false)'),
             UploadFile(
-              listType: UploadListType.button,
-              uploadConfig: UploadConfig(
+              listType: FileListType.textInfo,
+              uploadConfig: LegacyUploadConfig(
                 uploadUrl: 'https://httpbin.org/post',
                 headers: {'Authorization': 'Bearer manual-upload-token'},
                 fileFieldName: 'attachment',
@@ -509,8 +510,8 @@ class _NewUploadFilePageState extends State<UploadFilePage> {
             // 10.4 错误处理示例
             _buildSubSectionTitle('10.4 错误处理示例 (错误URL)'),
             UploadFile(
-              listType: UploadListType.card,
-              uploadConfig: UploadConfig(
+              listType: FileListType.card,
+              uploadConfig: LegacyUploadConfig(
                 uploadUrl: 'https://invalid-url-for-testing.com/upload', // 故意使用错误URL
                 headers: {'Content-Type': 'multipart/form-data'},
                 fileFieldName: 'file',

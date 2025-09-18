@@ -1,6 +1,7 @@
 import 'package:example/pages/data_for_form/index.dart';
 import 'package:example/pages/form_builder_demo/default_value.dart';
 import 'package:example/pages/loading_data/index.dart';
+import 'package:example/pages/new_file_upload/index.dart';
 import 'package:example/pages/notice_info/index.dart';
 import 'package:example/pages/tree_select/index.dart';
 import 'package:example/pages/upload_file/index.dart';
@@ -45,7 +46,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Simple UI 组件示例'), backgroundColor: Theme.of(context).colorScheme.inversePrimary),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -75,6 +76,12 @@ class HomePage extends StatelessWidget {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const UploadFilePage()));
               },
               child: Text('跳转查看上传文件（UploadFile）示例'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const NewFileUploadPage()));
+              },
+              child: Text('跳转查看最新文件上传组件（NewFileUpload）示例'),
             ),
 
             ElevatedButton(

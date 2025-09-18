@@ -3,27 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:simple_ui/models/file_info.dart';
-
-enum UploadListType {
-  button, // 默认按钮样式
-  card, // 卡片样式 - 小巧紧凑的卡片
-  custom, // 自定义样式
-}
-
-enum UploadStatus {
-  uploading, // 上传中
-  success, // 上传成功
-  failed, // 上传失败
-}
-
-enum FileSource {
-  all, // 允许所有类型：文件、图片、拍照
-  file, // 只允许选择文件
-  image, // 只允许选择图片
-  camera, // 只允许拍照
-  imageOrCamera, // 只允许选择图片或拍照
-}
+import 'package:simple_ui/models/file_upload.dart';
 
 // 强类型的上传文件实体，替代 Map<String, dynamic>
 class UploadedFile {
@@ -87,7 +67,7 @@ class UploadedFile {
 }
 
 // 上传配置类
-class UploadConfig {
+class LegacyUploadConfig {
   final String? uploadUrl; // 上传接口地址（当提供 customUpload 时可不传）
   final Map<String, String> headers; // 请求头
   final String? fileFieldName; // 文件字段名，默认为 'file'
@@ -106,7 +86,7 @@ class UploadConfig {
   // - 可在上传过程中调用 onProgress 更新进度 [0,1]
   final Future<Map<String, dynamic>> Function({required File file, required void Function(double progress) onProgress})? customUpload;
 
-  const UploadConfig({
+  const LegacyUploadConfig({
     this.uploadUrl,
     this.headers = const {},
     this.fileFieldName = 'file',
@@ -134,7 +114,7 @@ class UploadResponse {
 }
 
 class UploadFile extends StatefulWidget {
-  final UploadListType listType;
+  final FileListType listType;
   final Widget? customUploadArea;
   final double? uploadAreaSize; // 卡片尺寸（正方形）
   final Color? borderColor;
@@ -155,13 +135,13 @@ class UploadFile extends StatefulWidget {
   final FileSource fileSource; // 文件来源控制
   final Function(PlatformFile)? onFileSelected; // 文件选择回调
   final Function(XFile)? onImageSelected; // 图片选择回调
-  final UploadConfig? uploadConfig; // 上传配置
+  final LegacyUploadConfig? uploadConfig; // 上传配置
   final bool autoUpload; // 是否自动上传，默认为true
   final Function(UploadedFile)? onUploadCallback; // 文件操作成功后的回调函数
 
   const UploadFile({
     super.key,
-    this.listType = UploadListType.button,
+    this.listType = FileListType.textInfo,
     this.customUploadArea,
     this.uploadAreaSize = 120, // 默认120x120的卡片
     this.borderColor,
@@ -297,7 +277,7 @@ class _UploadFileState extends State<UploadFile> {
       file: file,
       uploadProgress: 0.0,
     );
-    
+
     setState(() {
       uploadedFiles.add(uploadedFile);
     });
@@ -665,11 +645,11 @@ class _UploadFileState extends State<UploadFile> {
 
     // 根据listType构建不同的上传区域
     switch (widget.listType) {
-      case UploadListType.button:
+      case FileListType.textInfo:
         return _buildButtonStyle();
-      case UploadListType.card:
+      case FileListType.card:
         return _buildCardStyle();
-      case UploadListType.custom:
+      case FileListType.custom:
         return _buildCustomStyle();
     }
   }
@@ -759,7 +739,7 @@ class _UploadFileState extends State<UploadFile> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(widget.uploadIcon ?? Icons.add_circle_outline, size: widget.iconSize ?? 28, color: canUpload ? (widget.iconColor ?? Colors.grey.shade600) : Colors.grey.shade400),
-            if (widget.listType == UploadListType.custom) ...[
+            if (widget.listType == FileListType.custom) ...[
               const SizedBox(height: 4),
               Text(
                 canUpload ? widget.uploadText! : '已达到上限',
@@ -782,7 +762,7 @@ class _UploadFileState extends State<UploadFile> {
     }
 
     // 根据listType决定文件展示样式
-    if (widget.listType == UploadListType.card) {
+    if (widget.listType == FileListType.card) {
       return _buildCardFileItem(fileInfo, index);
     } else {
       return _buildListFileItem(fileInfo, index);
@@ -1041,14 +1021,14 @@ class _UploadFileState extends State<UploadFile> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 非卡片模式时，上传区域在上方（只有在未达到限制时才显示）
-          if (widget.listType != UploadListType.card)
+          if (widget.listType != FileListType.card)
             ...(() {
               final limit = _effectiveLimit();
               return (limit == -1 || uploadedFiles.length < limit) ? <Widget>[_buildUploadArea(), const SizedBox(height: 16)] : <Widget>[];
             }()),
           // 文件列表 - 根据模式决定布局
           if (widget.showFileList)
-            widget.listType == UploadListType.card
+            widget.listType == FileListType.card
                 ? LayoutBuilder(
                     builder: (context, constraints) {
                       // 计算最优的列数和文件项宽度

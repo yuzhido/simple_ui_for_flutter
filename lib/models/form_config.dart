@@ -290,7 +290,7 @@ class UploadFieldProps {
   final dynamic fileSource; // 与组件枚举保持解耦
   final dynamic onFileSelected; // 回调透传
   final dynamic onImageSelected; // 回调透传
-  final UploadConfig? uploadConfig; // 上传配置
+  final LegacyUploadConfig? uploadConfig; // 上传配置
   const UploadFieldProps({
     this.uploadText,
     this.autoUpload,

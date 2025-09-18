@@ -18,3 +18,5 @@ export 'src/table_show/index.dart';
 export 'src/form_builder/index.dart';
 // 导出加载数据组件
 export 'src/loading_data/index.dart';
+// 导出最新上传文件组件
+export 'src/file_upload/index.dart';

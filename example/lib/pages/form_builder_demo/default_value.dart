@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:simple_ui/models/file_upload.dart';
 import 'package:simple_ui/models/form_builder_config.dart';
 import 'package:simple_ui/simple_ui.dart';
 
@@ -155,7 +156,7 @@ class _DefaultValuePageState extends State<DefaultValuePage> {
         required: false,
         defaultValue: userData['avatar'] ?? [],
         uploadText: '上传头像',
-        listType: UploadListType.card,
+        listType: FileListType.card,
         limit: 3,
         fileSource: FileSource.imageOrCamera,
       ),

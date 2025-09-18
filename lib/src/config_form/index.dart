@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:simple_ui/models/file_upload.dart';
 import 'package:simple_ui/models/index.dart';
 import 'package:flutter/services.dart';
 import 'package:simple_ui/src/dropdown_choose/index.dart';
@@ -571,7 +572,7 @@ class _ConfigFormState extends State<ConfigForm> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     UploadFile(
-                      listType: (p?.listType is UploadListType) ? p?.listType as UploadListType : UploadListType.card,
+                      listType: (p?.listType is FileListType) ? p?.listType as FileListType : FileListType.card,
                       customUploadArea: p?.customUploadArea,
                       uploadAreaSize: p?.uploadAreaSize,
                       borderColor: p?.borderColor,

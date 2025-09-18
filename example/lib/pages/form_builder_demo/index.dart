@@ -1,6 +1,7 @@
 import 'package:example/api/models/user.dart';
 import 'package:example/api/user_api.dart';
 import 'package:flutter/material.dart';
+import 'package:simple_ui/models/file_upload.dart';
 import 'package:simple_ui/models/form_builder_config.dart';
 import 'package:simple_ui/simple_ui.dart';
 
@@ -216,7 +217,7 @@ class _FormBuilderDemoState extends State<FormBuilderDemo> {
           FileInfo(id: 111, fileName: 'default_image.jpeg', requestPath: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg'),
         ],
         uploadText: '上传头像',
-        listType: UploadListType.card,
+        listType: FileListType.card,
         limit: 3,
         fileSource: FileSource.imageOrCamera,
         onChange: (fieldName, value) {

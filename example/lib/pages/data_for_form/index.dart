@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:simple_ui/models/file_upload.dart';
 import 'package:simple_ui/simple_ui.dart';
 
 class DataForFormPage extends StatefulWidget {
@@ -311,7 +312,7 @@ class _DataForFormPageState extends State<DataForFormPage> {
           name: 'productImages',
           type: FormFieldType.upload,
           label: '产品图片',
-          props: UploadFieldProps(uploadText: '上传产品图片', limit: 3, listType: UploadListType.card),
+          props: UploadFieldProps(uploadText: '上传产品图片', limit: 3, listType: FileListType.card),
         ),
       ],
     );

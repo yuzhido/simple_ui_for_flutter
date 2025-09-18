@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:simple_ui/models/file_upload.dart';
 import 'package:simple_ui/models/form_builder_config.dart';
-import 'package:simple_ui/models/file_info.dart';
 import 'package:simple_ui/src/upload_file/index.dart';
 
 /// 上传字段组件
@@ -69,7 +69,7 @@ class UploadFieldWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             UploadFile(
-              listType: props.listType ?? UploadListType.button,
+              listType: props.listType ?? FileListType.textInfo,
               uploadText: props.uploadText,
               autoUpload: props.autoUpload,
               showFileList: props.showFileList,
