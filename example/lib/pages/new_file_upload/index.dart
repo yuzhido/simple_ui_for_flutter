@@ -291,6 +291,107 @@ class _NewFileUploadPageState extends State<NewFileUploadPage> {
             const Divider(),
             const SizedBox(height: 16),
 
+            // 默认文件列表示例
+            const Text('默认文件列表示例：', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            const Text('展示已上传成功的默认文件列表，可以继续添加新文件', style: TextStyle(fontSize: 14, color: Colors.grey)),
+            const SizedBox(height: 16),
+
+            FileUpload(
+              fileListType: FileListType.textInfo,
+              defaultValue: [
+                FileUploadModel(
+                  fileInfo: FileInfo(id: 'default_1', fileName: 'default_image_1.jpg', requestPath: '/uploads/file-1758210644301-129721823.jpg'),
+                  name: 'default_image_1.jpg',
+                  path: 'http://192.168.1.19:3001/uploads/file-1758210644301-129721823.jpg',
+                ),
+                FileUploadModel(
+                  fileInfo: FileInfo(id: 'default_2', fileName: 'document.pdf', requestPath: 'http://192.168.8.188:3000/uploads/document-123456789.pdf'),
+                  name: 'document.pdf',
+                  path: 'http://192.168.8.188:3000/uploads/document-123456789.pdf',
+                  status: UploadStatus.success,
+                  progress: 1.0,
+                  fileSize: 2048000,
+                  fileSizeInfo: '2.0 MB',
+                ),
+                FileUploadModel(
+                  fileInfo: FileInfo(id: 'default_3', fileName: 'presentation.pptx', requestPath: 'http://192.168.8.188:3000/uploads/presentation-987654321.pptx'),
+                  name: 'presentation.pptx',
+                  path: 'http://192.168.8.188:3000/uploads/presentation-987654321.pptx',
+                  status: UploadStatus.success,
+                  progress: 1.0,
+                  fileSize: 5120000,
+                  fileSizeInfo: '5.0 MB',
+                ),
+              ],
+              uploadConfig: UploadConfig(uploadUrl: 'http://192.168.1.19:3001/upload/api/upload-file', headers: {'Authorization': 'Bearer token123'}),
+              onUploadSuccess: (file) {
+                print('✅ 默认文件列表示例 - 文件 ${file.name} 上传成功！');
+              },
+              onUploadFailed: (file, error) {
+                print('❌ 默认文件列表示例 - 文件 ${file.name} 上传失败: $error');
+              },
+              onUploadProgress: (file, progress) {
+                print('📤 默认文件列表示例 - 文件 ${file.name} 上传进度: ${(progress * 100).toInt()}%');
+              },
+              onFileChange: (currentFile, selectedFiles, action) {
+                print('默认文件列表示例 - 操作: $action, 文件: ${currentFile.name}, 总文件数: ${selectedFiles.length}');
+              },
+            ),
+
+            const SizedBox(height: 24),
+            const Divider(),
+            const SizedBox(height: 16),
+
+            // 卡片模式的默认文件列表示例
+            const Text('卡片模式默认文件列表示例：', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            const Text('卡片模式展示默认文件，支持图片预览', style: TextStyle(fontSize: 14, color: Colors.grey)),
+            const SizedBox(height: 16),
+
+            FileUpload(
+              fileListType: FileListType.card,
+              limit: 5,
+              defaultValue: [
+                FileUploadModel(
+                  fileInfo: FileInfo(id: 'card_default_1', fileName: 'avatar.jpg', requestPath: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg'),
+                  name: 'avatar.jpg',
+                  path: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg',
+                  status: UploadStatus.success,
+                  progress: 1.0,
+                  fileSize: 512000,
+                  fileSizeInfo: '512 KB',
+                ),
+                FileUploadModel(
+                  fileInfo: FileInfo(id: 'card_default_2', fileName: 'banner.png', requestPath: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg'),
+                  name: 'banner.png',
+                  path: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg',
+                  status: UploadStatus.success,
+                  progress: 1.0,
+                  fileSize: 1536000,
+                  fileSizeInfo: '1.5 MB',
+                ),
+              ],
+              uploadConfig: UploadConfig(uploadUrl: 'http://192.168.1.19:3001/upload/api/upload-file', headers: {'Authorization': 'Bearer token123'}),
+              fileSource: FileSource.imageOrCamera,
+              onUploadSuccess: (file) {
+                print('✅ 卡片模式默认文件列表 - 文件 ${file.name} 上传成功！');
+              },
+              onUploadFailed: (file, error) {
+                print('❌ 卡片模式默认文件列表 - 文件 ${file.name} 上传失败: $error');
+              },
+              onUploadProgress: (file, progress) {
+                print('📤 卡片模式默认文件列表 - 文件 ${file.name} 上传进度: ${(progress * 100).toInt()}%');
+              },
+              onFileChange: (currentFile, selectedFiles, action) {
+                print('卡片模式默认文件列表 - 操作: $action, 文件: ${currentFile.name}, 总文件数: ${selectedFiles.length}');
+              },
+            ),
+
+            const SizedBox(height: 24),
+            const Divider(),
+            const SizedBox(height: 16),
+
             // 原有的上传组件
             const Text('普通文件上传示例：', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),

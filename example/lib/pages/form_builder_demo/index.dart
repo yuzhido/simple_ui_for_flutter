@@ -212,33 +212,39 @@ class _FormBuilderDemoState extends State<FormBuilderDemo> {
         label: '头像',
         required: false,
         defaultValue: [
-          FileInfo(id: 111, fileName: 'default_image.jpeg', requestPath: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg'),
-          FileInfo(id: 111, fileName: 'default_image.jpeg', requestPath: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg'),
-          FileInfo(id: 111, fileName: 'default_image.jpeg', requestPath: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg'),
+          FileUploadModel(
+            fileInfo: FileInfo(id: 'default_1', fileName: 'default_image_1.jpg', requestPath: '/uploads/file-1758210644301-129721823.jpg'),
+            name: 'default_image_1.jpg',
+            path: 'http://192.168.1.19:3001/uploads/file-1758210644301-129721823.jpg',
+          ),
+          FileUploadModel(
+            fileInfo: FileInfo(id: 'default_2', fileName: 'document.pdf', requestPath: 'http://192.168.8.188:3000/uploads/document-123456789.pdf'),
+            name: 'document.pdf',
+            path: 'http://192.168.8.188:3000/uploads/document-123456789.pdf',
+            status: UploadStatus.success,
+            progress: 1.0,
+            fileSize: 2048000,
+            fileSizeInfo: '2.0 MB',
+          ),
+          FileUploadModel(
+            fileInfo: FileInfo(id: 'default_3', fileName: 'presentation.pptx', requestPath: 'http://192.168.8.188:3000/uploads/presentation-987654321.pptx'),
+            name: 'presentation.pptx',
+            path: 'http://192.168.8.188:3000/uploads/presentation-987654321.pptx',
+            status: UploadStatus.success,
+            progress: 1.0,
+            fileSize: 5120000,
+            fileSizeInfo: '5.0 MB',
+          ),
         ],
-        uploadText: '上传头像',
-        listType: FileListType.card,
+        uploadConfig: UploadConfig(uploadUrl: 'http://192.168.1.19:3001/upload/api/upload-file', headers: {'Authorization': 'Bearer token123'}),
+
+        fileListType: FileListType.card,
         limit: 3,
         fileSource: FileSource.imageOrCamera,
         onChange: (fieldName, value) {
           print('字段 $fieldName 值变更为: $value');
           List<dynamic> files = value ?? [];
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('已上传 ${files.length} 个文件'), duration: Duration(seconds: 1)));
-        },
-        onUploadCallback: (uploadedFile) {
-          // 文件操作成功后的自定义回调函数
-          print('文件操作成功: ${uploadedFile.fileName}');
-          print('文件大小: ${uploadedFile.fileSize} bytes');
-          print('文件路径: ${uploadedFile.filePath}');
-          print('是否为图片: ${uploadedFile.isImage}');
-
-          // 显示文件操作成功的提示
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('文件 "${uploadedFile.fileName}" 操作成功！'), duration: Duration(seconds: 2), backgroundColor: Colors.green));
-
-          // 这里可以执行其他自定义逻辑，比如：
-          // - 发送文件信息到服务器
-          // - 更新其他UI状态
-          // - 触发其他业务逻辑
         },
       ),
       FormBuilderConfig(name: 'customField', label: '自定义字段', type: FormBuilderType.custom, required: false, defaultValue: null),

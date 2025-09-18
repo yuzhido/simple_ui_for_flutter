@@ -1,10 +1,8 @@
-import 'package:example/pages/data_for_form/index.dart';
 import 'package:example/pages/form_builder_demo/default_value.dart';
 import 'package:example/pages/loading_data/index.dart';
 import 'package:example/pages/new_file_upload/index.dart';
 import 'package:example/pages/notice_info/index.dart';
 import 'package:example/pages/tree_select/index.dart';
-import 'package:example/pages/upload_file/index.dart';
 import 'package:example/pages/database_demo/index.dart';
 import 'package:example/pages/permission_request/index.dart';
 import 'package:example/pages/table_show/index.dart';
@@ -15,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'pages/dropdown_choose/index.dart';
 import 'pages/cascading_select/index.dart';
-import 'pages/config_form/index.dart';
 
 void main() {
   runApp(const MyApp());
@@ -72,12 +69,7 @@ class HomePage extends StatelessWidget {
               },
               child: Text('跳转查看树形选择（TreeSelect）示例'),
             ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const UploadFilePage()));
-              },
-              child: Text('跳转查看上传文件（UploadFile）示例'),
-            ),
+
             ElevatedButton(
               onPressed: () {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const NewFileUploadPage()));
@@ -109,19 +101,7 @@ class HomePage extends StatelessWidget {
               },
               child: Text('跳转查看权限请求（PermissionRequest）示例'),
             ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const DataForFormPage()));
-              },
-              child: Text('跳转查看数据驱动表单（DataForForm）示例'),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const ConfigFormPage()));
-              },
-              child: Text('跳转查看动态表单（ConfigForm）示例'),
-            ),
+
             const SizedBox(height: 12),
 
             ElevatedButton(

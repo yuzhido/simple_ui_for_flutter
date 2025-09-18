@@ -204,29 +204,19 @@ class FormBuilderConfig {
     String? label,
     bool required = false,
     List<dynamic>? defaultValue,
-    String? uploadText,
-    bool autoUpload = false,
-    bool showFileList = true,
-    Color? backgroundColor,
-    dynamic listType,
-    Widget? customUploadArea,
-    double? uploadAreaSize,
-    Color? borderColor,
-    BorderRadius? borderRadius,
-    IconData? uploadIcon,
-    double? iconSize,
-    Color? iconColor,
-    TextStyle? textStyle,
-    List<dynamic>? initialFiles,
-    Function(List<dynamic>)? onFilesChanged,
-    Widget Function(dynamic)? customFileItemBuilder,
-    double? fileItemSize,
-    int? limit,
+    // FileUpload 组件核心属性
+    Widget? customFileList,
+    dynamic fileListType,
+    Function(dynamic, List<dynamic>, String)? onFileChange,
+    Function(dynamic)? onUploadSuccess,
+    Function(dynamic, String)? onUploadFailed,
+    Function(dynamic, double)? onUploadProgress,
     dynamic fileSource,
-    Function(dynamic)? onFileSelected,
-    Function(dynamic)? onImageSelected,
+    int? limit,
+    bool showFileList = true,
+    bool autoUpload = true,
+    bool isRemoveFailFile = false,
     dynamic uploadConfig,
-    Function(dynamic)? onUploadCallback, // 文件操作成功后的回调函数
     bool isShow = true,
     String? Function(dynamic)? validator,
     void Function(String fieldName, dynamic value)? onChange,
@@ -238,29 +228,20 @@ class FormBuilderConfig {
       required: required,
       defaultValue: defaultValue ?? [],
       props: UploadProps(
-        uploadText: uploadText,
-        autoUpload: autoUpload,
-        showFileList: showFileList,
-        backgroundColor: backgroundColor,
-        listType: listType,
-        customUploadArea: customUploadArea,
-        uploadAreaSize: uploadAreaSize,
-        borderColor: borderColor,
-        borderRadius: borderRadius,
-        uploadIcon: uploadIcon,
-        iconSize: iconSize,
-        iconColor: iconColor,
-        textStyle: textStyle,
-        initialFiles: initialFiles,
-        onFilesChanged: onFilesChanged,
-        customFileItemBuilder: customFileItemBuilder,
-        fileItemSize: fileItemSize,
-        limit: limit,
+        // 只保留 FileUpload 组件需要的属性
+        customFileList: customFileList,
+        fileListType: fileListType,
+        onFileChange: onFileChange,
+        onUploadSuccess: onUploadSuccess,
+        onUploadFailed: onUploadFailed,
+        onUploadProgress: onUploadProgress,
         fileSource: fileSource,
-        onFileSelected: onFileSelected,
-        onImageSelected: onImageSelected,
+        limit: limit,
+        showFileList: showFileList,
+        autoUpload: autoUpload,
+        isRemoveFailFile: isRemoveFailFile,
         uploadConfig: uploadConfig,
-        onUploadCallback: onUploadCallback,
+        defaultValue: defaultValue,
       ),
       isShow: isShow,
       validator: validator,
@@ -372,55 +353,35 @@ class DropdownProps<T> {
   });
 }
 
-// 文件上传属性
+// 文件上传属性 - 仅包含 FileUpload 组件需要的属性
 class UploadProps {
-  final String? uploadText;
-  final bool autoUpload;
-  final bool showFileList;
-  final Color? backgroundColor;
-  final dynamic listType;
-  final Widget? customUploadArea;
-  final double? uploadAreaSize;
-  final Color? borderColor;
-  final BorderRadius? borderRadius;
-  final IconData? uploadIcon;
-  final double? iconSize;
-  final Color? iconColor;
-  final TextStyle? textStyle;
-  final List<dynamic>? initialFiles;
-  final Function(List<dynamic>)? onFilesChanged;
-  final Widget Function(dynamic)? customFileItemBuilder;
-  final double? fileItemSize;
-  final int? limit;
-  final dynamic fileSource;
-  final Function(dynamic)? onFileSelected;
-  final Function(dynamic)? onImageSelected;
-  final dynamic uploadConfig;
-  final Function(dynamic)? onUploadCallback; // 文件操作成功后的回调函数
+  final Widget? customFileList; // 自定义上传文件列表样式
+  final dynamic fileListType; // 上传文件列表类型
+  final Function(dynamic, List<dynamic>, String)? onFileChange; // 文件改变回调
+  final Function(dynamic)? onUploadSuccess; // 上传成功回调
+  final Function(dynamic, String)? onUploadFailed; // 上传失败回调
+  final Function(dynamic, double)? onUploadProgress; // 上传进度回调
+  final dynamic fileSource; // 文件来源
+  final int? limit; // 文件数量限制
+  final bool showFileList; // 是否显示文件列表
+  final bool autoUpload; // 是否自动上传
+  final bool isRemoveFailFile; // 上传失败时是否移除文件
+  final dynamic uploadConfig; // 上传配置
+  final List<dynamic>? defaultValue; // 默认文件列表
 
   const UploadProps({
-    this.uploadText,
-    this.autoUpload = false,
-    this.showFileList = true,
-    this.backgroundColor,
-    this.listType,
-    this.customUploadArea,
-    this.uploadAreaSize,
-    this.borderColor,
-    this.borderRadius,
-    this.uploadIcon,
-    this.iconSize,
-    this.iconColor,
-    this.textStyle,
-    this.initialFiles,
-    this.onFilesChanged,
-    this.customFileItemBuilder,
-    this.fileItemSize,
-    this.limit,
+    this.customFileList,
+    this.fileListType,
+    this.onFileChange,
+    this.onUploadSuccess,
+    this.onUploadFailed,
+    this.onUploadProgress,
     this.fileSource,
-    this.onFileSelected,
-    this.onImageSelected,
+    this.limit,
+    this.showFileList = true,
+    this.autoUpload = true,
+    this.isRemoveFailFile = false,
     this.uploadConfig,
-    this.onUploadCallback,
+    this.defaultValue,
   });
 }

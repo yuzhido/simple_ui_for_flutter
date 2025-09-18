@@ -150,16 +150,7 @@ class _DefaultValuePageState extends State<DefaultValuePage> {
           SelectData(label: 'Java', value: 'java'),
         ],
       ),
-      FormBuilderConfig.upload(
-        name: 'avatar',
-        label: '头像',
-        required: false,
-        defaultValue: userData['avatar'] ?? [],
-        uploadText: '上传头像',
-        listType: FileListType.card,
-        limit: 3,
-        fileSource: FileSource.imageOrCamera,
-      ),
+      FormBuilderConfig.upload(name: 'avatar', label: '头像', required: false, defaultValue: userData['avatar'] ?? [], limit: 3, fileSource: FileSource.imageOrCamera),
     ];
 
     // 调试信息

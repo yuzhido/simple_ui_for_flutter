@@ -45,6 +45,9 @@ class FileUpload extends StatefulWidget {
   /// 上传失败时是否移除文件-默认为false
   final bool isRemoveFailFile;
 
+  /// 默认文件列表，显示已上传成功的文件
+  final List<FileUploadModel>? defaultValue;
+
   const FileUpload({
     super.key,
     this.customFileList,
@@ -59,6 +62,7 @@ class FileUpload extends StatefulWidget {
     this.autoUpload = true,
     this.isRemoveFailFile = false,
     this.uploadConfig,
+    this.defaultValue,
   });
 
   @override
@@ -77,12 +81,41 @@ class _FileUploadState extends State<FileUpload> {
     super.initState();
     // 验证自动上传配置
     _validateAutoUploadConfig();
+    // 初始化默认文件列表
+    _initializeDefaultFiles();
   }
 
   /// 验证自动上传配置
   void _validateAutoUploadConfig() {
     if (widget.autoUpload && (widget.uploadConfig == null || !widget.uploadConfig!.isValid)) {
       throw ArgumentError('自动上传需要提供有效的上传配置，请确保提供 uploadConfig.uploadUrl 或 customUpload 函数');
+    }
+  }
+
+  /// 初始化默认文件列表
+  void _initializeDefaultFiles() {
+    if (widget.defaultValue != null && widget.defaultValue!.isNotEmpty) {
+      // 使用 addPostFrameCallback 延迟到构建完成后执行，避免在构建期间调用 setState
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            // 将默认文件添加到已选择文件列表中，并确保状态为成功
+            selectedFiles.addAll(
+              widget.defaultValue!.map((file) => file.copyWith(
+                status: UploadStatus.success,
+                progress: 1.0,
+              )),
+            );
+          });
+
+          // 触发文件变更回调，通知外部组件默认文件已加载
+          if (widget.onFileChange != null && selectedFiles.isNotEmpty) {
+            for (final file in selectedFiles) {
+              widget.onFileChange?.call(file, selectedFiles, 'default');
+            }
+          }
+        }
+      });
     }
   }
 
@@ -171,7 +204,7 @@ class _FileUploadState extends State<FileUpload> {
       } else {
         // 否则只更新状态为失败
         updateFileStatus(index, UploadStatus.failed);
-        
+
         // 触发文件状态变更回调 - 上传失败
         final allFiles = [...selectedFiles, ..._tempFiles];
         widget.onFileChange?.call(_tempFiles[index], allFiles, 'failed');

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:simple_ui/models/file_upload.dart';
 import 'package:simple_ui/models/form_builder_config.dart';
-import 'package:simple_ui/src/upload_file/index.dart';
+import 'package:simple_ui/src/file_upload/index.dart';
+import 'package:simple_ui/models/file_upload.dart';
 
 /// 上传字段组件
 class UploadFieldWidget extends StatelessWidget {
@@ -10,6 +10,24 @@ class UploadFieldWidget extends StatelessWidget {
   final Function(dynamic) onChanged;
 
   const UploadFieldWidget({super.key, required this.config, this.value, required this.onChanged});
+
+  /// 将动态类型的文件列表转换为 FileUploadModel 列表
+  List<FileUploadModel>? _convertToFileUploadModels(dynamic value) {
+    if (value == null) return null;
+    if (value is! List) return null;
+
+    return value.map((item) {
+      if (item is FileUploadModel) {
+        return item;
+      } else if (item is Map<String, dynamic>) {
+        return FileUploadModel.fromMap(item);
+      } else {
+        // 创建一个基本的 FileUploadModel
+        final fileInfo = FileInfo(id: DateTime.now().millisecondsSinceEpoch, fileName: item.toString(), requestPath: '');
+        return FileUploadModel(fileInfo: fileInfo, name: item.toString(), status: UploadStatus.success);
+      }
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,36 +44,8 @@ class UploadFieldWidget extends StatelessWidget {
       );
     }
 
-    // 处理初始文件列表
-    List<UploadedFile> initialFiles = [];
-    if (props.initialFiles != null) {
-      initialFiles = props.initialFiles!.map((file) {
-        if (file is UploadedFile) {
-          return file;
-        } else if (file is Map<String, dynamic>) {
-          return UploadedFile(
-            fileName: file['fileName'] ?? 'unknown',
-            status: UploadStatus.success,
-            timestamp: file['timestamp'] ?? DateTime.now().millisecondsSinceEpoch,
-            fileSize: file['fileSize'] ?? 0,
-            filePath: file['filePath'],
-            isImage: file['isImage'] ?? false,
-            fileUrl: file['fileUrl'],
-            data: file['data'],
-          );
-        }
-        return UploadedFile(fileName: file.toString(), status: UploadStatus.success, timestamp: DateTime.now().millisecondsSinceEpoch);
-      }).toList();
-    }
-
-    // 处理默认值 - 将FileInfo转换为UploadedFile
-    List<FileInfo>? defaultFileInfos;
-    if (config.defaultValue != null && config.defaultValue is List) {
-      defaultFileInfos = (config.defaultValue as List).whereType<FileInfo>().toList();
-    }
-
-    return FormField<List<UploadedFile>>(
-      initialValue: initialFiles,
+    return FormField<List<dynamic>>(
+      initialValue: props.defaultValue ?? config.defaultValue ?? [],
       validator:
           config.validator ??
           (files) {
@@ -68,33 +58,41 @@ class UploadFieldWidget extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            UploadFile(
-              listType: props.listType ?? FileListType.textInfo,
-              uploadText: props.uploadText,
-              autoUpload: props.autoUpload,
-              showFileList: props.showFileList,
-              backgroundColor: props.backgroundColor,
-              customUploadArea: props.customUploadArea,
-              uploadAreaSize: props.uploadAreaSize,
-              borderColor: props.borderColor,
-              borderRadius: props.borderRadius,
-              uploadIcon: props.uploadIcon,
-              iconSize: props.iconSize,
-              iconColor: props.iconColor,
-              textStyle: props.textStyle,
-              initialFiles: initialFiles,
-              defaultValue: defaultFileInfos,
-              customFileItemBuilder: props.customFileItemBuilder,
-              fileItemSize: props.fileItemSize,
+            FileUpload(
+              // 基础属性
               limit: props.limit ?? -1,
               fileSource: props.fileSource ?? FileSource.all,
-              onFileSelected: props.onFileSelected,
-              onImageSelected: props.onImageSelected,
+              fileListType: props.fileListType ?? FileListType.card,
+              showFileList: props.showFileList,
+              autoUpload: props.autoUpload,
+              isRemoveFailFile: props.isRemoveFailFile,
               uploadConfig: props.uploadConfig,
-              onUploadCallback: props.onUploadCallback,
-              onFilesChanged: (files) {
-                onChanged(files);
-                state.didChange(files);
+              defaultValue: _convertToFileUploadModels(state.value),
+              // 自定义组件
+              customFileList: props.customFileList,
+              // 回调函数
+              onFileChange: (FileUploadModel file, List<FileUploadModel> fileList, String type) {
+                onChanged(fileList);
+                state.didChange(fileList);
+                // 调用原有的回调
+                if (props.onFileChange != null) {
+                  props.onFileChange!(file, fileList, type);
+                }
+              },
+              onUploadSuccess: (FileUploadModel file) {
+                if (props.onUploadSuccess != null) {
+                  props.onUploadSuccess!(file);
+                }
+              },
+              onUploadFailed: (FileUploadModel file, String error) {
+                if (props.onUploadFailed != null) {
+                  props.onUploadFailed!(file, error);
+                }
+              },
+              onUploadProgress: (FileUploadModel file, double progress) {
+                if (props.onUploadProgress != null) {
+                  props.onUploadProgress!(file, progress);
+                }
               },
             ),
             if (state.hasError)
