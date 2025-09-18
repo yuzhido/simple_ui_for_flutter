@@ -29,6 +29,11 @@ dependencies:
     path: ../
   file_picker: ^10.3.2
   image_picker: ^1.2.0
+  dio: ^5.9.0
+  
+  # 图片压缩相关依赖
+  flutter_image_compress: ^2.3.0
+  image: ^4.2.0
 
 dev_dependencies:
   flutter_test:

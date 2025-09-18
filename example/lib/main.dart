@@ -10,6 +10,7 @@ import 'package:example/pages/permission_request/index.dart';
 import 'package:example/pages/table_show/index.dart';
 import 'package:example/pages/form_builder_demo/index.dart';
 import 'package:example/pages/user_list/index.dart';
+import 'package:example/pages/compress_demo/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'pages/dropdown_choose/index.dart';
@@ -82,6 +83,12 @@ class HomePage extends StatelessWidget {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const NewFileUploadPage()));
               },
               child: Text('跳转查看最新文件上传组件（NewFileUpload）示例'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const CompressDemoPage()));
+              },
+              child: Text('跳转查看图片压缩演示（CompressDemo）示例'),
             ),
 
             ElevatedButton(

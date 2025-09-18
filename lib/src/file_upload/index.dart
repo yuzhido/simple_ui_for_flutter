@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:simple_ui/models/file_upload.dart';
 import 'package:simple_ui/src/file_upload/choose_file_source.dart';
 import 'package:simple_ui/src/file_upload/file_picker_utils.dart';
+import 'package:dio/dio.dart';
+import 'dart:io';
 
 class FileUpload extends StatefulWidget {
   /// 文件改变的回调
@@ -68,7 +70,7 @@ class _FileUploadState extends State<FileUpload> {
   List<FileUploadModel> selectedFiles = [];
 
   /// 临时文件列表，用于显示正在上传的文件
-  List<FileUploadModel> _tempFiles = [];
+  final List<FileUploadModel> _tempFiles = [];
 
   @override
   void initState() {
@@ -79,8 +81,8 @@ class _FileUploadState extends State<FileUpload> {
 
   /// 验证自动上传配置
   void _validateAutoUploadConfig() {
-    if (widget.autoUpload && (widget.uploadConfig == null || widget.uploadConfig!.uploadUrl == null || widget.uploadConfig!.uploadUrl!.isEmpty)) {
-      throw ArgumentError('自动上传需要提供有效的上传配置，请确保 uploadConfig.uploadUrl 不为空');
+    if (widget.autoUpload && (widget.uploadConfig == null || !widget.uploadConfig!.isValid)) {
+      throw ArgumentError('自动上传需要提供有效的上传配置，请确保提供 uploadConfig.uploadUrl 或 customUpload 函数');
     }
   }
 
@@ -149,8 +151,12 @@ class _FileUploadState extends State<FileUpload> {
       // 开始上传
       updateFileStatus(index, UploadStatus.uploading, progress: 0.0);
 
-      // 这里应该调用真实的上传方法，目前使用模拟上传
-      _simulateUpload(index);
+      // 触发文件状态变更回调 - 上传开始
+      final allFiles = [...selectedFiles, ..._tempFiles];
+      widget.onFileChange?.call(_tempFiles[index], allFiles, 'uploading');
+
+      // 调用真实的HTTP上传方法
+      _realUpload(index);
     }
   }
 
@@ -165,10 +171,41 @@ class _FileUploadState extends State<FileUpload> {
       } else {
         // 否则只更新状态为失败
         updateFileStatus(index, UploadStatus.failed);
+        
+        // 触发文件状态变更回调 - 上传失败
+        final allFiles = [...selectedFiles, ..._tempFiles];
+        widget.onFileChange?.call(_tempFiles[index], allFiles, 'failed');
       }
 
       // 触发失败回调
       widget.onUploadFailed?.call(failedFile, error);
+    }
+  }
+
+  /// 自定义上传方法
+  Future<void> _customUpload(int index, Future<Map<String, dynamic>> Function(String filePath, Function(double) onProgress) customUploadFunction) async {
+    if (index < 0 || index >= _tempFiles.length) return;
+
+    final fileModel = _tempFiles[index];
+    final filePath = fileModel.path;
+
+    if (filePath == null || filePath.isEmpty) {
+      _handleUploadError(index, '文件路径无效');
+      return;
+    }
+
+    try {
+      // 调用自定义上传函数，传入文件路径和进度回调
+      await customUploadFunction(filePath, (progress) {
+        // 更新上传进度
+        updateFileStatus(index, UploadStatus.uploading, progress: progress);
+      });
+
+      // 上传成功
+      _handleUploadSuccess(index);
+    } catch (e) {
+      // 上传失败
+      _handleUploadError(index, '自定义上传失败: $e');
     }
   }
 
@@ -205,6 +242,12 @@ class _FileUploadState extends State<FileUpload> {
       if (status == UploadStatus.uploading && widget.onUploadProgress != null) {
         widget.onUploadProgress?.call(_tempFiles[index], progress);
       }
+
+      // 触发文件状态变更回调 - 上传进度更新
+      if (status == UploadStatus.uploading) {
+        final allFiles = [...selectedFiles, ..._tempFiles];
+        widget.onFileChange?.call(_tempFiles[index], allFiles, 'progress');
+      }
     }
   }
 
@@ -216,34 +259,113 @@ class _FileUploadState extends State<FileUpload> {
     }
   }
 
-  /// 模拟上传进度（用于演示）
-  void _simulateUpload(int index) {
-    if (index >= 0 && index < _tempFiles.length) {
-      // 模拟上传进度
-      int progressStep = 0;
-      const totalSteps = 10;
+  /// 真实的HTTP上传方法
+  Future<void> _realUpload(int index) async {
+    if (index < 0 || index >= _tempFiles.length) return;
 
-      void updateProgress() {
-        if (progressStep < totalSteps) {
-          progressStep++;
-          final progress = progressStep / totalSteps;
-          updateFileStatus(index, UploadStatus.uploading, progress: progress);
+    final fileModel = _tempFiles[index];
+    final uploadConfig = fileModel.uploadConfig;
 
-          // 继续下一步
-          Future.delayed(const Duration(milliseconds: 300), updateProgress);
-        } else {
-          // 上传完成，随机决定成功或失败
-          final isSuccess = DateTime.now().millisecond % 2 == 0;
-          if (isSuccess) {
-            _handleUploadSuccess(index);
-          } else {
-            _handleUploadError(index, '模拟上传失败');
-          }
-        }
+    if (uploadConfig == null || !uploadConfig.isValid) {
+      _handleUploadError(index, '上传配置无效：缺少上传URL或自定义上传函数');
+      return;
+    }
+
+    // 检查是否有自定义上传函数
+    if (uploadConfig.customUpload != null) {
+      await _customUpload(index, uploadConfig.customUpload!);
+      return;
+    }
+
+    try {
+      // 创建Dio实例
+      final dio = Dio();
+
+      // 设置超时时间
+      dio.options.connectTimeout = Duration(seconds: uploadConfig.timeout);
+      dio.options.receiveTimeout = Duration(seconds: uploadConfig.timeout);
+      dio.options.sendTimeout = Duration(seconds: uploadConfig.timeout);
+
+      // 设置请求头
+      if (uploadConfig.headers != null) {
+        dio.options.headers.addAll(uploadConfig.headers!);
       }
 
-      // 开始进度更新
-      Future.delayed(const Duration(milliseconds: 500), updateProgress);
+      // 获取文件路径
+      final filePath = fileModel.path;
+      if (filePath == null || filePath.isEmpty) {
+        _handleUploadError(index, '文件路径无效');
+        return;
+      }
+
+      // 创建文件对象
+      final file = File(filePath);
+      if (!await file.exists()) {
+        _handleUploadError(index, '文件不存在');
+        return;
+      }
+
+      // 准备表单数据
+      final formData = FormData();
+
+      // 添加文件
+      formData.files.add(MapEntry(uploadConfig.fileFieldName, await MultipartFile.fromFile(filePath, filename: fileModel.name ?? file.path.split('/').last)));
+
+      // 添加额外的表单数据
+      if (uploadConfig.extraData != null) {
+        uploadConfig.extraData!.forEach((key, value) {
+          formData.fields.add(MapEntry(key, value.toString()));
+        });
+      }
+
+      // 发送请求
+      final response = await dio.request(
+        uploadConfig.uploadUrl!,
+        data: formData,
+        options: Options(method: uploadConfig.method),
+        onSendProgress: (sent, total) {
+          if (total > 0) {
+            final progress = sent / total;
+            updateFileStatus(index, UploadStatus.uploading, progress: progress);
+          }
+        },
+      );
+
+      // 检查响应状态
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _handleUploadSuccess(index);
+      } else {
+        _handleUploadError(index, '上传失败：HTTP ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      // Dio异常处理
+      String errorMessage;
+      switch (e.type) {
+        case DioExceptionType.connectionTimeout:
+          errorMessage = '连接超时';
+          break;
+        case DioExceptionType.sendTimeout:
+          errorMessage = '发送超时';
+          break;
+        case DioExceptionType.receiveTimeout:
+          errorMessage = '接收超时';
+          break;
+        case DioExceptionType.badResponse:
+          errorMessage = '服务器错误: ${e.response?.statusCode}';
+          break;
+        case DioExceptionType.cancel:
+          errorMessage = '请求已取消';
+          break;
+        case DioExceptionType.connectionError:
+          errorMessage = '网络连接错误';
+          break;
+        default:
+          errorMessage = '上传异常: ${e.message}';
+      }
+      _handleUploadError(index, errorMessage);
+    } catch (e) {
+      // 其他异常
+      _handleUploadError(index, '上传异常: $e');
     }
   }
 
@@ -282,8 +404,8 @@ class _FileUploadState extends State<FileUpload> {
         // 卡片模式每一个卡片的宽度
         final width = (maxWidth - 20) / 3;
 
-        // 合并所有文件列表用于显示
-        final allFiles = [..._tempFiles, ...selectedFiles];
+        // 合并所有文件列表用于显示，新选择的文件显示在最后
+        final allFiles = [...selectedFiles, ..._tempFiles];
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -300,17 +422,18 @@ class _FileUploadState extends State<FileUpload> {
                     ...allFiles.asMap().entries.map((entry) {
                       final index = entry.key;
                       final fileModel = entry.value;
-                      final isPending = index < _tempFiles.length;
+                      final isPending = index >= selectedFiles.length;
+                      final actualIndex = isPending ? index - selectedFiles.length : index;
                       return GestureDetector(
                         onTap: () {
-                          // 演示：点击文件项模拟上传
+                          // 点击文件项开始上传
                           if (fileModel.status == UploadStatus.pending && isPending) {
-                            _simulateUpload(index);
+                            _startUpload(actualIndex);
                           }
                         },
                         child: FilePickerUtils.buildCardFileItem(
                           fileModel,
-                          isPending ? index : index - _tempFiles.length,
+                          actualIndex,
                           width,
                           isPending ? (idx) => _removeFileFromList(idx, fromPending: true) : (idx) => _removeFileFromList(idx, fromPending: false),
                         ),
@@ -347,17 +470,18 @@ class _FileUploadState extends State<FileUpload> {
                     ...allFiles.asMap().entries.map((entry) {
                       final index = entry.key;
                       final fileModel = entry.value;
-                      final isPending = index < _tempFiles.length;
+                      final isPending = index >= selectedFiles.length;
+                      final actualIndex = isPending ? index - selectedFiles.length : index;
                       return GestureDetector(
                         onTap: () {
-                          // 演示：点击文件项模拟上传
+                          // 点击文件项开始上传
                           if (fileModel.status == UploadStatus.pending && isPending) {
-                            _simulateUpload(index);
+                            _startUpload(actualIndex);
                           }
                         },
                         child: FilePickerUtils.buildTextInfoFileItem(
                           fileModel,
-                          isPending ? index : index - _tempFiles.length,
+                          actualIndex,
                           isPending ? (idx) => _removeFileFromList(idx, fromPending: true) : (idx) => _removeFileFromList(idx, fromPending: false),
                         ),
                       );

@@ -60,12 +60,20 @@ class UploadConfig {
   /// 额外的表单数据
   final Map<String, dynamic>? extraData;
 
-  UploadConfig({this.headers, this.uploadUrl, this.method = 'POST', this.timeout = 30, this.fileFieldName = 'file', this.extraData});
+  /// 自定义上传函数
+  /// 函数签名: Future<Map<String, dynamic>> Function(String filePath, Function(double) onProgress)
+  /// 参数: filePath - 要上传的文件路径, onProgress - 进度回调函数(0.0-1.0)
+  /// 返回: 上传结果的Map
+  final Future<Map<String, dynamic>> Function(String filePath, Function(double) onProgress)? customUpload;
+
+  UploadConfig({this.headers, this.uploadUrl, this.method = 'POST', this.timeout = 30, this.fileFieldName = 'file', this.extraData, this.customUpload});
 
   /// 验证配置是否有效
-  bool get isValid => uploadUrl != null && uploadUrl!.isNotEmpty;
+  /// 有效条件：提供了uploadUrl 或者 提供了customUpload函数
+  bool get isValid => (uploadUrl != null && uploadUrl!.isNotEmpty) || customUpload != null;
 
   /// 从Map创建UploadConfig实例
+  /// 注意：customUpload函数无法从Map反序列化，需要单独设置
   factory UploadConfig.fromMap(Map<String, dynamic> map) {
     return UploadConfig(
       headers: map['headers'] != null ? Map<String, String>.from(map['headers']) : null,
@@ -74,16 +82,34 @@ class UploadConfig {
       timeout: map['timeout'] ?? 30,
       fileFieldName: map['fileFieldName'] ?? 'file',
       extraData: map['extraData'],
+      // customUpload函数无法序列化，需要单独设置
     );
   }
 
   /// 转换为Map
+  /// 注意：customUpload函数无法序列化，不包含在Map中
   Map<String, dynamic> toMap() {
-    return {'headers': headers, 'uploadUrl': uploadUrl, 'method': method, 'timeout': timeout, 'fileFieldName': fileFieldName, 'extraData': extraData};
+    return {
+      'headers': headers,
+      'uploadUrl': uploadUrl,
+      'method': method,
+      'timeout': timeout,
+      'fileFieldName': fileFieldName,
+      'extraData': extraData,
+      // customUpload函数无法序列化
+    };
   }
 
   /// 复制并修改配置
-  UploadConfig copyWith({Map<String, String>? headers, String? uploadUrl, String? method, int? timeout, String? fileFieldName, Map<String, dynamic>? extraData}) {
+  UploadConfig copyWith({
+    Map<String, String>? headers,
+    String? uploadUrl,
+    String? method,
+    int? timeout,
+    String? fileFieldName,
+    Map<String, dynamic>? extraData,
+    Future<Map<String, dynamic>> Function(String filePath, Function(double) onProgress)? customUpload,
+  }) {
     return UploadConfig(
       headers: headers ?? this.headers,
       uploadUrl: uploadUrl ?? this.uploadUrl,
@@ -91,6 +117,7 @@ class UploadConfig {
       timeout: timeout ?? this.timeout,
       fileFieldName: fileFieldName ?? this.fileFieldName,
       extraData: extraData ?? this.extraData,
+      customUpload: customUpload ?? this.customUpload,
     );
   }
 }
@@ -122,7 +149,7 @@ class FileUploadModel {
   }) {
     // 验证：如果启用自动上传，必须提供有效的上传配置
     if (autoUpload && (uploadConfig == null || !uploadConfig!.isValid)) {
-      throw ArgumentError('自动上传需要提供有效的上传配置，请确保 uploadConfig.uploadUrl 不为空');
+      throw ArgumentError('自动上传需要提供有效的上传配置，请确保提供 uploadConfig.uploadUrl 或 customUpload 函数');
     }
   }
 
