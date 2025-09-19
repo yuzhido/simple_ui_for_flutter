@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/select_data.dart';
+import 'package:simple_ui/models/file_upload.dart';
 
 /// 表单字段类型枚举
 enum FormBuilderType {
@@ -64,8 +65,10 @@ class FormBuilderConfig {
   final void Function(String fieldName, dynamic value)? onChange;
   // 值格式化字符串（用于 date、time、datetime 类型）
   final String? valueFormat;
+  // 自定义内容构建器（用于 custom 类型）
+  final Widget Function(BuildContext context, FormBuilderConfig config, dynamic value, Function(dynamic) onChanged)? contentBuilder;
 
-  const FormBuilderConfig({
+  FormBuilderConfig({
     required this.name,
     required this.type,
     this.label,
@@ -78,7 +81,16 @@ class FormBuilderConfig {
     this.validator,
     this.onChange,
     this.valueFormat,
-  });
+    this.contentBuilder,
+  }) {
+    // 验证：如果类型是custom，必须提供contentBuilder
+    if (type == FormBuilderType.custom && contentBuilder == null) {
+      throw ArgumentError(
+        'FormBuilderConfig: 当类型为 FormBuilderType.custom 时，必须提供 contentBuilder 参数。'
+        '\n请使用 FormBuilderConfig.custom() 工厂构造方法或确保传递了 contentBuilder 参数。',
+      );
+    }
+  }
 
   // 工厂构造方法 - 单选
   factory FormBuilderConfig.radio({
@@ -203,20 +215,22 @@ class FormBuilderConfig {
     required String name,
     String? label,
     bool required = false,
-    List<dynamic>? defaultValue,
+    List<FileUploadModel>? defaultValue,
     // FileUpload 组件核心属性
     Widget? customFileList,
-    dynamic fileListType,
-    Function(dynamic, List<dynamic>, String)? onFileChange,
-    Function(dynamic)? onUploadSuccess,
-    Function(dynamic, String)? onUploadFailed,
-    Function(dynamic, double)? onUploadProgress,
-    dynamic fileSource,
+    FileListType fileListType = FileListType.card,
+    Function(FileUploadModel, List<FileUploadModel>, String)? onFileChange,
+    Function(FileUploadModel)? onUploadSuccess,
+    Function(FileUploadModel, String)? onUploadFailed,
+    Function(FileUploadModel, double)? onUploadProgress,
+    FileSource fileSource = FileSource.all,
     int? limit,
     bool showFileList = true,
     bool autoUpload = true,
     bool isRemoveFailFile = false,
-    dynamic uploadConfig,
+    UploadConfig? uploadConfig,
+    Widget? uploadIcon, // 自定义上传区域图标
+    Widget? uploadText, // 自定义上传区域文本
     bool isShow = true,
     String? Function(dynamic)? validator,
     void Function(String fieldName, dynamic value)? onChange,
@@ -242,6 +256,8 @@ class FormBuilderConfig {
         isRemoveFailFile: isRemoveFailFile,
         uploadConfig: uploadConfig,
         defaultValue: defaultValue,
+        uploadIcon: uploadIcon,
+        uploadText: uploadText,
       ),
       isShow: isShow,
       validator: validator,
@@ -326,6 +342,30 @@ class FormBuilderConfig {
       onChange: onChange,
     );
   }
+
+  // 工厂构造方法 - 自定义
+  factory FormBuilderConfig.custom({
+    required String name,
+    required Widget Function(BuildContext context, FormBuilderConfig config, dynamic value, Function(dynamic) onChanged) contentBuilder,
+    String? label,
+    bool required = false,
+    dynamic defaultValue,
+    bool isShow = true,
+    String? Function(dynamic)? validator,
+    void Function(String fieldName, dynamic value)? onChange,
+  }) {
+    return FormBuilderConfig(
+      name: name,
+      type: FormBuilderType.custom,
+      label: label,
+      required: required,
+      defaultValue: defaultValue,
+      isShow: isShow,
+      validator: validator,
+      onChange: onChange,
+      contentBuilder: contentBuilder,
+    );
+  }
 }
 
 // 自定义下拉属性
@@ -356,32 +396,36 @@ class DropdownProps<T> {
 // 文件上传属性 - 仅包含 FileUpload 组件需要的属性
 class UploadProps {
   final Widget? customFileList; // 自定义上传文件列表样式
-  final dynamic fileListType; // 上传文件列表类型
-  final Function(dynamic, List<dynamic>, String)? onFileChange; // 文件改变回调
-  final Function(dynamic)? onUploadSuccess; // 上传成功回调
-  final Function(dynamic, String)? onUploadFailed; // 上传失败回调
-  final Function(dynamic, double)? onUploadProgress; // 上传进度回调
-  final dynamic fileSource; // 文件来源
+  final FileListType fileListType; // 上传文件列表类型
+  final Function(FileUploadModel, List<FileUploadModel>, String)? onFileChange; // 文件改变回调
+  final Function(FileUploadModel)? onUploadSuccess; // 上传成功回调
+  final Function(FileUploadModel, String)? onUploadFailed; // 上传失败回调
+  final Function(FileUploadModel, double)? onUploadProgress; // 上传进度回调
+  final FileSource fileSource; // 文件来源
   final int? limit; // 文件数量限制
   final bool showFileList; // 是否显示文件列表
   final bool autoUpload; // 是否自动上传
   final bool isRemoveFailFile; // 上传失败时是否移除文件
-  final dynamic uploadConfig; // 上传配置
-  final List<dynamic>? defaultValue; // 默认文件列表
+  final UploadConfig? uploadConfig; // 上传配置
+  final List<FileUploadModel>? defaultValue; // 默认文件列表
+  final Widget? uploadIcon; // 自定义上传区域图标
+  final Widget? uploadText; // 自定义上传区域文本
 
   const UploadProps({
     this.customFileList,
-    this.fileListType,
+    this.fileListType = FileListType.card,
     this.onFileChange,
     this.onUploadSuccess,
     this.onUploadFailed,
     this.onUploadProgress,
-    this.fileSource,
+    this.fileSource = FileSource.all,
     this.limit,
     this.showFileList = true,
     this.autoUpload = true,
     this.isRemoveFailFile = false,
     this.uploadConfig,
     this.defaultValue,
+    this.uploadIcon,
+    this.uploadText,
   });
 }

@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:simple_ui/models/file_upload.dart';
 import 'package:simple_ui/src/file_upload/choose_file_source.dart';
 import 'package:simple_ui/src/file_upload/file_picker_utils.dart';
-import 'package:dio/dio.dart';
-import 'dart:io';
+import 'package:simple_ui/src/file_upload/file_upload_utils.dart';
 
 class FileUpload extends StatefulWidget {
   /// 文件改变的回调
@@ -48,6 +47,12 @@ class FileUpload extends StatefulWidget {
   /// 默认文件列表，显示已上传成功的文件
   final List<FileUploadModel>? defaultValue;
 
+  /// 自定义上传区域图标
+  final Widget? uploadIcon;
+
+  /// 自定义上传区域文本
+  final Widget? uploadText;
+
   const FileUpload({
     super.key,
     this.customFileList,
@@ -63,6 +68,8 @@ class FileUpload extends StatefulWidget {
     this.isRemoveFailFile = false,
     this.uploadConfig,
     this.defaultValue,
+    this.uploadIcon,
+    this.uploadText,
   });
 
   @override
@@ -100,12 +107,7 @@ class _FileUploadState extends State<FileUpload> {
         if (mounted) {
           setState(() {
             // 将默认文件添加到已选择文件列表中，并确保状态为成功
-            selectedFiles.addAll(
-              widget.defaultValue!.map((file) => file.copyWith(
-                status: UploadStatus.success,
-                progress: 1.0,
-              )),
-            );
+            selectedFiles.addAll(widget.defaultValue!.map((file) => file.copyWith(status: UploadStatus.success, progress: 1.0)));
           });
 
           // 触发文件变更回调，通知外部组件默认文件已加载
@@ -215,33 +217,6 @@ class _FileUploadState extends State<FileUpload> {
     }
   }
 
-  /// 自定义上传方法
-  Future<void> _customUpload(int index, Future<Map<String, dynamic>> Function(String filePath, Function(double) onProgress) customUploadFunction) async {
-    if (index < 0 || index >= _tempFiles.length) return;
-
-    final fileModel = _tempFiles[index];
-    final filePath = fileModel.path;
-
-    if (filePath == null || filePath.isEmpty) {
-      _handleUploadError(index, '文件路径无效');
-      return;
-    }
-
-    try {
-      // 调用自定义上传函数，传入文件路径和进度回调
-      await customUploadFunction(filePath, (progress) {
-        // 更新上传进度
-        updateFileStatus(index, UploadStatus.uploading, progress: progress);
-      });
-
-      // 上传成功
-      _handleUploadSuccess(index);
-    } catch (e) {
-      // 上传失败
-      _handleUploadError(index, '自定义上传失败: $e');
-    }
-  }
-
   /// 处理上传成功
   void _handleUploadSuccess(int index) {
     if (index >= 0 && index < _tempFiles.length) {
@@ -297,109 +272,19 @@ class _FileUploadState extends State<FileUpload> {
     if (index < 0 || index >= _tempFiles.length) return;
 
     final fileModel = _tempFiles[index];
-    final uploadConfig = fileModel.uploadConfig;
 
-    if (uploadConfig == null || !uploadConfig.isValid) {
-      _handleUploadError(index, '上传配置无效：缺少上传URL或自定义上传函数');
-      return;
-    }
-
-    // 检查是否有自定义上传函数
-    if (uploadConfig.customUpload != null) {
-      await _customUpload(index, uploadConfig.customUpload!);
-      return;
-    }
-
-    try {
-      // 创建Dio实例
-      final dio = Dio();
-
-      // 设置超时时间
-      dio.options.connectTimeout = Duration(seconds: uploadConfig.timeout);
-      dio.options.receiveTimeout = Duration(seconds: uploadConfig.timeout);
-      dio.options.sendTimeout = Duration(seconds: uploadConfig.timeout);
-
-      // 设置请求头
-      if (uploadConfig.headers != null) {
-        dio.options.headers.addAll(uploadConfig.headers!);
-      }
-
-      // 获取文件路径
-      final filePath = fileModel.path;
-      if (filePath == null || filePath.isEmpty) {
-        _handleUploadError(index, '文件路径无效');
-        return;
-      }
-
-      // 创建文件对象
-      final file = File(filePath);
-      if (!await file.exists()) {
-        _handleUploadError(index, '文件不存在');
-        return;
-      }
-
-      // 准备表单数据
-      final formData = FormData();
-
-      // 添加文件
-      formData.files.add(MapEntry(uploadConfig.fileFieldName, await MultipartFile.fromFile(filePath, filename: fileModel.name ?? file.path.split('/').last)));
-
-      // 添加额外的表单数据
-      if (uploadConfig.extraData != null) {
-        uploadConfig.extraData!.forEach((key, value) {
-          formData.fields.add(MapEntry(key, value.toString()));
-        });
-      }
-
-      // 发送请求
-      final response = await dio.request(
-        uploadConfig.uploadUrl!,
-        data: formData,
-        options: Options(method: uploadConfig.method),
-        onSendProgress: (sent, total) {
-          if (total > 0) {
-            final progress = sent / total;
-            updateFileStatus(index, UploadStatus.uploading, progress: progress);
-          }
-        },
-      );
-
-      // 检查响应状态
-      if (response.statusCode == 200 || response.statusCode == 201) {
+    await FileUploadUtils.realUpload(
+      fileModel: fileModel,
+      onStatusUpdate: (status, {double? progress}) {
+        updateFileStatus(index, status, progress: progress ?? 0.0);
+      },
+      onError: (error) {
+        _handleUploadError(index, error);
+      },
+      onSuccess: () {
         _handleUploadSuccess(index);
-      } else {
-        _handleUploadError(index, '上传失败：HTTP ${response.statusCode}');
-      }
-    } on DioException catch (e) {
-      // Dio异常处理
-      String errorMessage;
-      switch (e.type) {
-        case DioExceptionType.connectionTimeout:
-          errorMessage = '连接超时';
-          break;
-        case DioExceptionType.sendTimeout:
-          errorMessage = '发送超时';
-          break;
-        case DioExceptionType.receiveTimeout:
-          errorMessage = '接收超时';
-          break;
-        case DioExceptionType.badResponse:
-          errorMessage = '服务器错误: ${e.response?.statusCode}';
-          break;
-        case DioExceptionType.cancel:
-          errorMessage = '请求已取消';
-          break;
-        case DioExceptionType.connectionError:
-          errorMessage = '网络连接错误';
-          break;
-        default:
-          errorMessage = '上传异常: ${e.message}';
-      }
-      _handleUploadError(index, errorMessage);
-    } catch (e) {
-      // 其他异常
-      _handleUploadError(index, '上传异常: $e');
-    }
+      },
+    );
   }
 
   /// 根据fileSource决定交互方式
@@ -436,138 +321,113 @@ class _FileUploadState extends State<FileUpload> {
         final maxWidth = constraints.maxWidth;
         // 卡片模式每一个卡片的宽度
         final width = (maxWidth - 20) / 3;
-
         // 合并所有文件列表用于显示，新选择的文件显示在最后
         final allFiles = [...selectedFiles, ..._tempFiles];
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 文件列表展示
-            if (widget.showFileList && allFiles.isNotEmpty) ...[
-              if (widget.fileListType == FileListType.card)
-                // 卡片模式
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    // 所有文件（待上传和已上传）
-                    ...allFiles.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final fileModel = entry.value;
-                      final isPending = index >= selectedFiles.length;
-                      final actualIndex = isPending ? index - selectedFiles.length : index;
-                      return GestureDetector(
-                        onTap: () {
-                          // 点击文件项开始上传
-                          if (fileModel.status == UploadStatus.pending && isPending) {
-                            _startUpload(actualIndex);
-                          }
-                        },
-                        child: FilePickerUtils.buildCardFileItem(
-                          fileModel,
-                          actualIndex,
-                          width,
-                          isPending ? (idx) => _removeFileFromList(idx, fromPending: true) : (idx) => _removeFileFromList(idx, fromPending: false),
-                        ),
-                      );
-                    }),
-                    // 上传按钮（如果未达到限制）
-                    if (widget.limit == -1 || allFiles.length < widget.limit)
-                      GestureDetector(
-                        onTap: _handleFileSelection,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey.shade300),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          width: width,
-                          height: width,
-                          alignment: Alignment.center,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.add, color: Colors.grey.shade600, size: 40),
-                              const SizedBox(height: 4),
-                              Text('添加文件', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                            ],
-                          ),
-                        ),
-                      ),
-                  ],
-                )
-              else
-                // 文本信息模式
-                Column(
-                  children: [
-                    ...allFiles.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final fileModel = entry.value;
-                      final isPending = index >= selectedFiles.length;
-                      final actualIndex = isPending ? index - selectedFiles.length : index;
-                      return GestureDetector(
-                        onTap: () {
-                          // 点击文件项开始上传
-                          if (fileModel.status == UploadStatus.pending && isPending) {
-                            _startUpload(actualIndex);
-                          }
-                        },
-                        child: FilePickerUtils.buildTextInfoFileItem(
-                          fileModel,
-                          actualIndex,
-                          isPending ? (idx) => _removeFileFromList(idx, fromPending: true) : (idx) => _removeFileFromList(idx, fromPending: false),
-                        ),
-                      );
-                    }),
-                    // 上传按钮（如果未达到限制）
-                    if (widget.limit == -1 || allFiles.length < widget.limit)
-                      SizedBox(
-                        width: double.infinity,
-                        height: 40,
-                        child: ElevatedButton.icon(onPressed: _handleFileSelection, icon: const Icon(Icons.add), label: const Text('添加文件')),
-                      ),
-                  ],
-                ),
-            ],
-
-            // 初始上传区域（当没有文件时显示）
-            if (allFiles.isEmpty) ...[
-              if (widget.fileListType == FileListType.textInfo || widget.fileListType == FileListType.custom)
-                SizedBox(
-                  width: double.infinity,
-                  height: 40,
-                  child: ElevatedButton.icon(onPressed: _handleFileSelection, icon: const Icon(Icons.upload_file), label: const Text('选择文件')),
-                )
-              else if (widget.fileListType == FileListType.card)
-                GestureDetector(
-                  onTap: _handleFileSelection,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    width: width,
-                    height: width,
-                    alignment: Alignment.center,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // 上传文件图标
-                        Icon(Icons.camera_enhance_outlined),
-                        // 上传标题
-                        const SizedBox(height: 4), Text('拍照上传'),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-
-            // 自定义文件列表
-            if (widget.customFileList != null) widget.customFileList!,
-          ],
-        );
+        return isShowCardTextInfo(allFiles, width);
       },
     );
+  }
+
+  // 判断显示那种类型列表
+  isShowCardTextInfo(allFiles, width) {
+    if (widget.fileListType == FileListType.card) {
+      return Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: [
+          // 所有文件（待上传和已上传）
+          ...allFiles.asMap().entries.map((entry) {
+            final index = entry.key;
+            final fileModel = entry.value;
+            final isPending = index >= selectedFiles.length;
+            final actualIndex = isPending ? index - selectedFiles.length : index;
+            return GestureDetector(
+              onTap: () {
+                // 点击文件项开始上传
+                if (fileModel.status == UploadStatus.pending && isPending) {
+                  _startUpload(actualIndex);
+                }
+              },
+              child: FilePickerUtils.buildCardFileItem(
+                fileModel,
+                actualIndex,
+                width,
+                isPending ? (idx) => _removeFileFromList(idx, fromPending: true) : (idx) => _removeFileFromList(idx, fromPending: false),
+              ),
+            );
+          }),
+          if (isShowCard(allFiles) == true)
+            GestureDetector(
+              onTap: _handleFileSelection,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                width: width,
+                height: width,
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 上传文件图标
+                    widget.uploadIcon ?? const Icon(Icons.camera_enhance_outlined),
+                    // 上传标题
+                    const SizedBox(height: 4),
+                    widget.uploadText ?? const Text('拍照上传', style: TextStyle(fontSize: 16)),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      );
+    } else {
+      return Column(
+        children: [
+          ...allFiles.asMap().entries.map((entry) {
+            final index = entry.key;
+            final fileModel = entry.value;
+            final isPending = index >= selectedFiles.length;
+            final actualIndex = isPending ? index - selectedFiles.length : index;
+            return GestureDetector(
+              onTap: () {
+                // 点击文件项开始上传
+                if (fileModel.status == UploadStatus.pending && isPending) {
+                  _startUpload(actualIndex);
+                }
+              },
+              child: FilePickerUtils.buildTextInfoFileItem(
+                fileModel,
+                actualIndex,
+                isPending ? (idx) => _removeFileFromList(idx, fromPending: true) : (idx) => _removeFileFromList(idx, fromPending: false),
+              ),
+            );
+          }),
+          // 初始上传区域（当没有文件时显示）
+          if (isShowButton(allFiles) == true)
+            SizedBox(
+              width: double.infinity,
+              height: 40,
+              child: ElevatedButton.icon(onPressed: _handleFileSelection, icon: const Icon(Icons.upload_file), label: const Text('选择文件')),
+            ),
+        ],
+      );
+    }
+  }
+
+  // 是否显示上传按钮
+  bool isShowButton(allFiles) {
+    if (widget.fileListType == FileListType.card) return false;
+    if (widget.limit == -1 || allFiles.length < widget.limit) return true;
+    return false;
+  }
+
+  // 是否显示上传卡片
+  bool isShowCard(allFiles) {
+    if (widget.fileListType != FileListType.card) return false;
+    if (widget.limit == -1 || allFiles.length < widget.limit) return true;
+    return false;
   }
 }
 

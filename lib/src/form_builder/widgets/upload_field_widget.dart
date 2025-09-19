@@ -61,8 +61,8 @@ class UploadFieldWidget extends StatelessWidget {
             FileUpload(
               // 基础属性
               limit: props.limit ?? -1,
-              fileSource: props.fileSource ?? FileSource.all,
-              fileListType: props.fileListType ?? FileListType.card,
+              fileSource: props.fileSource,
+              fileListType: props.fileListType,
               showFileList: props.showFileList,
               autoUpload: props.autoUpload,
               isRemoveFailFile: props.isRemoveFailFile,
@@ -70,6 +70,8 @@ class UploadFieldWidget extends StatelessWidget {
               defaultValue: _convertToFileUploadModels(state.value),
               // 自定义组件
               customFileList: props.customFileList,
+              uploadIcon: props.uploadIcon,
+              uploadText: props.uploadText,
               // 回调函数
               onFileChange: (FileUploadModel file, List<FileUploadModel> fileList, String type) {
                 onChanged(fileList);

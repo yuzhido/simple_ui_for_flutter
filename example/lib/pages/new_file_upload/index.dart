@@ -470,6 +470,31 @@ class _NewFileUploadPageState extends State<NewFileUploadPage> {
                 print('222222222222222222✅✅✅✅✅✅✅✅22222222222222222222222');
               },
             ),
+
+            const SizedBox(height: 32),
+            const Text('自定义图标和文本示例：', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            const Text('演示如何自定义上传区域的图标和文本', style: TextStyle(fontSize: 14, color: Colors.grey)),
+            const SizedBox(height: 16),
+
+            FileUpload(
+              fileListType: FileListType.card,
+              uploadIcon: const Icon(Icons.cloud_upload, size: 48, color: Colors.blue),
+              uploadText: const Text('点击上传文档', style: TextStyle(fontSize: 18, color: Colors.blue, fontWeight: FontWeight.w500)),
+              uploadConfig: UploadConfig(customUpload: _customUploadFunction),
+              onUploadSuccess: (file) {
+                print('✅ 自定义图标文本上传 - 文件 ${file.name} 上传成功！');
+              },
+              onUploadFailed: (file, error) {
+                print('❌ 自定义图标文本上传 - 文件 ${file.name} 上传失败: $error');
+              },
+              onUploadProgress: (file, progress) {
+                print('📤 自定义图标文本上传 - 文件 ${file.name} 上传进度: ${(progress * 100).toInt()}%');
+              },
+              onFileChange: (currentFile, selectedFiles, action) {
+                print('自定义图标文本上传模式 - 操作: $action, 文件: ${currentFile.name}');
+              },
+            ),
           ],
         ),
       ),

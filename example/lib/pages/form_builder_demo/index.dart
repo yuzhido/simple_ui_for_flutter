@@ -1,7 +1,6 @@
 import 'package:example/api/models/user.dart';
 import 'package:example/api/user_api.dart';
 import 'package:flutter/material.dart';
-import 'package:simple_ui/models/file_upload.dart';
 import 'package:simple_ui/models/form_builder_config.dart';
 import 'package:simple_ui/simple_ui.dart';
 
@@ -247,7 +246,73 @@ class _FormBuilderDemoState extends State<FormBuilderDemo> {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('已上传 ${files.length} 个文件'), duration: Duration(seconds: 1)));
         },
       ),
-      FormBuilderConfig(name: 'customField', label: '自定义字段', type: FormBuilderType.custom, required: false, defaultValue: null),
+      // 自定义图标和文本的上传字段示例
+      FormBuilderConfig.upload(
+        name: 'customUpload',
+        label: '自定义上传区域',
+        required: false,
+        uploadIcon: Icon(Icons.cloud_upload, size: 48, color: Colors.green),
+        uploadText: Text(
+          '点击或拖拽文件到这里上传\n支持多种文件格式',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.green, fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+        uploadConfig: UploadConfig(uploadUrl: 'http://192.168.1.19:3001/upload/api/upload-file', headers: {'Authorization': 'Bearer token123'}),
+        fileListType: FileListType.textInfo,
+        limit: 5,
+        fileSource: FileSource.all,
+        onChange: (fieldName, value) {
+          print('自定义上传字段 $fieldName 值变更为: $value');
+          List<dynamic> files = value ?? [];
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('自定义上传区域已上传 ${files.length} 个文件'), duration: Duration(seconds: 1)));
+        },
+      ),
+      FormBuilderConfig.custom(
+        name: 'customField',
+        label: '自定义字段',
+        required: false,
+        defaultValue: 0,
+        contentBuilder: (context, config, value, onChanged) {
+          return Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.blue.shade300),
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.blue.shade50,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '这是一个自定义评分组件',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: Colors.blue.shade700),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Text('评分: ', style: TextStyle(fontSize: 16)),
+                    ...List.generate(5, (index) {
+                      return GestureDetector(
+                        onTap: () => onChanged(index + 1),
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          child: Icon(Icons.star, size: 32, color: (value ?? 0) > index ? Colors.amber : Colors.grey.shade300),
+                        ),
+                      );
+                    }),
+                    const SizedBox(width: 16),
+                    Text('${value ?? 0}/5', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+        onChange: (fieldName, value) {
+          print('字段 $fieldName 值变更为: $value');
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('评分已设置为: $value 星'), duration: const Duration(seconds: 1)));
+        },
+      ),
     ];
   }
 
