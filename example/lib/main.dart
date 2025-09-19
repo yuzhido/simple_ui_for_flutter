@@ -1,4 +1,5 @@
 import 'package:example/pages/form_builder_demo/default_value.dart';
+import 'package:example/pages/form_builder_demo/test_form_upload_file.dart';
 import 'package:example/pages/loading_data/index.dart';
 import 'package:example/pages/new_file_upload/index.dart';
 import 'package:example/pages/notice_info/index.dart';
@@ -75,6 +76,12 @@ class HomePage extends StatelessWidget {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const NewFileUploadPage()));
               },
               child: Text('跳转查看最新文件上传组件（NewFileUpload）示例'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const TestFormUploadFilePage()));
+              },
+              child: Text('跳转查看表单文件上传组件（TestFormUploadFile）示例'),
             ),
             ElevatedButton(
               onPressed: () {

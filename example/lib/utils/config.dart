@@ -1,11 +1,11 @@
-/// API 配置类
-class ApiConfig {
+/// 应用配置类
+class Config {
   /// 基础 URL
   /// 如果当前URL无法访问，可以尝试以下备选地址：
   /// - 'http://localhost:3000' (本地开发)
   /// - 'http://127.0.0.1:3000' (本地回环)
   /// - 'https://jsonplaceholder.typicode.com' (测试API)
-  static const String baseUrl = 'http://192.168.8.188:3000';
+  static const String baseUrl = 'http://192.168.1.21:3000';
 
   /// 请求超时时间（毫秒）
   static const int timeout = 15000; // 增加到15秒

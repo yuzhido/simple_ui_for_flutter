@@ -1,5 +1,6 @@
 import 'package:example/api/models/user.dart';
 import 'package:example/api/user_api.dart';
+import 'package:example/utils/config.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/form_builder_config.dart';
 import 'package:simple_ui/simple_ui.dart';
@@ -36,7 +37,7 @@ class _FormBuilderDemoState extends State<FormBuilderDemo> {
       formData.files.add(MapEntry('file', await MultipartFile.fromFile(filePath, filename: fileName)));
 
       final response = await dio.post(
-        'http://192.168.1.19:3001/upload/api/upload-file',
+        '${Config.baseUrl}/upload/api/upload-file',
         data: formData,
         options: Options(headers: {'Authorization': 'Bearer token123'}),
         onSendProgress: (sent, total) {
@@ -265,28 +266,28 @@ class _FormBuilderDemoState extends State<FormBuilderDemo> {
           FileUploadModel(
             fileInfo: FileInfo(id: 'default_1', fileName: 'default_image_1.jpg', requestPath: '/uploads/file-1758210644301-129721823.jpg'),
             name: 'default_image_1.jpg',
-            path: 'http://192.168.1.19:3001/uploads/file-1758210644301-129721823.jpg',
+            path: '${Config.baseUrl}/uploads/file-1758210644301-129721823.jpg',
           ),
           FileUploadModel(
-            fileInfo: FileInfo(id: 'default_2', fileName: 'document.pdf', requestPath: 'http://192.168.8.188:3000/uploads/document-123456789.pdf'),
+            fileInfo: FileInfo(id: 'default_2', fileName: 'document.pdf', requestPath: '${Config.baseUrl}/uploads/document-123456789.pdf'),
             name: 'document.pdf',
-            path: 'http://192.168.8.188:3000/uploads/document-123456789.pdf',
+            path: '${Config.baseUrl}/uploads/document-123456789.pdf',
             status: UploadStatus.success,
             progress: 1.0,
             fileSize: 2048000,
             fileSizeInfo: '2.0 MB',
           ),
           FileUploadModel(
-            fileInfo: FileInfo(id: 'default_3', fileName: 'presentation.pptx', requestPath: 'http://192.168.8.188:3000/uploads/presentation-987654321.pptx'),
+            fileInfo: FileInfo(id: 'default_3', fileName: 'presentation.pptx', requestPath: '${Config.baseUrl}/uploads/presentation-987654321.pptx'),
             name: 'presentation.pptx',
-            path: 'http://192.168.8.188:3000/uploads/presentation-987654321.pptx',
+            path: '${Config.baseUrl}/uploads/presentation-987654321.pptx',
             status: UploadStatus.success,
             progress: 1.0,
             fileSize: 5120000,
             fileSizeInfo: '5.0 MB',
           ),
         ],
-        uploadConfig: UploadConfig(uploadUrl: 'http://192.168.1.19:3001/upload/api/upload-file', headers: {'Authorization': 'Bearer token123'}),
+        uploadConfig: UploadConfig(uploadUrl: '${Config.baseUrl}/upload/api/upload-file', headers: {'Authorization': 'Bearer token123'}),
 
         fileListType: FileListType.card,
         limit: 3,
@@ -308,7 +309,7 @@ class _FormBuilderDemoState extends State<FormBuilderDemo> {
           textAlign: TextAlign.center,
           style: TextStyle(color: Colors.green, fontSize: 16, fontWeight: FontWeight.w500),
         ),
-        uploadConfig: UploadConfig(uploadUrl: 'http://192.168.1.19:3001/upload/api/upload-file', headers: {'Authorization': 'Bearer token123'}),
+        uploadConfig: UploadConfig(uploadUrl: '${Config.baseUrl}/upload/api/upload-file', headers: {'Authorization': 'Bearer token123'}),
         fileListType: FileListType.textInfo,
         limit: 5,
         fileSource: FileSource.all,

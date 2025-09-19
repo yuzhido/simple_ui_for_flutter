@@ -90,18 +90,31 @@ class FileUploadUtils {
             // 创建更新后的FileUploadModel，保留原有数据并更新服务器返回的信息
             final responseData = response.data as Map<String, dynamic>;
 
-            // 更新FileInfo信息
-            final updatedFileInfo = fileModel.fileInfo.copyWith(
-              // 如果服务器返回了新的ID，使用服务器的ID
-              id: responseData['id']?.toString(),
-              // 如果服务器返回了文件URL，更新requestPath
-              requestPath: responseData['url']?.toString() ?? responseData['path']?.toString() ?? responseData['file_url']?.toString(),
-              // 如果服务器返回了文件名，更新fileName
-              fileName: responseData['filename']?.toString() ?? responseData['file_name']?.toString(),
-            );
+            // 更新FileInfo信息，如果fileInfo为null则创建新的
+            final updatedFileInfo =
+                fileModel.fileInfo?.copyWith(
+                  // 如果服务器返回了新的ID，使用服务器的ID
+                  id: responseData['id']?.toString(),
+                  // 如果服务器返回了文件URL，更新requestPath
+                  requestPath:
+                      responseData['requestPath']?.toString() ?? responseData['url']?.toString() ?? responseData['path']?.toString() ?? responseData['file_url']?.toString(),
+                  // 如果服务器返回了文件名，更新fileName
+                  fileName: responseData['filename']?.toString() ?? responseData['fileName']?.toString() ?? responseData['file_name']?.toString(),
+                ) ??
+                FileInfo(
+                  id: responseData['id']?.toString() ?? '',
+                  fileName: responseData['filename']?.toString() ?? responseData['fileName']?.toString() ?? responseData['file_name']?.toString() ?? fileModel.name,
+                  requestPath:
+                      responseData['requestPath']?.toString() ?? responseData['url']?.toString() ?? responseData['path']?.toString() ?? responseData['file_url']?.toString() ?? '',
+                );
 
-            // 创建更新后的FileUploadModel
-            updatedModel = fileModel.copyWith(fileInfo: updatedFileInfo, status: UploadStatus.success, progress: 1.0);
+            // 创建更新后的FileUploadModel，保持原有的id
+            updatedModel = fileModel.copyWith(
+              id: fileModel.id, // 保持原有的FileUploadModel的id
+              fileInfo: updatedFileInfo,
+              status: UploadStatus.success,
+              progress: 1.0,
+            );
           }
         } catch (e) {
           // 如果解析失败，使用原始模型但更新状态
@@ -178,18 +191,13 @@ class FileUploadUtils {
       // 处理自定义上传返回的结果
       FileUploadModel updatedModel;
       if (result != null) {
-        // 自定义上传成功，直接使用返回的FileUploadModel，只更新状态和进度
-        updatedModel = FileUploadModel(
-          fileInfo: result.fileInfo,
-          name: result.name,
-          path: result.path, // 使用自定义上传返回的path（应该是网络URL）
-          source: result.source,
+        // 自定义上传成功，使用返回的FileUploadModel，但保持原有的id
+        updatedModel = result.copyWith(
+          id: fileModel.id, // 保持原有的FileUploadModel的id
           status: UploadStatus.success,
           progress: 1.0,
-          fileSize: result.fileSize,
-          fileSizeInfo: result.fileSizeInfo,
         );
-        
+
         // 添加调试信息
         print('🔄 自定义上传成功，更新FileUploadModel:');
         print('   原始path: ${fileModel.path}');
@@ -198,10 +206,7 @@ class FileUploadUtils {
       } else {
         // 自定义上传失败，返回null
         onError('自定义上传失败');
-        updatedModel = fileModel.copyWith(
-          status: UploadStatus.failed,
-          progress: 0.0,
-        );
+        updatedModel = fileModel.copyWith(status: UploadStatus.failed, progress: 0.0);
       }
 
       onSuccess(updatedModel);

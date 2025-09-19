@@ -133,7 +133,7 @@ final createResponse = await CityApi.createCity(newCity);
 在 `config.dart` 文件中修改 `baseUrl`：
 
 ```dart
-class ApiConfig {
+class Config {
   static const String baseUrl = 'http://your-api-server.com';
   // 其他配置...
 }
@@ -142,7 +142,7 @@ class ApiConfig {
 ### 修改请求超时时间
 
 ```dart
-class ApiConfig {
+class Config {
   static const int timeout = 15000; // 15秒
   // 其他配置...
 }

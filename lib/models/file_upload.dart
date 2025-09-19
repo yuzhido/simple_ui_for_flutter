@@ -1,3 +1,5 @@
+import 'dart:math';
+
 /// 文件列表类型
 enum FileListType {
   textInfo, // 默认样式
@@ -114,20 +116,111 @@ class UploadConfig {
 
 // 文件上传模型类
 class FileUploadModel {
-  final FileInfo fileInfo;
-  final String name;
-  final String path;
-  final FileSource? source;
-  final UploadStatus? status;
-  final double progress;
-  final int? fileSize; // 文件大小（字节）
-  final String? fileSizeInfo; // 格式化后的文件大小信息
+  /// 唯一标识ID（随机生成，用于前端操作如删除等，与后端ID不冲突，永远不为空）
+  final String id;
 
-  FileUploadModel({required this.fileInfo, required this.name, required this.path, this.source, this.fileSize, this.fileSizeInfo, this.status, this.progress = 0});
+  /// 文件信息（可为空，因为保存的是最后提交的数据信息，一开始可能没有）
+  final FileInfo? fileInfo;
+
+  /// 文件名称
+  final String name;
+
+  /// 文件本地路径
+  final String path;
+
+  /// 文件来源（文件选择、图片选择、拍照等）
+  final FileSource? source;
+
+  /// 上传状态（等待、上传中、成功、失败）
+  final UploadStatus? status;
+
+  /// 上传进度（0.0 - 1.0）
+  final double progress;
+
+  /// 文件大小（字节）
+  final int? fileSize;
+
+  /// 格式化后的文件大小信息（如：1.2MB、500KB等）
+  final String? fileSizeInfo;
+
+  /// 文件上传后的访问URL地址
+  final String? url;
+
+  /// 文件创建时间
+  final DateTime? createTime;
+
+  /// 文件最后更新时间
+  final DateTime? updateTime;
+
+  FileUploadModel({
+    String? id,
+    this.fileInfo,
+    required this.name,
+    required this.path,
+    this.source,
+    this.fileSize,
+    this.fileSizeInfo,
+    this.status,
+    this.progress = 0,
+    this.url,
+    this.createTime,
+    this.updateTime,
+  }) : id = id ?? _generateUniqueId();
+
+  /// 生成唯一ID
+  static String _generateUniqueId() {
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final random = Random().nextInt(999999);
+    return '${timestamp}_$random';
+  }
+
+  /// 创建一个带有自动生成ID的FileUploadModel实例
+  factory FileUploadModel.withAutoId({
+    FileInfo? fileInfo,
+    required String name,
+    required String path,
+    FileSource? source,
+    int? fileSize,
+    String? fileSizeInfo,
+    UploadStatus? status,
+    double progress = 0,
+    String? url,
+    DateTime? createTime,
+    DateTime? updateTime,
+  }) {
+    return FileUploadModel(
+      id: _generateUniqueId(),
+      fileInfo: fileInfo,
+      name: name,
+      path: path,
+      source: source,
+      fileSize: fileSize,
+      fileSizeInfo: fileSizeInfo,
+      status: status,
+      progress: progress,
+      url: url,
+      createTime: createTime,
+      updateTime: updateTime,
+    );
+  }
 
   /// 复制并修改模型
-  FileUploadModel copyWith({FileInfo? fileInfo, String? name, String? path, FileSource? source, UploadStatus? status, double? progress, int? fileSize, String? fileSizeInfo}) {
+  FileUploadModel copyWith({
+    String? id,
+    FileInfo? fileInfo,
+    String? name,
+    String? path,
+    FileSource? source,
+    UploadStatus? status,
+    double? progress,
+    int? fileSize,
+    String? fileSizeInfo,
+    String? url,
+    DateTime? createTime,
+    DateTime? updateTime,
+  }) {
     return FileUploadModel(
+      id: id ?? this.id,
       fileInfo: fileInfo ?? this.fileInfo,
       name: name ?? this.name,
       path: path ?? this.path,
@@ -136,13 +229,17 @@ class FileUploadModel {
       progress: progress ?? this.progress,
       fileSize: fileSize ?? this.fileSize,
       fileSizeInfo: fileSizeInfo ?? this.fileSizeInfo,
+      url: url ?? this.url,
+      createTime: createTime ?? this.createTime,
+      updateTime: updateTime ?? this.updateTime,
     );
   }
 
   /// 从Map创建FileUploadModel实例
   factory FileUploadModel.fromMap(Map<String, dynamic> map) {
     return FileUploadModel(
-      fileInfo: FileInfo.fromMap(map['fileInfo']),
+      id: map['id'] ?? _generateUniqueId(),
+      fileInfo: map['fileInfo'] != null ? FileInfo.fromMap(map['fileInfo']) : null,
       name: map['name'],
       path: map['path'],
       source: map['source'] != null ? FileSource.values[map['source']] : null,
@@ -150,13 +247,17 @@ class FileUploadModel {
       progress: map['progress']?.toDouble() ?? 0,
       fileSize: map['fileSize'],
       fileSizeInfo: map['fileSizeInfo'],
+      url: map['url'],
+      createTime: map['createTime'] != null ? DateTime.parse(map['createTime']) : null,
+      updateTime: map['updateTime'] != null ? DateTime.parse(map['updateTime']) : null,
     );
   }
 
   /// 转换为Map
   Map<String, dynamic> toMap() {
     return {
-      'fileInfo': fileInfo.toMap(),
+      'id': id,
+      'fileInfo': fileInfo?.toMap(),
       'name': name,
       'path': path,
       'source': source?.index,
@@ -164,6 +265,9 @@ class FileUploadModel {
       'progress': progress,
       'fileSize': fileSize,
       'fileSizeInfo': fileSizeInfo,
+      'url': url,
+      'createTime': createTime?.toIso8601String(),
+      'updateTime': updateTime?.toIso8601String(),
     };
   }
 }

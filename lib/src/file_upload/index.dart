@@ -192,29 +192,29 @@ class _FileUploadState extends State<FileUpload> {
       final file = _tempFiles[index];
 
       // 检查上传配置
-      final hasValidUploadConfig = widget.uploadConfig != null && widget.uploadConfig!.isValid;
-      final hasCustomUpload = widget.customUpload != null;
+    final hasValidUploadConfig = widget.uploadConfig != null && widget.uploadConfig!.isValid;
+    final hasCustomUpload = widget.customUpload != null;
 
-      if (!hasValidUploadConfig && !hasCustomUpload) {
-        _handleUploadErrorById(file.fileInfo.id, '上传配置无效：缺少上传URL或自定义上传函数');
-        return;
-      }
+    if (!hasValidUploadConfig && !hasCustomUpload) {
+      _handleUploadErrorById(file.id, '上传配置无效：缺少上传URL或自定义上传函数');
+      return;
+    }
 
       // 开始上传
-      updateFileStatusById(file.fileInfo.id, UploadStatus.uploading, progress: 0.0);
+      updateFileStatusById(file.id, UploadStatus.uploading, progress: 0.0);
 
       // 触发文件状态变更回调 - 上传开始
       final allFiles = [...selectedFiles, ..._tempFiles];
       widget.onFileChange?.call(file, allFiles, 'uploading');
 
       // 调用上传方法（支持uploadConfig和customUpload）
-      _realUploadById(file.fileInfo.id);
+      _realUploadById(file.id);
     }
   }
 
   /// 根据文件ID处理上传错误
   void _handleUploadErrorById(dynamic fileId, String error) {
-    final index = _tempFiles.indexWhere((file) => file.fileInfo.id == fileId);
+    final index = _tempFiles.indexWhere((file) => file.fileInfo?.id == fileId || file.id == fileId);
     if (index != -1) {
       final failedFile = _tempFiles[index];
 
@@ -237,7 +237,7 @@ class _FileUploadState extends State<FileUpload> {
 
   /// 根据文件ID处理上传成功
   void _handleUploadSuccessById(dynamic fileId, FileUploadModel updatedModel) {
-    final index = _tempFiles.indexWhere((file) => file.fileInfo.id == fileId);
+    final index = _tempFiles.indexWhere((file) => file.fileInfo?.id == fileId || file.id == fileId);
     if (index != -1) {
       setState(() {
         final originalFile = _tempFiles[index];
@@ -301,7 +301,7 @@ class _FileUploadState extends State<FileUpload> {
 
   /// 根据文件ID更新状态
   void updateFileStatusById(dynamic fileId, UploadStatus status, {double progress = 0.0}) {
-    final index = _tempFiles.indexWhere((file) => file.fileInfo.id == fileId);
+    final index = _tempFiles.indexWhere((file) => file.fileInfo?.id == fileId || file.id == fileId);
     if (index != -1) {
       setState(() {
         final oldFile = _tempFiles[index];
@@ -323,7 +323,7 @@ class _FileUploadState extends State<FileUpload> {
 
   /// 根据文件ID进行真实的HTTP上传方法
   Future<void> _realUploadById(dynamic fileId) async {
-    final index = _tempFiles.indexWhere((file) => file.fileInfo.id == fileId);
+    final index = _tempFiles.indexWhere((file) => file.fileInfo?.id == fileId || file.id == fileId);
     if (index == -1) return;
 
     final fileModel = _tempFiles[index];

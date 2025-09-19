@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'config.dart';
+import 'package:example/utils/config.dart';
 
 /// HTTP 客户端封装
 class HttpClient {
@@ -13,7 +13,7 @@ class HttpClient {
   Future<Map<String, dynamic>> get(String path, {Map<String, dynamic>? queryParameters}) async {
     try {
       final uri = _buildUri(path, queryParameters);
-      final response = await http.get(uri, headers: ApiConfig.headers).timeout(Duration(milliseconds: ApiConfig.timeout));
+      final response = await http.get(uri, headers: Config.headers).timeout(Duration(milliseconds: Config.timeout));
 
       return _handleResponse(response);
     } catch (e) {
@@ -25,7 +25,7 @@ class HttpClient {
   Future<Map<String, dynamic>> post(String path, {Map<String, dynamic>? body, Map<String, dynamic>? queryParameters}) async {
     try {
       final uri = _buildUri(path, queryParameters);
-      final response = await http.post(uri, headers: ApiConfig.headers, body: body != null ? jsonEncode(body) : null).timeout(Duration(milliseconds: ApiConfig.timeout));
+      final response = await http.post(uri, headers: Config.headers, body: body != null ? jsonEncode(body) : null).timeout(Duration(milliseconds: Config.timeout));
 
       return _handleResponse(response);
     } catch (e) {
@@ -37,7 +37,7 @@ class HttpClient {
   Future<Map<String, dynamic>> put(String path, {Map<String, dynamic>? body, Map<String, dynamic>? queryParameters}) async {
     try {
       final uri = _buildUri(path, queryParameters);
-      final response = await http.put(uri, headers: ApiConfig.headers, body: body != null ? jsonEncode(body) : null).timeout(Duration(milliseconds: ApiConfig.timeout));
+      final response = await http.put(uri, headers: Config.headers, body: body != null ? jsonEncode(body) : null).timeout(Duration(milliseconds: Config.timeout));
 
       return _handleResponse(response);
     } catch (e) {
@@ -49,7 +49,7 @@ class HttpClient {
   Future<Map<String, dynamic>> delete(String path, {Map<String, dynamic>? body, Map<String, dynamic>? queryParameters}) async {
     try {
       final uri = _buildUri(path, queryParameters);
-      final response = await http.delete(uri, headers: ApiConfig.headers, body: body != null ? jsonEncode(body) : null).timeout(Duration(milliseconds: ApiConfig.timeout));
+      final response = await http.delete(uri, headers: Config.headers, body: body != null ? jsonEncode(body) : null).timeout(Duration(milliseconds: Config.timeout));
 
       return _handleResponse(response);
     } catch (e) {
@@ -59,7 +59,7 @@ class HttpClient {
 
   /// 构建 URI
   Uri _buildUri(String path, Map<String, dynamic>? queryParameters) {
-    final uri = Uri.parse('${ApiConfig.baseUrl}$path');
+    final uri = Uri.parse('${Config.baseUrl}$path');
     if (queryParameters != null && queryParameters.isNotEmpty) {
       return uri.replace(queryParameters: queryParameters.map((key, value) => MapEntry(key, value.toString())));
     }

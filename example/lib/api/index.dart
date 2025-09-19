@@ -15,7 +15,6 @@
 /// ```
 
 // 导出配置
-export 'config.dart';
 export 'http_client.dart';
 
 // 导出数据模型

@@ -1,4 +1,5 @@
 import 'package:example/utils/compress_image.dart';
+import 'package:example/utils/config.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_ui/simple_ui.dart';
 import 'package:dio/dio.dart';
@@ -80,7 +81,7 @@ class _NewFileUploadPageState extends State<NewFileUploadPage> {
       formData.files.add(MapEntry('file', await MultipartFile.fromFile(finalFilePath, filename: fileName)));
 
       final response = await dio.request(
-        'http://192.168.1.19:3001/upload/api/upload-file',
+        '${Config.baseUrl}/upload/api/upload-file',
         data: formData,
         options: Options(method: 'POST'),
         onSendProgress: (sent, total) {
@@ -161,7 +162,7 @@ class _NewFileUploadPageState extends State<NewFileUploadPage> {
 
       // 发送请求
       final response = await dio.request(
-        'http://192.168.1.19:3001/upload/api/upload-file',
+        '${Config.baseUrl}/upload/api/upload-file',
         data: formData,
         options: Options(method: 'POST'),
         onSendProgress: (sent, total) {
@@ -306,28 +307,28 @@ class _NewFileUploadPageState extends State<NewFileUploadPage> {
                 FileUploadModel(
                   fileInfo: FileInfo(id: 'default_1', fileName: 'default_image_1.jpg', requestPath: '/uploads/file-1758210644301-129721823.jpg'),
                   name: 'default_image_1.jpg',
-                  path: 'http://192.168.1.19:3001/uploads/file-1758210644301-129721823.jpg',
+                  path: '${Config.baseUrl}/uploads/file-1758210644301-129721823.jpg',
                 ),
                 FileUploadModel(
-                  fileInfo: FileInfo(id: 'default_2', fileName: 'document.pdf', requestPath: 'http://192.168.8.188:3000/uploads/document-123456789.pdf'),
+                  fileInfo: FileInfo(id: 'default_2', fileName: 'document.pdf', requestPath: '${Config.baseUrl}/uploads/document-123456789.pdf'),
                   name: 'document.pdf',
-                  path: 'http://192.168.8.188:3000/uploads/document-123456789.pdf',
+                  path: '${Config.baseUrl}/uploads/document-123456789.pdf',
                   status: UploadStatus.success,
                   progress: 1.0,
                   fileSize: 2048000,
                   fileSizeInfo: '2.0 MB',
                 ),
                 FileUploadModel(
-                  fileInfo: FileInfo(id: 'default_3', fileName: 'presentation.pptx', requestPath: 'http://192.168.8.188:3000/uploads/presentation-987654321.pptx'),
+                  fileInfo: FileInfo(id: 'default_3', fileName: 'presentation.pptx', requestPath: '${Config.baseUrl}/uploads/presentation-987654321.pptx'),
                   name: 'presentation.pptx',
-                  path: 'http://192.168.8.188:3000/uploads/presentation-987654321.pptx',
+                  path: '${Config.baseUrl}/uploads/presentation-987654321.pptx',
                   status: UploadStatus.success,
                   progress: 1.0,
                   fileSize: 5120000,
                   fileSizeInfo: '5.0 MB',
                 ),
               ],
-              uploadConfig: UploadConfig(uploadUrl: 'http://192.168.1.19:3001/upload/api/upload-file', headers: {'Authorization': 'Bearer token123'}),
+              uploadConfig: UploadConfig(uploadUrl: '${Config.baseUrl}/upload/api/upload-file', headers: {'Authorization': 'Bearer token123'}),
               onUploadSuccess: (file) {
                 print('✅ 默认文件列表示例 - 文件 ${file.name} 上传成功！');
               },
@@ -357,25 +358,25 @@ class _NewFileUploadPageState extends State<NewFileUploadPage> {
               limit: 5,
               defaultValue: [
                 FileUploadModel(
-                  fileInfo: FileInfo(id: 'card_default_1', fileName: 'avatar.jpg', requestPath: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg'),
+                  fileInfo: FileInfo(id: 'card_default_1', fileName: 'avatar.jpg', requestPath: '${Config.baseUrl}/uploads/file-1758090930654-314645519.jpeg'),
                   name: 'avatar.jpg',
-                  path: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg',
+                  path: '${Config.baseUrl}/uploads/file-1758090930654-314645519.jpeg',
                   status: UploadStatus.success,
                   progress: 1.0,
                   fileSize: 512000,
                   fileSizeInfo: '512 KB',
                 ),
                 FileUploadModel(
-                  fileInfo: FileInfo(id: 'card_default_2', fileName: 'banner.png', requestPath: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg'),
+                  fileInfo: FileInfo(id: 'card_default_2', fileName: 'banner.png', requestPath: '${Config.baseUrl}/uploads/file-1758090930654-314645519.jpeg'),
                   name: 'banner.png',
-                  path: 'http://192.168.8.188:3000/uploads/file-1758090930654-314645519.jpeg',
+                  path: '${Config.baseUrl}/uploads/file-1758090930654-314645519.jpeg',
                   status: UploadStatus.success,
                   progress: 1.0,
                   fileSize: 1536000,
                   fileSizeInfo: '1.5 MB',
                 ),
               ],
-              uploadConfig: UploadConfig(uploadUrl: 'http://192.168.1.19:3001/upload/api/upload-file', headers: {'Authorization': 'Bearer token123'}),
+              uploadConfig: UploadConfig(uploadUrl: '${Config.baseUrl}/upload/api/upload-file', headers: {'Authorization': 'Bearer token123'}),
               fileSource: FileSource.imageOrCamera,
               onUploadSuccess: (file) {
                 print('✅ 卡片模式默认文件列表 - 文件 ${file.name} 上传成功！');
@@ -402,7 +403,7 @@ class _NewFileUploadPageState extends State<NewFileUploadPage> {
             FileUpload(
               fileListType: FileListType.textInfo,
 
-              uploadConfig: UploadConfig(uploadUrl: 'http://192.168.1.19:3001/upload/api/upload-file', headers: {'Authorization': 'Bearer token123'}),
+              uploadConfig: UploadConfig(uploadUrl: '${Config.baseUrl}/upload/api/upload-file', headers: {'Authorization': 'Bearer token123'}),
               onUploadSuccess: (file) {
                 print('✅ 文件 ${file.name} 上传成功！');
               },
@@ -418,7 +419,7 @@ class _NewFileUploadPageState extends State<NewFileUploadPage> {
             ),
             const Text('页面内容正在开发中...'),
             FileUpload(
-              uploadConfig: UploadConfig(uploadUrl: 'http://192.168.1.19:3001/upload/api/upload-file', headers: {'Authorization': 'Bearer token123'}),
+              uploadConfig: UploadConfig(uploadUrl: '${Config.baseUrl}/upload/api/upload-file', headers: {'Authorization': 'Bearer token123'}),
               onUploadSuccess: (file) {
                 print('✅ 文件 ${file.name} 上传成功！');
               },

@@ -14,7 +14,7 @@ class FilePickerUtils {
     print('   文件名: ${fileModel.name}');
     print('   状态: ${fileModel.status}');
     print('   path字段: ${fileModel.path}');
-    print('   requestPath字段: ${fileModel.fileInfo.requestPath}');
+    print('   requestPath字段: ${fileModel.fileInfo?.requestPath}');
     print('   path是否以http开头: ${fileModel.path.startsWith('http')}');
 
     // 直接使用path字段，无论是网络URL还是本地路径
@@ -326,7 +326,7 @@ class FilePickerUtils {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(4),
-                          child: buildImagePreview(_getImagePath(fileModel), fileId: fileModel.fileInfo?.id?.toString()),
+                          child: buildImagePreview(_getImagePath(fileModel), fileId: fileModel.id),
                         ),
                         // 上传中的遮罩层
                         if (fileModel.status == UploadStatus.uploading)
@@ -422,7 +422,7 @@ class FilePickerUtils {
                 if (isImage && _getImagePath(fileModel).isNotEmpty)
                   ClipRRect(
                     borderRadius: BorderRadius.circular(4),
-                    child: buildImagePreview(_getImagePath(fileModel), fileId: fileModel.fileInfo?.id?.toString()),
+                    child: buildImagePreview(_getImagePath(fileModel), fileId: fileModel.id),
                   )
                 else
                   Icon(Icons.insert_drive_file, color: Colors.blue.shade600, size: 24),
@@ -527,14 +527,18 @@ class FilePickerUtils {
     assert(fileName.isNotEmpty, 'fileName不能为空');
     assert(filePath.isNotEmpty, 'filePath不能为空');
 
-    // 生成唯一ID
-    int id = _generateRandomId();
+    // 生成唯一ID（String类型用于FileUploadModel）
+    String modelId = _generateRandomId();
+
+    // 生成int类型的ID用于FileInfo
+    int fileInfoId = _generateRandomIntId();
 
     // 创建FileInfo
-    FileInfo fileInfo = FileInfo(id: id, fileName: fileName, requestPath: filePath);
+    FileInfo fileInfo = FileInfo(id: fileInfoId, fileName: fileName, requestPath: filePath);
 
-    // 创建FileUploadModel
+    // 创建FileUploadModel，传递String类型的id
     return FileUploadModel(
+      id: modelId, // 传递生成的String类型id
       fileInfo: fileInfo,
       name: fileName,
       path: filePath,
@@ -546,8 +550,16 @@ class FilePickerUtils {
     );
   }
 
-  /// 生成随机ID
-  static int _generateRandomId() {
+  /// 生成随机ID（返回String类型）
+  static String _generateRandomId() {
+    final random = Random();
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final randomNum = random.nextInt(999999);
+    return '${timestamp}_$randomNum';
+  }
+
+  /// 生成随机ID（返回int类型）
+  static int _generateRandomIntId() {
     final random = Random();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final randomNum = random.nextInt(999999);
