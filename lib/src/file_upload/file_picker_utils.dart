@@ -7,6 +7,26 @@ import 'package:simple_ui/models/file_upload.dart';
 
 /// 文件选择工具类
 class FilePickerUtils {
+  /// 获取图片路径 - 直接使用path字段，path如果是http开头就是网络图片，否则是本地图片
+  static String _getImagePath(FileUploadModel fileModel) {
+    // 调试信息
+    print('🔍 _getImagePath 调试信息:');
+    print('   文件名: ${fileModel.name}');
+    print('   状态: ${fileModel.status}');
+    print('   path字段: ${fileModel.path}');
+    print('   requestPath字段: ${fileModel.fileInfo.requestPath}');
+    print('   path是否以http开头: ${fileModel.path.startsWith('http')}');
+
+    // 直接使用path字段，无论是网络URL还是本地路径
+    final resultPath = fileModel.path;
+    print('   ✅ 最终返回路径: $resultPath');
+    print('   ✅ 最终返回路径: $resultPath');
+    print('   ✅ 最终返回路径: $resultPath');
+    print('   ✅ 最终返回路径: $resultPath');
+    print('   🌐 路径类型: ${resultPath.startsWith('http') ? '网络URL' : '本地路径'}');
+    return resultPath;
+  }
+
   /// 选择文件
   static Future<void> pickFile({Function(FileUploadModel)? onFileSelected}) async {
     try {
@@ -15,7 +35,7 @@ class FilePickerUtils {
       if (result != null && result.files.isNotEmpty) {
         PlatformFile file = result.files.first;
 
-        if (file.path != null && onFileSelected != null) {
+        if (file.path != null && file.name.isNotEmpty && onFileSelected != null) {
           // 封装成FileUploadModel并调用回调
           FileUploadModel fileUploadModel = _createFileUploadModel(
             fileName: file.name,
@@ -46,16 +66,19 @@ class FilePickerUtils {
   static Future<void> pickImageFromGallery({Function(FileUploadModel)? onFileSelected}) async {
     try {
       final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1920, maxHeight: 1080, imageQuality: 85);
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 100);
 
       if (image != null) {
         File imageFile = File(image.path);
         int fileSize = await imageFile.length();
 
-        if (onFileSelected != null) {
+        if (onFileSelected != null && image.path.isNotEmpty) {
+          // 生成合适的文件名
+          String fileName = image.name.isNotEmpty ? image.name : 'gallery_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
           // 封装成FileUploadModel并调用回调
           FileUploadModel fileUploadModel = _createFileUploadModel(
-            fileName: image.name,
+            fileName: fileName,
             filePath: image.path,
             source: FileSource.image,
             fileSize: fileSize,
@@ -82,16 +105,19 @@ class FilePickerUtils {
   static Future<void> pickImageFromCamera({Function(FileUploadModel)? onFileSelected}) async {
     try {
       final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(source: ImageSource.camera, maxWidth: 1920, maxHeight: 1080, imageQuality: 85);
+      final XFile? image = await picker.pickImage(source: ImageSource.camera, imageQuality: 100);
 
       if (image != null) {
         File imageFile = File(image.path);
         int fileSize = await imageFile.length();
 
-        if (onFileSelected != null) {
+        if (onFileSelected != null && image.path.isNotEmpty) {
+          // 生成合适的文件名
+          String fileName = image.name.isNotEmpty ? image.name : 'camera_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
           // 封装成FileUploadModel并调用回调
           FileUploadModel fileUploadModel = _createFileUploadModel(
-            fileName: image.name,
+            fileName: fileName,
             filePath: image.path,
             source: FileSource.camera,
             fileSize: fileSize,
@@ -141,41 +167,67 @@ class FilePickerUtils {
   }
 
   /// 构建图片预览组件
-  static Widget buildImagePreview(String? imagePath) {
+  static Widget buildImagePreview(String? imagePath, {String? fileId}) {
+    print('🖼️ buildImagePreview 调试信息:');
+    print('   图片路径: $imagePath');
+    print('   文件ID: $fileId');
+
     if (imagePath == null) {
+      print('   ❌ 图片路径为空');
       return Icon(Icons.image, color: Colors.grey.shade400, size: 40);
     }
 
     // 判断是否为网络URL
     final isNetworkUrl = imagePath.startsWith('http://') || imagePath.startsWith('https://');
+    print('   🌐 是否为网络URL: $isNetworkUrl');
+
+    // 创建唯一的Key，用于Widget识别
+    final imageKey = Key('image_${fileId ?? imagePath.hashCode}');
 
     if (isNetworkUrl) {
       // 网络图片
+      print('   📡 开始加载网络图片: $imagePath');
       return Image.network(
         imagePath,
+        key: imageKey,
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,
+        cacheWidth: 300, // 限制解码宽度，提升性能
+        cacheHeight: 300, // 限制解码高度，提升性能
+        // 添加缓存控制，避免重复加载
+        headers: const {
+          'Cache-Control': 'max-age=3600', // 缓存1小时
+        },
         errorBuilder: (context, error, stackTrace) {
+          print('   ❌ 网络图片加载失败: $error');
+          print('   📍 错误堆栈: $stackTrace');
           return Icon(Icons.broken_image, color: Colors.grey.shade400, size: 40);
         },
         loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Center(
-            child: CircularProgressIndicator(
-              value: loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null,
-            ),
-          );
+          if (loadingProgress == null) {
+            print('   ✅ 网络图片加载完成: $imagePath');
+            return child;
+          }
+          final progress = loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null;
+          print('   ⏳ 网络图片加载中: ${(progress ?? 0) * 100}%');
+          return Center(child: CircularProgressIndicator(value: progress));
         },
       );
     } else {
       // 本地文件
+      print('   📁 开始加载本地文件: $imagePath');
       return Image.file(
         File(imagePath),
+        key: imageKey,
         fit: BoxFit.cover,
         width: double.infinity,
         height: double.infinity,
+        cacheWidth: 300, // 限制解码宽度，大幅提升大图片预览性能
+        cacheHeight: 300, // 限制解码高度，减少内存占用
         errorBuilder: (context, error, stackTrace) {
+          print('   ❌ 本地图片加载失败: $error');
+          print('   📍 错误堆栈: $stackTrace');
           return Icon(Icons.broken_image, color: Colors.grey.shade400, size: 40);
         },
       );
@@ -268,11 +320,14 @@ class FilePickerUtils {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // 文件预览或图标
-                if (isImage && fileModel.path != null)
+                if (isImage && _getImagePath(fileModel).isNotEmpty)
                   Expanded(
                     child: Stack(
                       children: [
-                        ClipRRect(borderRadius: BorderRadius.circular(4), child: buildImagePreview(fileModel.path)),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: buildImagePreview(_getImagePath(fileModel), fileId: fileModel.fileInfo?.id?.toString()),
+                        ),
                         // 上传中的遮罩层
                         if (fileModel.status == UploadStatus.uploading)
                           Positioned.fill(
@@ -306,7 +361,7 @@ class FilePickerUtils {
                 const SizedBox(height: 4),
                 // 文件名
                 Text(
-                  fileModel.name?.length != null && fileModel.name!.length > 10 ? '${fileModel.name!.substring(0, 10)}...' : fileModel.name ?? 'Unknown',
+                  fileModel.name.length > 10 ? '${fileModel.name.substring(0, 10)}...' : fileModel.name,
                   style: TextStyle(color: Colors.grey.shade700, fontSize: 10, fontWeight: FontWeight.w500),
                   textAlign: TextAlign.center,
                   maxLines: 2,
@@ -364,15 +419,18 @@ class FilePickerUtils {
             decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(4)),
             child: Stack(
               children: [
-                if (isImage && fileModel.path != null)
-                  ClipRRect(borderRadius: BorderRadius.circular(4), child: buildImagePreview(fileModel.path))
+                if (isImage && _getImagePath(fileModel).isNotEmpty)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: buildImagePreview(_getImagePath(fileModel), fileId: fileModel.fileInfo?.id?.toString()),
+                  )
                 else
                   Icon(Icons.insert_drive_file, color: Colors.blue.shade600, size: 24),
                 // 上传中的进度指示器
                 if (fileModel.status == UploadStatus.uploading)
                   Positioned.fill(
                     child: Container(
-                      decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), borderRadius: BorderRadius.circular(4)),
+                      decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(4)),
                       child: Center(
                         child: CircularProgressIndicator(value: fileModel.progress, color: Colors.white, strokeWidth: 2),
                       ),
@@ -388,7 +446,7 @@ class FilePickerUtils {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  fileModel.name ?? 'Unknown',
+                  fileModel.name,
                   style: TextStyle(color: Colors.grey.shade700, fontSize: 14, fontWeight: FontWeight.w500),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -464,12 +522,16 @@ class FilePickerUtils {
   }
 
   /// 创建FileUploadModel实例
-  static FileUploadModel _createFileUploadModel({String? fileName, String? filePath, FileSource? source, int? fileSize, String? fileSizeInfo}) {
+  static FileUploadModel _createFileUploadModel({required String fileName, required String filePath, FileSource? source, int? fileSize, String? fileSizeInfo}) {
+    // 参数验证
+    assert(fileName.isNotEmpty, 'fileName不能为空');
+    assert(filePath.isNotEmpty, 'filePath不能为空');
+
     // 生成唯一ID
     int id = _generateRandomId();
 
     // 创建FileInfo
-    FileInfo fileInfo = FileInfo(id: id, fileName: fileName ?? '', requestPath: filePath ?? '');
+    FileInfo fileInfo = FileInfo(id: id, fileName: fileName, requestPath: filePath);
 
     // 创建FileUploadModel
     return FileUploadModel(

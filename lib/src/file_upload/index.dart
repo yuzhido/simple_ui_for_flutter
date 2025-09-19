@@ -53,6 +53,12 @@ class FileUpload extends StatefulWidget {
   /// 自定义上传区域文本
   final Widget? uploadText;
 
+  /// 自定义上传函数
+  /// 函数签名: Future<FileUploadModel?> Function(String filePath, Function(double) onProgress)
+  /// 参数: filePath - 要上传的文件路径, onProgress - 进度回调函数(0.0-1.0)
+  /// 返回: 上传成功时返回FileUploadModel，失败时返回null
+  final Future<FileUploadModel?> Function(String filePath, Function(double) onProgress)? customUpload;
+
   const FileUpload({
     super.key,
     this.customFileList,
@@ -67,6 +73,7 @@ class FileUpload extends StatefulWidget {
     this.autoUpload = true,
     this.isRemoveFailFile = false,
     this.uploadConfig,
+    this.customUpload,
     this.defaultValue,
     this.uploadIcon,
     this.uploadText,
@@ -94,8 +101,13 @@ class _FileUploadState extends State<FileUpload> {
 
   /// 验证自动上传配置
   void _validateAutoUploadConfig() {
-    if (widget.autoUpload && (widget.uploadConfig == null || !widget.uploadConfig!.isValid)) {
-      throw ArgumentError('自动上传需要提供有效的上传配置，请确保提供 uploadConfig.uploadUrl 或 customUpload 函数');
+    if (widget.autoUpload) {
+      final hasValidUploadConfig = widget.uploadConfig != null && widget.uploadConfig!.isValid;
+      final hasCustomUpload = widget.customUpload != null;
+
+      if (!hasValidUploadConfig && !hasCustomUpload) {
+        throw ArgumentError('自动上传需要提供有效的上传配置，请确保提供 uploadConfig.uploadUrl 或 customUpload 函数');
+      }
     }
   }
 
@@ -130,20 +142,22 @@ class _FileUploadState extends State<FileUpload> {
       return;
     }
 
-    // 创建带有上传配置的文件模型
-    final fileWithConfig = fileModel.copyWith(uploadConfig: widget.uploadConfig, autoUpload: widget.autoUpload);
-
     setState(() {
-      _tempFiles.add(fileWithConfig);
+      _tempFiles.add(fileModel);
     });
 
     // 触发回调，传递当前添加的文件、所有文件列表和操作类型
     final allFiles = [...selectedFiles, ..._tempFiles];
-    widget.onFileChange?.call(fileWithConfig, allFiles, 'add');
+    widget.onFileChange?.call(fileModel, allFiles, 'add');
 
     // 如果启用自动上传且配置有效，立即开始上传
-    if (widget.autoUpload && widget.uploadConfig != null && widget.uploadConfig!.isValid) {
-      _startUpload(_tempFiles.length - 1);
+    if (widget.autoUpload) {
+      final hasValidUploadConfig = widget.uploadConfig != null && widget.uploadConfig!.isValid;
+      final hasCustomUpload = widget.customUpload != null;
+
+      if (hasValidUploadConfig || hasCustomUpload) {
+        _startUpload(_tempFiles.length - 1);
+      }
     }
   }
 
@@ -178,26 +192,30 @@ class _FileUploadState extends State<FileUpload> {
       final file = _tempFiles[index];
 
       // 检查上传配置
-      if (file.uploadConfig == null || !file.uploadConfig!.isValid) {
-        _handleUploadError(index, '上传配置无效：缺少上传URL');
+      final hasValidUploadConfig = widget.uploadConfig != null && widget.uploadConfig!.isValid;
+      final hasCustomUpload = widget.customUpload != null;
+
+      if (!hasValidUploadConfig && !hasCustomUpload) {
+        _handleUploadErrorById(file.fileInfo.id, '上传配置无效：缺少上传URL或自定义上传函数');
         return;
       }
 
       // 开始上传
-      updateFileStatus(index, UploadStatus.uploading, progress: 0.0);
+      updateFileStatusById(file.fileInfo.id, UploadStatus.uploading, progress: 0.0);
 
       // 触发文件状态变更回调 - 上传开始
       final allFiles = [...selectedFiles, ..._tempFiles];
-      widget.onFileChange?.call(_tempFiles[index], allFiles, 'uploading');
+      widget.onFileChange?.call(file, allFiles, 'uploading');
 
-      // 调用真实的HTTP上传方法
-      _realUpload(index);
+      // 调用上传方法（支持uploadConfig和customUpload）
+      _realUploadById(file.fileInfo.id);
     }
   }
 
-  /// 处理上传错误
-  void _handleUploadError(int index, String error) {
-    if (index >= 0 && index < _tempFiles.length) {
+  /// 根据文件ID处理上传错误
+  void _handleUploadErrorById(dynamic fileId, String error) {
+    final index = _tempFiles.indexWhere((file) => file.fileInfo.id == fileId);
+    if (index != -1) {
       final failedFile = _tempFiles[index];
 
       // 如果设置了失败时移除文件，则直接移除
@@ -205,11 +223,11 @@ class _FileUploadState extends State<FileUpload> {
         _removeFileFromList(index, fromPending: true);
       } else {
         // 否则只更新状态为失败
-        updateFileStatus(index, UploadStatus.failed);
+        updateFileStatusById(fileId, UploadStatus.failed);
 
         // 触发文件状态变更回调 - 上传失败
         final allFiles = [...selectedFiles, ..._tempFiles];
-        widget.onFileChange?.call(_tempFiles[index], allFiles, 'failed');
+        widget.onFileChange?.call(failedFile, allFiles, 'failed');
       }
 
       // 触发失败回调
@@ -217,12 +235,34 @@ class _FileUploadState extends State<FileUpload> {
     }
   }
 
-  /// 处理上传成功
-  void _handleUploadSuccess(int index) {
-    if (index >= 0 && index < _tempFiles.length) {
+  /// 根据文件ID处理上传成功
+  void _handleUploadSuccessById(dynamic fileId, FileUploadModel updatedModel) {
+    final index = _tempFiles.indexWhere((file) => file.fileInfo.id == fileId);
+    if (index != -1) {
       setState(() {
-        // 更新文件状态为成功
-        final successFile = _tempFiles[index].copyWith(status: UploadStatus.success, progress: 1.0);
+        final originalFile = _tempFiles[index];
+
+        print('🔄 上传成功，更新文件状态:');
+        print('   文件ID: $fileId');
+        print('   原始path: ${originalFile.path}');
+        print('   网络URL: ${updatedModel.fileInfo?.requestPath}');
+
+        // 保持原始路径用于图片显示，避免重新渲染
+        // 只更新文件信息和状态
+        final successFile = FileUploadModel(
+          fileInfo: updatedModel.fileInfo, // 更新文件信息（包含网络URL）
+          name: originalFile.name,
+          path: originalFile.path, // 保持原始路径，避免图片重新加载
+          source: originalFile.source,
+          status: UploadStatus.success, // 更新状态为成功
+          progress: 1.0, // 更新进度为100%
+          fileSize: originalFile.fileSize,
+          fileSizeInfo: originalFile.fileSizeInfo,
+        );
+
+        print('   保持显示path: ${successFile.path}');
+        print('   网络requestPath: ${successFile.fileInfo?.requestPath}');
+        print('   状态: ${successFile.status}');
 
         // 将文件从_tempFiles移动到selectedFiles
         selectedFiles.add(successFile);
@@ -263,26 +303,49 @@ class _FileUploadState extends State<FileUpload> {
   void updateFileStatusById(dynamic fileId, UploadStatus status, {double progress = 0.0}) {
     final index = _tempFiles.indexWhere((file) => file.fileInfo.id == fileId);
     if (index != -1) {
-      updateFileStatus(index, status, progress: progress);
+      setState(() {
+        final oldFile = _tempFiles[index];
+        _tempFiles[index] = oldFile.copyWith(status: status, progress: progress);
+      });
+
+      // 触发进度回调
+      if (status == UploadStatus.uploading && widget.onUploadProgress != null) {
+        widget.onUploadProgress?.call(_tempFiles[index], progress);
+      }
+
+      // 触发文件状态变更回调 - 上传进度更新
+      if (status == UploadStatus.uploading) {
+        final allFiles = [...selectedFiles, ..._tempFiles];
+        widget.onFileChange?.call(_tempFiles[index], allFiles, 'progress');
+      }
     }
   }
 
-  /// 真实的HTTP上传方法
-  Future<void> _realUpload(int index) async {
-    if (index < 0 || index >= _tempFiles.length) return;
+  /// 根据文件ID进行真实的HTTP上传方法
+  Future<void> _realUploadById(dynamic fileId) async {
+    final index = _tempFiles.indexWhere((file) => file.fileInfo.id == fileId);
+    if (index == -1) return;
 
     final fileModel = _tempFiles[index];
 
+    // 检查是否有上传配置或自定义上传函数
+    if (widget.uploadConfig == null && widget.customUpload == null) {
+      _handleUploadErrorById(fileId, '上传配置未提供');
+      return;
+    }
+
     await FileUploadUtils.realUpload(
       fileModel: fileModel,
+      uploadConfig: widget.uploadConfig,
+      customUpload: widget.customUpload,
       onStatusUpdate: (status, {double? progress}) {
-        updateFileStatus(index, status, progress: progress ?? 0.0);
+        updateFileStatusById(fileId, status, progress: progress ?? 0.0);
       },
       onError: (error) {
-        _handleUploadError(index, error);
+        _handleUploadErrorById(fileId, error);
       },
-      onSuccess: () {
-        _handleUploadSuccess(index);
+      onSuccess: (updatedModel) {
+        _handleUploadSuccessById(fileId, updatedModel);
       },
     );
   }
@@ -341,7 +404,12 @@ class _FileUploadState extends State<FileUpload> {
             final fileModel = entry.value;
             final isPending = index >= selectedFiles.length;
             final actualIndex = isPending ? index - selectedFiles.length : index;
+
+            // 为每个文件项创建唯一的Key，基于文件ID或路径
+            final uniqueKey = Key('file_${fileModel.fileInfo?.id ?? fileModel.path}_${fileModel.status.toString()}');
+
             return GestureDetector(
+              key: uniqueKey,
               onTap: () {
                 // 点击文件项开始上传
                 if (fileModel.status == UploadStatus.pending && isPending) {
@@ -390,7 +458,12 @@ class _FileUploadState extends State<FileUpload> {
             final fileModel = entry.value;
             final isPending = index >= selectedFiles.length;
             final actualIndex = isPending ? index - selectedFiles.length : index;
+
+            // 为每个文件项创建唯一的Key，基于文件ID或路径
+            final uniqueKey = Key('text_file_${fileModel.fileInfo?.id ?? fileModel.path}_${fileModel.status.toString()}');
+
             return GestureDetector(
+              key: uniqueKey,
               onTap: () {
                 // 点击文件项开始上传
                 if (fileModel.status == UploadStatus.pending && isPending) {

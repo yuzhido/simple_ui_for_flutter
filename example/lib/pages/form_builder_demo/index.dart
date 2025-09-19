@@ -3,6 +3,7 @@ import 'package:example/api/user_api.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/form_builder_config.dart';
 import 'package:simple_ui/simple_ui.dart';
+import 'package:dio/dio.dart';
 
 class FormBuilderDemo extends StatefulWidget {
   const FormBuilderDemo({super.key});
@@ -21,6 +22,56 @@ class _FormBuilderDemoState extends State<FormBuilderDemo> {
   void initState() {
     super.initState();
     _initConfigs();
+  }
+
+  /// 自定义上传函数示例
+  Future<FileUploadModel?> _customUploadFunction(String filePath, Function(double) onProgress) async {
+    print('🚀 开始自定义上传文件: $filePath');
+
+    try {
+      final dio = Dio();
+      final formData = FormData();
+      final fileName = filePath.split('/').last.split('\\').last;
+
+      formData.files.add(MapEntry('file', await MultipartFile.fromFile(filePath, filename: fileName)));
+
+      final response = await dio.post(
+        'http://192.168.1.19:3001/upload/api/upload-file',
+        data: formData,
+        options: Options(headers: {'Authorization': 'Bearer token123'}),
+        onSendProgress: (sent, total) {
+          final progress = sent / total;
+          onProgress(progress);
+          print('📤 上传进度: ${(progress * 100).toInt()}%');
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = response.data;
+        print('✅ 上传成功: $responseData');
+
+        // 构建完整的图片URL
+        final serverUrl = responseData['url'] ?? responseData['path'] ?? 'https://picsum.photos/300/200?random=${DateTime.now().millisecondsSinceEpoch}';
+
+        return FileUploadModel(
+          fileInfo: FileInfo(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            fileName: fileName,
+            requestPath: responseData['path'] ?? '', // requestPath存储服务器返回的相对路径
+          ),
+          name: fileName,
+          path: serverUrl, // path字段存储完整的图片URL
+          status: UploadStatus.success,
+          progress: 1.0,
+        );
+      } else {
+        print('❌ 上传失败: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('❌ 上传异常: $e');
+      return null;
+    }
   }
 
   void _initConfigs() {
@@ -265,6 +316,21 @@ class _FormBuilderDemoState extends State<FormBuilderDemo> {
           print('自定义上传字段 $fieldName 值变更为: $value');
           List<dynamic> files = value ?? [];
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('自定义上传区域已上传 ${files.length} 个文件'), duration: Duration(seconds: 1)));
+        },
+      ),
+      // 使用自定义上传函数的示例
+      FormBuilderConfig.upload(
+        name: 'customUploadFunction',
+        label: '自定义上传函数示例',
+        required: false,
+        customUpload: _customUploadFunction,
+        fileListType: FileListType.textInfo,
+        limit: 2,
+        fileSource: FileSource.all,
+        onChange: (fieldName, value) {
+          print('自定义上传函数字段 $fieldName 值变更为: $value');
+          List<dynamic> files = value ?? [];
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('自定义上传函数已上传 ${files.length} 个文件'), duration: Duration(seconds: 1)));
         },
       ),
       FormBuilderConfig.custom(

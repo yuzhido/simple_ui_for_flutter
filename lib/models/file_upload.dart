@@ -38,6 +38,11 @@ class FileInfo {
   Map<String, dynamic> toMap() {
     return {'id': id, 'fileName': fileName, 'requestPath': requestPath};
   }
+
+  /// 创建FileInfo的副本，可选择性地更新某些字段
+  FileInfo copyWith({dynamic id, String? fileName, String? requestPath}) {
+    return FileInfo(id: id ?? this.id, fileName: fileName ?? this.fileName, requestPath: requestPath ?? this.requestPath);
+  }
 }
 
 // 上传配置类
@@ -60,17 +65,11 @@ class UploadConfig {
   /// 额外的表单数据
   final Map<String, dynamic>? extraData;
 
-  /// 自定义上传函数
-  /// 函数签名: Future<Map<String, dynamic>> Function(String filePath, Function(double) onProgress)
-  /// 参数: filePath - 要上传的文件路径, onProgress - 进度回调函数(0.0-1.0)
-  /// 返回: 上传结果的Map
-  final Future<Map<String, dynamic>> Function(String filePath, Function(double) onProgress)? customUpload;
-
-  UploadConfig({this.headers, this.uploadUrl, this.method = 'POST', this.timeout = 30, this.fileFieldName = 'file', this.extraData, this.customUpload});
+  UploadConfig({this.headers, this.uploadUrl, this.method = 'POST', this.timeout = 30, this.fileFieldName = 'file', this.extraData});
 
   /// 验证配置是否有效
-  /// 有效条件：提供了uploadUrl 或者 提供了customUpload函数
-  bool get isValid => (uploadUrl != null && uploadUrl!.isNotEmpty) || customUpload != null;
+  /// 有效条件：提供了uploadUrl
+  bool get isValid => uploadUrl != null && uploadUrl!.isNotEmpty;
 
   /// 从Map创建UploadConfig实例
   /// 注意：customUpload函数无法从Map反序列化，需要单独设置
@@ -101,15 +100,7 @@ class UploadConfig {
   }
 
   /// 复制并修改配置
-  UploadConfig copyWith({
-    Map<String, String>? headers,
-    String? uploadUrl,
-    String? method,
-    int? timeout,
-    String? fileFieldName,
-    Map<String, dynamic>? extraData,
-    Future<Map<String, dynamic>> Function(String filePath, Function(double) onProgress)? customUpload,
-  }) {
+  UploadConfig copyWith({Map<String, String>? headers, String? uploadUrl, String? method, int? timeout, String? fileFieldName, Map<String, dynamic>? extraData}) {
     return UploadConfig(
       headers: headers ?? this.headers,
       uploadUrl: uploadUrl ?? this.uploadUrl,
@@ -117,7 +108,6 @@ class UploadConfig {
       timeout: timeout ?? this.timeout,
       fileFieldName: fileFieldName ?? this.fileFieldName,
       extraData: extraData ?? this.extraData,
-      customUpload: customUpload ?? this.customUpload,
     );
   }
 }
@@ -125,47 +115,18 @@ class UploadConfig {
 // 文件上传模型类
 class FileUploadModel {
   final FileInfo fileInfo;
-  final String? name;
-  final String? path;
+  final String name;
+  final String path;
   final FileSource? source;
   final UploadStatus? status;
   final double progress;
   final int? fileSize; // 文件大小（字节）
   final String? fileSizeInfo; // 格式化后的文件大小信息
-  final UploadConfig? uploadConfig; // 上传配置
-  final bool autoUpload; // 是否自动上传
 
-  FileUploadModel({
-    required this.fileInfo,
-    this.name,
-    this.path,
-    this.source,
-    this.fileSize,
-    this.fileSizeInfo,
-    this.status,
-    this.progress = 0,
-    this.uploadConfig,
-    this.autoUpload = false,
-  }) {
-    // 验证：如果启用自动上传，必须提供有效的上传配置
-    if (autoUpload && (uploadConfig == null || !uploadConfig!.isValid)) {
-      throw ArgumentError('自动上传需要提供有效的上传配置，请确保提供 uploadConfig.uploadUrl 或 customUpload 函数');
-    }
-  }
+  FileUploadModel({required this.fileInfo, required this.name, required this.path, this.source, this.fileSize, this.fileSizeInfo, this.status, this.progress = 0});
 
   /// 复制并修改模型
-  FileUploadModel copyWith({
-    FileInfo? fileInfo,
-    String? name,
-    String? path,
-    FileSource? source,
-    UploadStatus? status,
-    double? progress,
-    int? fileSize,
-    String? fileSizeInfo,
-    UploadConfig? uploadConfig,
-    bool? autoUpload,
-  }) {
+  FileUploadModel copyWith({FileInfo? fileInfo, String? name, String? path, FileSource? source, UploadStatus? status, double? progress, int? fileSize, String? fileSizeInfo}) {
     return FileUploadModel(
       fileInfo: fileInfo ?? this.fileInfo,
       name: name ?? this.name,
@@ -175,8 +136,6 @@ class FileUploadModel {
       progress: progress ?? this.progress,
       fileSize: fileSize ?? this.fileSize,
       fileSizeInfo: fileSizeInfo ?? this.fileSizeInfo,
-      uploadConfig: uploadConfig ?? this.uploadConfig,
-      autoUpload: autoUpload ?? this.autoUpload,
     );
   }
 
@@ -191,8 +150,6 @@ class FileUploadModel {
       progress: map['progress']?.toDouble() ?? 0,
       fileSize: map['fileSize'],
       fileSizeInfo: map['fileSizeInfo'],
-      uploadConfig: map['uploadConfig'] != null ? UploadConfig.fromMap(map['uploadConfig']) : null,
-      autoUpload: map['autoUpload'] ?? false,
     );
   }
 
@@ -207,12 +164,6 @@ class FileUploadModel {
       'progress': progress,
       'fileSize': fileSize,
       'fileSizeInfo': fileSizeInfo,
-      'uploadConfig': uploadConfig?.toMap(),
-      'autoUpload': autoUpload,
     };
   }
 }
-
-// 保持向后兼容性的别名
-@Deprecated('使用 UploadConfig 替代')
-typedef UploadConfigInfo = UploadConfig;

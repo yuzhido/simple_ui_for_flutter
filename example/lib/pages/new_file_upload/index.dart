@@ -17,7 +17,7 @@ class _NewFileUploadPageState extends State<NewFileUploadPage> {
   String _compressionStatus = '';
 
   /// 图片压缩上传函数
-  Future<Map<String, dynamic>> _compressAndUploadFunction(String filePath, Function(double) onProgress) async {
+  Future<FileUploadModel?> _compressAndUploadFunction(String filePath, Function(double) onProgress) async {
     print('🖼️ 开始图片压缩上传: $filePath');
     try {
       setState(() {
@@ -101,13 +101,11 @@ class _NewFileUploadPageState extends State<NewFileUploadPage> {
 
       if (isSuccess) {
         print('✅ 压缩上传成功！');
-        return {
-          'success': true,
-          'message': '压缩上传成功',
-          'fileUrl': 'https://example.com/uploaded/${fileName}',
-          'fileId': 'compressed_${DateTime.now().millisecondsSinceEpoch}',
-          'response': response.data,
-        };
+        return FileUploadModel(
+          fileInfo: FileInfo(id: null, fileName: '', requestPath: ''),
+          name: '',
+          path: '',
+        );
       } else {
         throw Exception('上传失败：HTTP状态码 ${response.statusCode}');
       }
@@ -146,7 +144,7 @@ class _NewFileUploadPageState extends State<NewFileUploadPage> {
   }
 
   /// 自定义上传函数示例
-  Future<Map<String, dynamic>> _customUploadFunction(String filePath, Function(double) onProgress) async {
+  Future<FileUploadModel?> _customUploadFunction(String filePath, Function(double) onProgress) async {
     print('🚀 开始自定义上传文件: $filePath');
 
     try {
@@ -182,19 +180,24 @@ class _NewFileUploadPageState extends State<NewFileUploadPage> {
 
       if (isSuccess) {
         print('✅ 自定义上传成功！');
-        return {
-          'success': true,
-          'message': '自定义上传成功',
-          'fileUrl': 'https://example.com/uploaded/${fileName}',
-          'fileId': 'custom_${DateTime.now().millisecondsSinceEpoch}',
-          'response': response.data,
-        };
+
+        // 创建并返回FileUploadModel对象
+        final responseData = response.data;
+        final serverUrl = responseData['url'] ?? responseData['path'] ?? 'https://picsum.photos/300/200?random=${DateTime.now().millisecondsSinceEpoch}';
+        final fileInfo = FileInfo(
+          id: DateTime.now().millisecondsSinceEpoch,
+          fileName: fileName,
+          requestPath: responseData['path'] ?? '', // requestPath存储服务器返回的相对路径
+        );
+
+        return FileUploadModel(fileInfo: fileInfo, name: fileName, path: serverUrl, status: UploadStatus.success, progress: 1.0);
       } else {
-        throw Exception('自定义上传失败：HTTP状态码 ${response.statusCode}');
+        print('❌ 自定义上传失败：HTTP状态码 ${response.statusCode}');
+        return null; // 失败时返回null
       }
     } catch (e) {
       print('❌ 自定义上传异常: $e');
-      throw Exception('自定义上传失败: $e');
+      return null; // 异常时返回null
     }
   }
 
@@ -240,7 +243,7 @@ class _NewFileUploadPageState extends State<NewFileUploadPage> {
 
             FileUpload(
               fileListType: FileListType.textInfo,
-              uploadConfig: UploadConfig(customUpload: _compressAndUploadFunction),
+              customUpload: _compressAndUploadFunction,
               onUploadSuccess: (file) {
                 print('✅ 图片压缩上传 - 文件 ${file.name} 上传成功！');
                 setState(() {
@@ -434,7 +437,7 @@ class _NewFileUploadPageState extends State<NewFileUploadPage> {
             const SizedBox(height: 10),
             FileUpload(
               fileListType: FileListType.textInfo,
-              uploadConfig: UploadConfig(customUpload: _customUploadFunction),
+              customUpload: _customUploadFunction,
               onUploadSuccess: (file) {
                 print('✅ 自定义上传 - 文件 ${file.name} 上传成功！');
               },
@@ -450,7 +453,7 @@ class _NewFileUploadPageState extends State<NewFileUploadPage> {
             ),
             FileUpload(
               isRemoveFailFile: true,
-              uploadConfig: UploadConfig(customUpload: _customUploadFunction),
+              customUpload: _customUploadFunction,
               onUploadSuccess: (file) {
                 print('✅ 自定义上传 - 文件 ${file.name} 上传成功！');
               },
@@ -480,8 +483,11 @@ class _NewFileUploadPageState extends State<NewFileUploadPage> {
             FileUpload(
               fileListType: FileListType.card,
               uploadIcon: const Icon(Icons.cloud_upload, size: 48, color: Colors.blue),
-              uploadText: const Text('点击上传文档', style: TextStyle(fontSize: 18, color: Colors.blue, fontWeight: FontWeight.w500)),
-              uploadConfig: UploadConfig(customUpload: _customUploadFunction),
+              uploadText: const Text(
+                '点击上传文档',
+                style: TextStyle(fontSize: 18, color: Colors.blue, fontWeight: FontWeight.w500),
+              ),
+              customUpload: _customUploadFunction,
               onUploadSuccess: (file) {
                 print('✅ 自定义图标文本上传 - 文件 ${file.name} 上传成功！');
               },

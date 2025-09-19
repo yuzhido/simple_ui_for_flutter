@@ -7,21 +7,22 @@ class FileUploadUtils {
   /// 真实的HTTP上传方法
   static Future<FileUploadResult> realUpload({
     required FileUploadModel fileModel,
+    UploadConfig? uploadConfig,
+    Future<FileUploadModel?> Function(String filePath, Function(double) onProgress)? customUpload,
     required Function(UploadStatus status, {double? progress}) onStatusUpdate,
     required Function(String error) onError,
-    required Function() onSuccess,
+    required Function(FileUploadModel updatedModel) onSuccess,
   }) async {
-    final uploadConfig = fileModel.uploadConfig;
+    // 检查是否有自定义上传函数
+    if (customUpload != null) {
+      return await _customUpload(fileModel: fileModel, customUpload: customUpload, onStatusUpdate: onStatusUpdate, onError: onError, onSuccess: onSuccess);
+    }
 
+    // 检查标准上传配置
     if (uploadConfig == null || !uploadConfig.isValid) {
       final error = '上传配置无效：缺少上传URL或自定义上传函数';
       onError(error);
       return FileUploadResult.error(error);
-    }
-
-    // 检查是否有自定义上传函数
-    if (uploadConfig.customUpload != null) {
-      return await _customUpload(fileModel: fileModel, customUpload: uploadConfig.customUpload!, onStatusUpdate: onStatusUpdate, onError: onError, onSuccess: onSuccess);
     }
 
     try {
@@ -40,7 +41,7 @@ class FileUploadUtils {
 
       // 获取文件路径
       final filePath = fileModel.path;
-      if (filePath == null || filePath.isEmpty) {
+      if (filePath.isEmpty) {
         const error = '文件路径无效';
         onError(error);
         return FileUploadResult.error(error);
@@ -58,7 +59,7 @@ class FileUploadUtils {
       final formData = FormData();
 
       // 添加文件
-      formData.files.add(MapEntry(uploadConfig.fileFieldName, await MultipartFile.fromFile(filePath, filename: fileModel.name ?? file.path.split('/').last)));
+      formData.files.add(MapEntry(uploadConfig.fileFieldName, await MultipartFile.fromFile(filePath, filename: fileModel.name)));
 
       // 添加额外的表单数据
       if (uploadConfig.extraData != null) {
@@ -82,8 +83,34 @@ class FileUploadUtils {
 
       // 检查响应状态
       if (response.statusCode == 200 || response.statusCode == 201) {
-        onSuccess();
-        return FileUploadResult.success(response.data);
+        // 尝试解析服务器返回的数据并更新FileUploadModel
+        FileUploadModel? updatedModel;
+        try {
+          if (response.data is Map<String, dynamic>) {
+            // 创建更新后的FileUploadModel，保留原有数据并更新服务器返回的信息
+            final responseData = response.data as Map<String, dynamic>;
+
+            // 更新FileInfo信息
+            final updatedFileInfo = fileModel.fileInfo.copyWith(
+              // 如果服务器返回了新的ID，使用服务器的ID
+              id: responseData['id']?.toString(),
+              // 如果服务器返回了文件URL，更新requestPath
+              requestPath: responseData['url']?.toString() ?? responseData['path']?.toString() ?? responseData['file_url']?.toString(),
+              // 如果服务器返回了文件名，更新fileName
+              fileName: responseData['filename']?.toString() ?? responseData['file_name']?.toString(),
+            );
+
+            // 创建更新后的FileUploadModel
+            updatedModel = fileModel.copyWith(fileInfo: updatedFileInfo, status: UploadStatus.success, progress: 1.0);
+          }
+        } catch (e) {
+          // 如果解析失败，使用原始模型但更新状态
+          updatedModel = fileModel.copyWith(status: UploadStatus.success, progress: 1.0);
+        }
+
+        final finalModel = updatedModel ?? fileModel.copyWith(status: UploadStatus.success, progress: 1.0);
+        onSuccess(finalModel);
+        return FileUploadResult.success(finalModel);
       } else {
         final error = '上传失败：HTTP ${response.statusCode}';
         onError(error);
@@ -127,16 +154,16 @@ class FileUploadUtils {
   /// 自定义上传方法
   static Future<FileUploadResult> _customUpload({
     required FileUploadModel fileModel,
-    required Future<Map<String, dynamic>> Function(String filePath, Function(double) onProgress) customUpload,
+    required Future<FileUploadModel?> Function(String filePath, Function(double) onProgress) customUpload,
     required Function(UploadStatus status, {double? progress}) onStatusUpdate,
     required Function(String error) onError,
-    required Function() onSuccess,
+    required Function(FileUploadModel updatedModel) onSuccess,
   }) async {
     try {
       onStatusUpdate(UploadStatus.uploading, progress: 0.0);
 
       final filePath = fileModel.path;
-      if (filePath == null || filePath.isEmpty) {
+      if (filePath.isEmpty) {
         const error = '文件路径无效';
         onError(error);
         return FileUploadResult.error(error);
@@ -147,8 +174,38 @@ class FileUploadUtils {
       });
 
       onStatusUpdate(UploadStatus.uploading, progress: 1.0);
-      onSuccess();
-      return FileUploadResult.success(result);
+
+      // 处理自定义上传返回的结果
+      FileUploadModel updatedModel;
+      if (result != null) {
+        // 自定义上传成功，直接使用返回的FileUploadModel，只更新状态和进度
+        updatedModel = FileUploadModel(
+          fileInfo: result.fileInfo,
+          name: result.name,
+          path: result.path, // 使用自定义上传返回的path（应该是网络URL）
+          source: result.source,
+          status: UploadStatus.success,
+          progress: 1.0,
+          fileSize: result.fileSize,
+          fileSizeInfo: result.fileSizeInfo,
+        );
+        
+        // 添加调试信息
+        print('🔄 自定义上传成功，更新FileUploadModel:');
+        print('   原始path: ${fileModel.path}');
+        print('   新的path: ${result.path}');
+        print('   状态: ${updatedModel.status}');
+      } else {
+        // 自定义上传失败，返回null
+        onError('自定义上传失败');
+        updatedModel = fileModel.copyWith(
+          status: UploadStatus.failed,
+          progress: 0.0,
+        );
+      }
+
+      onSuccess(updatedModel);
+      return FileUploadResult.success(updatedModel);
     } catch (e) {
       final errorMessage = '自定义上传异常: $e';
       onError(errorMessage);

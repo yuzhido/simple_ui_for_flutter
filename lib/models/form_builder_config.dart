@@ -229,6 +229,12 @@ class FormBuilderConfig {
     bool autoUpload = true,
     bool isRemoveFailFile = false,
     UploadConfig? uploadConfig,
+
+    /// 自定义上传函数
+    /// 函数签名: Future<FileUploadModel?> Function(String filePath, Function(double) onProgress)
+    /// 参数: filePath - 要上传的文件路径, onProgress - 进度回调函数(0.0-1.0)
+    /// 返回: 上传成功时返回FileUploadModel，失败时返回null
+    Future<FileUploadModel?> Function(String filePath, Function(double) onProgress)? customUpload,
     Widget? uploadIcon, // 自定义上传区域图标
     Widget? uploadText, // 自定义上传区域文本
     bool isShow = true,
@@ -242,7 +248,6 @@ class FormBuilderConfig {
       required: required,
       defaultValue: defaultValue ?? [],
       props: UploadProps(
-        // 只保留 FileUpload 组件需要的属性
         customFileList: customFileList,
         fileListType: fileListType,
         onFileChange: onFileChange,
@@ -255,6 +260,7 @@ class FormBuilderConfig {
         autoUpload: autoUpload,
         isRemoveFailFile: isRemoveFailFile,
         uploadConfig: uploadConfig,
+        customUpload: customUpload,
         defaultValue: defaultValue,
         uploadIcon: uploadIcon,
         uploadText: uploadText,
@@ -407,6 +413,7 @@ class UploadProps {
   final bool autoUpload; // 是否自动上传
   final bool isRemoveFailFile; // 上传失败时是否移除文件
   final UploadConfig? uploadConfig; // 上传配置
+  final Future<FileUploadModel?> Function(String filePath, Function(double) onProgress)? customUpload; // 自定义上传函数
   final List<FileUploadModel>? defaultValue; // 默认文件列表
   final Widget? uploadIcon; // 自定义上传区域图标
   final Widget? uploadText; // 自定义上传区域文本
@@ -424,6 +431,7 @@ class UploadProps {
     this.autoUpload = true,
     this.isRemoveFailFile = false,
     this.uploadConfig,
+    this.customUpload,
     this.defaultValue,
     this.uploadIcon,
     this.uploadText,

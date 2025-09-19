@@ -24,7 +24,7 @@ class UploadFieldWidget extends StatelessWidget {
       } else {
         // 创建一个基本的 FileUploadModel
         final fileInfo = FileInfo(id: DateTime.now().millisecondsSinceEpoch, fileName: item.toString(), requestPath: '');
-        return FileUploadModel(fileInfo: fileInfo, name: item.toString(), status: UploadStatus.success);
+        return FileUploadModel(fileInfo: fileInfo, name: item.toString(), path: '', status: UploadStatus.success);
       }
     }).toList();
   }
@@ -67,6 +67,7 @@ class UploadFieldWidget extends StatelessWidget {
               autoUpload: props.autoUpload,
               isRemoveFailFile: props.isRemoveFailFile,
               uploadConfig: props.uploadConfig,
+              customUpload: props.customUpload,
               defaultValue: _convertToFileUploadModels(state.value),
               // 自定义组件
               customFileList: props.customFileList,
