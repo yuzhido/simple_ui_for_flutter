@@ -45,12 +45,7 @@ class _LoadingDataPageState extends State<LoadingDataPage> {
       children: [
         Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
+          child: Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
         ),
         Container(
           width: double.infinity,
@@ -71,11 +66,7 @@ class _LoadingDataPageState extends State<LoadingDataPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('LoadingData 组件示例'),
-        backgroundColor: Colors.blue[600],
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: const Text('LoadingData 组件示例'), backgroundColor: Colors.blue[600], foregroundColor: Colors.white),
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -83,15 +74,7 @@ class _LoadingDataPageState extends State<LoadingDataPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSection(
-                  '1. 基础圆形加载器',
-                  const SizedBox(
-                    height: 120,
-                    child: LoadingData(
-                      message: '正在加载用户数据...',
-                    ),
-                  ),
-                ),
+                _buildSection('1. 基础圆形加载器', const SizedBox(height: 120, child: LoadingData(message: '正在加载用户数据...'))),
                 _buildSection(
                   '2. 不同类型的加载器',
                   SizedBox(
@@ -103,19 +86,11 @@ class _LoadingDataPageState extends State<LoadingDataPage> {
                             children: [
                               const Text('圆形', style: TextStyle(fontWeight: FontWeight.bold)),
                               const SizedBox(height: 16),
-                              const LoadingData(
-                                type: LoadingType.circular,
-                                message: '圆形加载',
-                                size: LoadingSize.medium,
-                              ),
+                              const LoadingData(type: LoadingType.circular, message: '圆形加载', size: LoadingSize.medium),
                               const SizedBox(height: 32),
                               const Text('线性', style: TextStyle(fontWeight: FontWeight.bold)),
                               const SizedBox(height: 16),
-                              const LoadingData(
-                                type: LoadingType.linear,
-                                message: '线性加载',
-                                size: LoadingSize.medium,
-                              ),
+                              const LoadingData(type: LoadingType.linear, message: '线性加载', size: LoadingSize.medium),
                             ],
                           ),
                         ),
@@ -124,19 +99,11 @@ class _LoadingDataPageState extends State<LoadingDataPage> {
                             children: [
                               const Text('点状', style: TextStyle(fontWeight: FontWeight.bold)),
                               const SizedBox(height: 16),
-                              const LoadingData(
-                                type: LoadingType.dots,
-                                message: '点状加载',
-                                size: LoadingSize.medium,
-                              ),
+                              const LoadingData(type: LoadingType.dots, message: '点状加载', size: LoadingSize.medium),
                               const SizedBox(height: 32),
                               const Text('旋转器', style: TextStyle(fontWeight: FontWeight.bold)),
                               const SizedBox(height: 16),
-                              const LoadingData(
-                                type: LoadingType.spinner,
-                                message: '旋转加载',
-                                size: LoadingSize.medium,
-                              ),
+                              const LoadingData(type: LoadingType.spinner, message: '旋转加载', size: LoadingSize.medium),
                             ],
                           ),
                         ),
@@ -155,30 +122,21 @@ class _LoadingDataPageState extends State<LoadingDataPage> {
                           children: [
                             const Text('小', style: TextStyle(fontWeight: FontWeight.bold)),
                             const SizedBox(height: 16),
-                            const LoadingData(
-                              size: LoadingSize.small,
-                              message: '小尺寸',
-                            ),
+                            const LoadingData(size: LoadingSize.small, message: '小尺寸'),
                           ],
                         ),
                         Column(
                           children: [
                             const Text('中', style: TextStyle(fontWeight: FontWeight.bold)),
                             const SizedBox(height: 16),
-                            const LoadingData(
-                              size: LoadingSize.medium,
-                              message: '中尺寸',
-                            ),
+                            const LoadingData(size: LoadingSize.medium, message: '中尺寸'),
                           ],
                         ),
                         Column(
                           children: [
                             const Text('大', style: TextStyle(fontWeight: FontWeight.bold)),
                             const SizedBox(height: 16),
-                            const LoadingData(
-                              size: LoadingSize.large,
-                              message: '大尺寸',
-                            ),
+                            const LoadingData(size: LoadingSize.large, message: '大尺寸'),
                           ],
                         ),
                       ],
@@ -192,22 +150,9 @@ class _LoadingDataPageState extends State<LoadingDataPage> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        const LoadingData(
-                          color: Colors.red,
-                          message: '红色主题',
-                          size: LoadingSize.medium,
-                        ),
-                        const LoadingData(
-                          color: Colors.green,
-                          message: '绿色主题',
-                          size: LoadingSize.medium,
-                        ),
-                        LoadingData(
-                          color: Colors.purple,
-                          backgroundColor: Colors.purple.withOpacity(0.1),
-                          message: '紫色主题',
-                          size: LoadingSize.medium,
-                        ),
+                        const LoadingData(color: Colors.red, message: '红色主题', size: LoadingSize.medium),
+                        const LoadingData(color: Colors.green, message: '绿色主题', size: LoadingSize.medium),
+                        LoadingData(color: Colors.purple, backgroundColor: Colors.purple.withValues(alpha: 0.1), message: '紫色主题', size: LoadingSize.medium),
                       ],
                     ),
                   ),
@@ -217,26 +162,11 @@ class _LoadingDataPageState extends State<LoadingDataPage> {
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      LoadingData(
-                        type: LoadingType.circular,
-                        progress: _progress,
-                        message: '圆形进度: ${(_progress * 100).toInt()}%',
-                        size: LoadingSize.medium,
-                        color: Colors.blue,
-                      ),
+                      LoadingData(type: LoadingType.circular, progress: _progress, message: '圆形进度: ${(_progress * 100).toInt()}%', size: LoadingSize.medium, color: Colors.blue),
                       const SizedBox(height: 16),
-                      LoadingData(
-                        type: LoadingType.linear,
-                        progress: _progress,
-                        message: '线性进度: ${(_progress * 100).toInt()}%',
-                        size: LoadingSize.medium,
-                        color: Colors.orange,
-                      ),
+                      LoadingData(type: LoadingType.linear, progress: _progress, message: '线性进度: ${(_progress * 100).toInt()}%', size: LoadingSize.medium, color: Colors.orange),
                       const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _isLoading ? null : _startProgressDemo,
-                        child: Text(_isLoading ? '进度演示中...' : '开始进度演示'),
-                      ),
+                      ElevatedButton(onPressed: _isLoading ? null : _startProgressDemo, child: Text(_isLoading ? '进度演示中...' : '开始进度演示')),
                     ],
                   ),
                 ),
@@ -249,21 +179,13 @@ class _LoadingDataPageState extends State<LoadingDataPage> {
                         Expanded(
                           child: LoadingData(
                             message: '自定义文字样式',
-                            messageStyle: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
-                            ),
+                            messageStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
                             color: Colors.blue,
                           ),
                         ),
                         const SizedBox(width: 20),
                         Expanded(
-                          child: LoadingData(
-                            message: '无消息显示',
-                            showMessage: false,
-                            color: Colors.grey,
-                          ),
+                          child: LoadingData(message: '无消息显示', showMessage: false, color: Colors.grey),
                         ),
                       ],
                     ),

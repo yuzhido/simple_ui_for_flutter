@@ -72,9 +72,7 @@ class _NoticeInfoState extends State<NoticeInfo> with SingleTickerProviderStateM
     final RenderBox? renderBox = context.findRenderObject() as RenderBox?;
     if (renderBox != null) {
       // 计算可用于文本的真实宽度：容器总宽度 - 水平内边距 - 图标宽度 - 图标与文字间距
-      final EdgeInsets resolvedPadding = (widget.padding ?? const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0)).resolve(
-        Directionality.of(context),
-      );
+      final EdgeInsets resolvedPadding = (widget.padding ?? const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0)).resolve(Directionality.of(context));
       const double iconWidth = 24.0;
       const double iconSpacing = 12.0;
       final double horizontalPadding = resolvedPadding.left + resolvedPadding.right;
@@ -227,22 +225,14 @@ class _NoticeInfoState extends State<NoticeInfo> with SingleTickerProviderStateM
                                     children: [
                                       Text(
                                         widget.message,
-                                        style: const TextStyle(
-                                          color: Color(0xFF424242),
-                                          fontSize: 14.0,
-                                          fontWeight: FontWeight.w400,
-                                        ),
+                                        style: const TextStyle(color: Color(0xFF424242), fontSize: 14.0, fontWeight: FontWeight.w400),
                                         softWrap: false,
                                         overflow: TextOverflow.visible,
                                       ),
                                       const SizedBox(width: _gapWidth),
                                       Text(
                                         widget.message,
-                                        style: const TextStyle(
-                                          color: Color(0xFF424242),
-                                          fontSize: 14.0,
-                                          fontWeight: FontWeight.w400,
-                                        ),
+                                        style: const TextStyle(color: Color(0xFF424242), fontSize: 14.0, fontWeight: FontWeight.w400),
                                         softWrap: false,
                                         overflow: TextOverflow.visible,
                                       ),

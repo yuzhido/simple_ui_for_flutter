@@ -92,20 +92,14 @@ class _AddUserPageState extends State<AddUserPage> {
         child: Column(
           children: [
             Expanded(
-              child: FormBuilder(
-                formKey: _formKey,
-                controller: _controller,
-                configs: _formConfigs,
-                autovalidate: true,
-                padding: const EdgeInsets.all(16),
-              ),
+              child: FormBuilder(formKey: _formKey, controller: _controller, configs: _formConfigs, autovalidate: true, padding: const EdgeInsets.all(16)),
             ),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
-                boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), spreadRadius: 1, blurRadius: 5, offset: const Offset(0, -2))],
+                boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.2), spreadRadius: 1, blurRadius: 5, offset: const Offset(0, -2))],
               ),
               child: Row(
                 children: [
@@ -127,17 +121,9 @@ class _AddUserPageState extends State<AddUserPage> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: _isSubmitting ? null : _submitForm,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[600],
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[600], foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16)),
                       child: _isSubmitting
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
-                            )
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
                           : const Text('保存'),
                     ),
                   ),

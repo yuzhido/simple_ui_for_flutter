@@ -98,11 +98,7 @@ class _PermissionRequestPageState extends State<PermissionRequestPage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _openAppSettings,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16)),
                       child: const Text('打开应用设置'),
                     ),
                   ),

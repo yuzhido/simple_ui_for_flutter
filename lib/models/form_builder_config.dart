@@ -247,6 +247,9 @@ class FormBuilderConfig {
       label: label,
       required: required,
       defaultValue: defaultValue ?? [],
+      isShow: isShow,
+      validator: validator,
+      onChange: onChange,
       props: UploadProps(
         customFileList: customFileList,
         fileListType: fileListType,
@@ -265,9 +268,6 @@ class FormBuilderConfig {
         uploadIcon: uploadIcon,
         uploadText: uploadText,
       ),
-      isShow: isShow,
-      validator: validator,
-      onChange: onChange,
     );
   }
 

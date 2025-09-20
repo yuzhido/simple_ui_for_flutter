@@ -70,16 +70,7 @@ class User {
         updatedAt = DateTime.tryParse(json['updatedAt'].toString());
       }
 
-      final user = User(
-        id: id,
-        name: name,
-        age: age,
-        address: address,
-        school: school,
-        birthday: birthday,
-        createdAt: createdAt,
-        updatedAt: updatedAt,
-      );
+      final user = User(id: id, name: name, age: age, address: address, school: school, birthday: birthday, createdAt: createdAt, updatedAt: updatedAt);
 
       return user;
     } catch (e) {

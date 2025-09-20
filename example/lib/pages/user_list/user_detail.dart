@@ -4,9 +4,9 @@ import 'user_edit.dart';
 
 class UserDetailPage extends StatefulWidget {
   final User user;
-  
+
   const UserDetailPage({super.key, required this.user});
-  
+
   @override
   State<UserDetailPage> createState() => _UserDetailPageState();
 }
@@ -21,12 +21,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
   }
 
   void _navigateToEdit() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => UserEditPage(user: currentUser),
-      ),
-    );
+    final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => UserEditPage(user: currentUser)));
 
     // 如果编辑成功，更新当前用户数据
     if (result != null && result is User) {
@@ -44,21 +39,11 @@ class _UserDetailPageState extends State<UserDetailPage> {
         backgroundColor: Colors.blue[600],
         foregroundColor: Colors.white,
         elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: _navigateToEdit,
-            icon: const Icon(Icons.edit),
-            tooltip: '编辑用户',
-          ),
-        ],
+        actions: [IconButton(onPressed: _navigateToEdit, icon: const Icon(Icons.edit), tooltip: '编辑用户')],
       ),
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.blue[50]!, Colors.white],
-          ),
+          gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Colors.blue[50]!, Colors.white]),
         ),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -71,13 +56,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 15,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, 5))],
                 ),
                 child: Column(
                   children: [
@@ -87,27 +66,13 @@ class _UserDetailPageState extends State<UserDetailPage> {
                       height: 100,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [Colors.blue[400]!, Colors.purple[400]!],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.blue.withOpacity(0.3),
-                            blurRadius: 15,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
+                        gradient: LinearGradient(colors: [Colors.blue[400]!, Colors.purple[400]!]),
+                        boxShadow: [BoxShadow(color: Colors.blue.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 5))],
                       ),
                       child: Center(
                         child: Text(
-                          (currentUser.name?.isNotEmpty == true) 
-                              ? currentUser.name![0].toUpperCase() 
-                              : '?',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 40,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          (currentUser.name?.isNotEmpty == true) ? currentUser.name![0].toUpperCase() : '?',
+                          style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
@@ -115,11 +80,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     // 姓名
                     Text(
                       currentUser.name ?? '未知用户',
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
+                      style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black87),
                     ),
                     const SizedBox(height: 8),
                     // 年龄
@@ -127,9 +88,9 @@ class _UserDetailPageState extends State<UserDetailPage> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.1),
+                          color: Colors.orange.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                          border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -138,11 +99,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             const SizedBox(width: 6),
                             Text(
                               '${currentUser.age}岁',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.orange[600],
-                                fontWeight: FontWeight.w600,
-                              ),
+                              style: TextStyle(fontSize: 16, color: Colors.orange[600], fontWeight: FontWeight.w600),
                             ),
                           ],
                         ),
@@ -158,41 +115,21 @@ class _UserDetailPageState extends State<UserDetailPage> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 15,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 15, offset: const Offset(0, 5))],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
                       '详细信息',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
                     ),
                     const SizedBox(height: 20),
                     _buildDetailItem('地址', currentUser.address, Icons.location_on),
                     _buildDetailItem('学校', currentUser.school, Icons.school),
                     _buildDetailItem('生日', currentUser.birthday, Icons.cake),
-                    if (currentUser.createdAt != null)
-                      _buildDetailItem(
-                        '创建时间', 
-                        _formatDateTime(currentUser.createdAt!), 
-                        Icons.access_time,
-                      ),
-                    if (currentUser.updatedAt != null)
-                      _buildDetailItem(
-                        '更新时间', 
-                        _formatDateTime(currentUser.updatedAt!), 
-                        Icons.update,
-                      ),
+                    if (currentUser.createdAt != null) _buildDetailItem('创建时间', _formatDateTime(currentUser.createdAt!), Icons.access_time),
+                    if (currentUser.updatedAt != null) _buildDetailItem('更新时间', _formatDateTime(currentUser.updatedAt!), Icons.update),
                   ],
                 ),
               ),
@@ -215,10 +152,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
+            decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
             child: Icon(icon, size: 20, color: Colors.blue[600]),
           ),
           const SizedBox(width: 16),
@@ -228,20 +162,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
               children: [
                 Text(
                   label,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600], fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   value,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w400,
-                  ),
+                  style: const TextStyle(fontSize: 16, color: Colors.black87, fontWeight: FontWeight.w400),
                 ),
               ],
             ),
@@ -253,6 +179,6 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
   String _formatDateTime(DateTime dateTime) {
     return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')} '
-           '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+        '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
 }

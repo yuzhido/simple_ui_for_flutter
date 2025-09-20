@@ -21,6 +21,8 @@ class _TestFormUploadFilePageState extends State<TestFormUploadFilePage> {
     _initConfigs();
   }
 
+  int number = 0;
+
   /// 自定义上传函数示例
   Future<FileUploadModel?> _customUploadFunction(String filePath, Function(double) onProgress) async {
     print('🚀 开始自定义上传文件: $filePath');
@@ -48,16 +50,18 @@ class _TestFormUploadFilePageState extends State<TestFormUploadFilePage> {
         print('✅ 上传成功: $responseData');
 
         // 构建完整的图片URL
-        final serverUrl = responseData['url'] ?? responseData['path'] ?? 'https://picsum.photos/300/200?random=${DateTime.now().millisecondsSinceEpoch}';
+        final serverPath = responseData['path'] ?? responseData['url'] ?? '';
+        final fullServerUrl = serverPath.startsWith('http') ? serverPath : '${Config.baseUrl}$serverPath';
 
         return FileUploadModel(
           fileInfo: FileInfo(
             id: DateTime.now().millisecondsSinceEpoch.toString(),
             fileName: fileName,
-            requestPath: responseData['path'] ?? '', // requestPath存储服务器返回的相对路径
+            requestPath: serverPath, // requestPath存储服务器返回的相对路径
           ),
           name: fileName,
-          path: serverUrl, // path字段存储完整的图片URL
+          path: filePath, // 保留原始本地文件路径，用于上传前的预览
+          url: fullServerUrl, // url字段存储完整的服务器URL，用于上传后的访问
           status: UploadStatus.success,
           progress: 1.0,
         );
@@ -130,7 +134,9 @@ class _TestFormUploadFilePageState extends State<TestFormUploadFilePage> {
         limit: 10,
         fileSource: FileSource.all,
         onChange: (fieldName, value) {
-          print('自定义样式上传字段 $fieldName 值变更为: $value');
+          print(number);
+          print('$number自定义样式上传字段 $fieldName 值变更为: $value');
+          number++;
           List<dynamic> files = value ?? [];
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('自定义上传区域已上传 ${files.length} 个文件'), duration: Duration(seconds: 1)));
         },
@@ -146,9 +152,10 @@ class _TestFormUploadFilePageState extends State<TestFormUploadFilePage> {
         limit: 5,
         fileSource: FileSource.all,
         onChange: (fieldName, value) {
-          print('自定义上传函数字段 $fieldName 值变更为: $value');
-          List<dynamic> files = value ?? [];
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('自定义函数已上传 ${files.length} 个文件'), duration: Duration(seconds: 1)));
+          number++;
+          value?.forEach((element) {
+            print('5555555555$number自定义样式上传字段 $fieldName  文件ID: ${element.status}');
+          });
         },
       ),
 

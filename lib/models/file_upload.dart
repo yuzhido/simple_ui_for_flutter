@@ -22,6 +22,7 @@ enum FileSource {
   image, // 只允许选择图片
   camera, // 只允许拍照
   imageOrCamera, // 只允许选择图片或拍照
+  network, // 网络文件
 }
 
 // 文件上传实体类
@@ -114,7 +115,7 @@ class UploadConfig {
   }
 }
 
-// 文件上传模型类
+/// 文件上传模型类
 class FileUploadModel {
   /// 唯一标识ID（随机生成，用于前端操作如删除等，与后端ID不冲突，永远不为空）
   final String id;
@@ -129,7 +130,7 @@ class FileUploadModel {
   final String path;
 
   /// 文件来源（文件选择、图片选择、拍照等）
-  final FileSource? source;
+  final FileSource source;
 
   /// 上传状态（等待、上传中、成功、失败）
   final UploadStatus? status;
@@ -157,7 +158,7 @@ class FileUploadModel {
     this.fileInfo,
     required this.name,
     required this.path,
-    this.source,
+    this.source = FileSource.network,
     this.fileSize,
     this.fileSizeInfo,
     this.status,
@@ -179,7 +180,7 @@ class FileUploadModel {
     FileInfo? fileInfo,
     required String name,
     required String path,
-    FileSource? source,
+    FileSource source = FileSource.network,
     int? fileSize,
     String? fileSizeInfo,
     UploadStatus? status,
@@ -242,7 +243,7 @@ class FileUploadModel {
       fileInfo: map['fileInfo'] != null ? FileInfo.fromMap(map['fileInfo']) : null,
       name: map['name'],
       path: map['path'],
-      source: map['source'] != null ? FileSource.values[map['source']] : null,
+      source: FileSource.values[map['source']],
       status: map['status'] != null ? UploadStatus.values[map['status']] : null,
       progress: map['progress']?.toDouble() ?? 0,
       fileSize: map['fileSize'],
@@ -260,7 +261,7 @@ class FileUploadModel {
       'fileInfo': fileInfo?.toMap(),
       'name': name,
       'path': path,
-      'source': source?.index,
+      'source': source.index,
       'status': status?.index,
       'progress': progress,
       'fileSize': fileSize,

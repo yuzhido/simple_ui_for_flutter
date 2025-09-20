@@ -108,3 +108,46 @@ showImageOrCameraDialog(BuildContext context, {Function(FileUploadModel)? onFile
     },
   );
 }
+
+// 是否显示上传按钮
+bool isShowButton(allFiles, fileListType, limit) {
+  if (fileListType == FileListType.card) return false;
+  if (limit == -1 || allFiles.length < limit) return true;
+  return false;
+}
+
+// 是否显示上传卡片
+bool isShowCard(allFiles, fileListType, limit) {
+  if (fileListType != FileListType.card) return false;
+  if (limit == -1 || allFiles.length < limit) return true;
+  return false;
+}
+
+/// 根据fileSource决定交互方式
+void handleFileSelection(BuildContext context, FileSource fileSource, onFileSelected) {
+  switch (fileSource) {
+    case FileSource.file:
+      // 只允许选择文件，直接调用文件选择
+      FilePickerUtils.pickFile(onFileSelected: onFileSelected);
+      break;
+    case FileSource.image:
+      // 只允许选择图片，直接调用相册选择
+      FilePickerUtils.pickImageFromGallery(onFileSelected: onFileSelected);
+      break;
+    case FileSource.camera:
+      // 只允许拍照，直接调用摄像头
+      FilePickerUtils.pickImageFromCamera(onFileSelected: onFileSelected);
+      break;
+    case FileSource.imageOrCamera:
+      // 允许选择图片或拍照，显示包含这两个选项的弹窗
+      showImageOrCameraDialog(context, onFileSelected: onFileSelected);
+      break;
+    case FileSource.all:
+      // 允许所有类型，显示完整的选择弹窗
+      showFileSourceDialog(context, onFileSelected: onFileSelected);
+      break;
+    default:
+      // 网络文件
+      break;
+  }
+}

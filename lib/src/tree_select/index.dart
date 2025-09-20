@@ -55,10 +55,7 @@ class _TreeSelectState extends State<TreeSelect> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _animationController = AnimationController(duration: const Duration(milliseconds: 150), vsync: this);
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
 
     // 初始化显示数据
     _displayData = widget.data;
@@ -345,11 +342,7 @@ class _TreeSelectState extends State<TreeSelect> with TickerProviderStateMixin {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: selectedLabel != null ? Colors.blue.shade600 : Colors.grey.shade400,
-                    size: 24,
-                  ),
+                  Icon(Icons.keyboard_arrow_down_rounded, color: selectedLabel != null ? Colors.blue.shade600 : Colors.grey.shade400, size: 24),
                 ],
               ),
             ),
@@ -412,10 +405,7 @@ class _TreeBottomSheetState extends State<_TreeBottomSheet> with TickerProviderS
   void initState() {
     super.initState();
     _slideController = AnimationController(duration: const Duration(milliseconds: 300), vsync: this);
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic));
+    _slideAnimation = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic));
     _scrollController = ScrollController();
     _slideController.forward();
 
@@ -676,11 +666,7 @@ class _TreeBottomSheetState extends State<_TreeBottomSheet> with TickerProviderS
                   Expanded(
                     child: Text(
                       node.label,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                        color: isSelected ? Colors.blue.shade700 : Colors.grey.shade800,
-                      ),
+                      style: TextStyle(fontSize: 16, fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500, color: isSelected ? Colors.blue.shade700 : Colors.grey.shade800),
                     ),
                   ),
                   if (isSelected)
@@ -734,12 +720,7 @@ class _TreeBottomSheetState extends State<_TreeBottomSheet> with TickerProviderS
                       children: [
                         Text(
                           '请选择',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.grey.shade900,
-                            letterSpacing: -0.5,
-                          ),
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: Colors.grey.shade900, letterSpacing: -0.5),
                         ),
                         const SizedBox(height: 4),
                         Text(
@@ -843,14 +824,7 @@ class _TreeBottomSheetState extends State<_TreeBottomSheet> with TickerProviderS
                           shadowColor: Colors.transparent,
                         ),
                         child: _isSearching
-                            ? SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                ),
-                              )
+                            ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
                             : const Text('搜索'),
                       ),
                   ],

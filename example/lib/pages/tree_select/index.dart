@@ -342,10 +342,7 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          Text(
-                            '支持两种方式：1) 传入ID字符串 2) 传入TreeNode对象',
-                            style: TextStyle(fontSize: 12, color: Colors.blue.shade600, height: 1.4),
-                          ),
+                          Text('支持两种方式：1) 传入ID字符串 2) 传入TreeNode对象', style: TextStyle(fontSize: 12, color: Colors.blue.shade600, height: 1.4)),
                           const SizedBox(height: 12),
                           Row(
                             children: [
@@ -412,15 +409,9 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          Text(
-                            '这个变量既作为初始值，又存储用户选择的值',
-                            style: TextStyle(fontSize: 12, color: Colors.purple.shade600, height: 1.4),
-                          ),
+                          Text('这个变量既作为初始值，又存储用户选择的值', style: TextStyle(fontSize: 12, color: Colors.purple.shade600, height: 1.4)),
                           const SizedBox(height: 8),
-                          Text(
-                            '工作原理：1) 有值时自动选中 2) 用户选择后自动更新变量 3) 支持动态修改',
-                            style: TextStyle(fontSize: 11, color: Colors.purple.shade500, height: 1.4),
-                          ),
+                          Text('工作原理：1) 有值时自动选中 2) 用户选择后自动更新变量 3) 支持动态修改', style: TextStyle(fontSize: 11, color: Colors.purple.shade500, height: 1.4)),
                           const SizedBox(height: 12),
                           // 状态指示器
                           Container(
@@ -428,10 +419,7 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
                             decoration: BoxDecoration(
                               color: _bidirectionalValue == null ? Colors.grey.shade200 : Colors.green.shade100,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: _bidirectionalValue == null ? Colors.grey.shade400 : Colors.green.shade400,
-                                width: 1,
-                              ),
+                              border: Border.all(color: _bidirectionalValue == null ? Colors.grey.shade400 : Colors.green.shade400, width: 1),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -444,11 +432,7 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
                                 const SizedBox(width: 6),
                                 Text(
                                   _bidirectionalValue == null ? '未选中' : '已选中',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: _bidirectionalValue == null ? Colors.grey.shade600 : Colors.green.shade600,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                  style: TextStyle(fontSize: 12, color: _bidirectionalValue == null ? Colors.grey.shade600 : Colors.green.shade600, fontWeight: FontWeight.w500),
                                 ),
                               ],
                             ),
@@ -529,10 +513,7 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
                                 const SizedBox(height: 8),
                                 Text(
                                   '状态: ${_bidirectionalValue == null ? "已清空" : "有值"}',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: _bidirectionalValue == null ? Colors.red.shade600 : Colors.green.shade600,
-                                  ),
+                                  style: TextStyle(fontSize: 12, color: _bidirectionalValue == null ? Colors.red.shade600 : Colors.green.shade600),
                                 ),
                               ],
                             ),
@@ -643,10 +624,7 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          Text(
-                            '模拟从远程API搜索数据，输入关键词后点击搜索按钮',
-                            style: TextStyle(fontSize: 12, color: Colors.orange.shade600, height: 1.4),
-                          ),
+                          Text('模拟从远程API搜索数据，输入关键词后点击搜索按钮', style: TextStyle(fontSize: 12, color: Colors.orange.shade600, height: 1.4)),
                           const SizedBox(height: 12),
                           TreeSelect(
                             data: list,
@@ -695,10 +673,7 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          Text(
-                            '在本地数据中实时过滤，输入关键词即可看到结果',
-                            style: TextStyle(fontSize: 12, color: Colors.teal.shade600, height: 1.4),
-                          ),
+                          Text('在本地数据中实时过滤，输入关键词即可看到结果', style: TextStyle(fontSize: 12, color: Colors.teal.shade600, height: 1.4)),
                           const SizedBox(height: 12),
                           TreeSelect(
                             data: list,

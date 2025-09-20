@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:simple_ui/models/file_upload.dart';
 
@@ -188,6 +189,7 @@ class FileUploadUtils {
 
       onStatusUpdate(UploadStatus.uploading, progress: 1.0);
 
+      debugPrint('🚀 返回的FileUploadModel:${result?.toMap()}');
       // 处理自定义上传返回的结果
       FileUploadModel updatedModel;
       if (result != null) {
@@ -196,18 +198,16 @@ class FileUploadUtils {
           id: fileModel.id, // 保持原有的FileUploadModel的id
           status: UploadStatus.success,
           progress: 1.0,
+          url: result.url ?? '',
         );
-
-        // 添加调试信息
-        print('🔄 自定义上传成功，更新FileUploadModel:');
-        print('   原始path: ${fileModel.path}');
-        print('   新的path: ${result.path}');
-        print('   状态: ${updatedModel.status}');
       } else {
         // 自定义上传失败，返回null
         onError('自定义上传失败');
         updatedModel = fileModel.copyWith(status: UploadStatus.failed, progress: 0.0);
       }
+
+      // 添加调试信息
+      debugPrint('🔄 🔄 🔄 🔄 🔄 更新FileUploadModel:${updatedModel.toMap()}');
 
       onSuccess(updatedModel);
       return FileUploadResult.success(updatedModel);

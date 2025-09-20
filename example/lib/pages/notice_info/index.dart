@@ -39,11 +39,7 @@ class _NoticeInfoState extends State<NoticeInfoPage> {
             const SizedBox(height: 24),
             const Text('自定义样式:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            const NoticeInfo(
-              message: '自定义高度和内边距的通知',
-              height: 60.0,
-              padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-            ),
+            const NoticeInfo(message: '自定义高度和内边距的通知', height: 60.0, padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0)),
 
             const SizedBox(height: 24),
             const Text('长文本消息:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),

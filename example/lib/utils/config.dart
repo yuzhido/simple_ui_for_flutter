@@ -11,15 +11,11 @@ class Config {
   static const int timeout = 15000; // 增加到15秒
 
   /// 请求头
-  static const Map<String, String> headers = {
-    'Content-Type': 'application/json', 
-    'Accept': 'application/json',
-    'User-Agent': 'Flutter-App/1.0'
-  };
-  
+  static const Map<String, String> headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'User-Agent': 'Flutter-App/1.0'};
+
   /// 是否启用调试模式
   static const bool debugMode = true;
-  
+
   /// 重试次数
   static const int retryCount = 3;
 }

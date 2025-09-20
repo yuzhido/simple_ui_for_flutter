@@ -84,9 +84,7 @@ class _UserEditPageState extends State<UserEditPage> {
         birthday: values['birthday']?.toString(),
       );
 
-      print(
-        '更新的User对象: name=${updatedUser.name}, age=${updatedUser.age}, address=${updatedUser.address}, school=${updatedUser.school}, birthday=${updatedUser.birthday}',
-      );
+      print('更新的User对象: name=${updatedUser.name}, age=${updatedUser.age}, address=${updatedUser.address}, school=${updatedUser.school}, birthday=${updatedUser.birthday}');
 
       // 调用API更新用户
       final response = await UserApi.updateUser(_currentUser.id!, updatedUser);
@@ -127,20 +125,14 @@ class _UserEditPageState extends State<UserEditPage> {
             Column(
               children: [
                 Expanded(
-                  child: FormBuilder(
-                    formKey: _formKey,
-                    controller: _controller,
-                    configs: _formConfigs,
-                    autovalidate: true,
-                    padding: const EdgeInsets.all(16),
-                  ),
+                  child: FormBuilder(formKey: _formKey, controller: _controller, configs: _formConfigs, autovalidate: true, padding: const EdgeInsets.all(16)),
                 ),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    boxShadow: [BoxShadow(color: Colors.grey.withOpacity(0.2), spreadRadius: 1, blurRadius: 5, offset: const Offset(0, -2))],
+                    boxShadow: [BoxShadow(color: Colors.grey.withValues(alpha: 0.2), spreadRadius: 1, blurRadius: 5, offset: const Offset(0, -2))],
                   ),
                   child: Row(
                     children: [
@@ -162,17 +154,9 @@ class _UserEditPageState extends State<UserEditPage> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: (_isSubmitting || _isLoading) ? null : _submitForm,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue[600],
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[600], foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 16)),
                           child: _isSubmitting
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
-                                )
+                              ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)))
                               : const Text('保存'),
                         ),
                       ),
@@ -186,7 +170,7 @@ class _UserEditPageState extends State<UserEditPage> {
                 child: AbsorbPointer(
                   absorbing: true,
                   child: Container(
-                    color: Colors.white.withOpacity(0.6),
+                    color: Colors.white.withValues(alpha: 0.6),
                     child: const Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,

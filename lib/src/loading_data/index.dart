@@ -1,18 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 
-enum LoadingType {
-  circular,
-  linear,
-  dots,
-  spinner,
-}
+enum LoadingType { circular, linear, dots, spinner }
 
-enum LoadingSize {
-  small,
-  medium,
-  large,
-}
+enum LoadingSize { small, medium, large }
 
 class LoadingData extends StatefulWidget {
   final String? message;
@@ -52,22 +43,15 @@ class LoadingData extends StatefulWidget {
   State<LoadingData> createState() => _LoadingDataState();
 }
 
-class _LoadingDataState extends State<LoadingData>
-    with TickerProviderStateMixin {
+class _LoadingDataState extends State<LoadingData> with TickerProviderStateMixin {
   late AnimationController _dotsController;
   late AnimationController _spinnerController;
 
   @override
   void initState() {
     super.initState();
-    _dotsController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    )..repeat();
-    _spinnerController = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    )..repeat();
+    _dotsController = AnimationController(duration: const Duration(milliseconds: 1200), vsync: this)..repeat();
+    _spinnerController = AnimationController(duration: const Duration(milliseconds: 800), vsync: this)..repeat();
   }
 
   @override
@@ -101,33 +85,24 @@ class _LoadingDataState extends State<LoadingData>
 
   Widget _buildLoadingIndicator() {
     final color = widget.color ?? Theme.of(context).primaryColor;
-    
+
     switch (widget.type) {
       case LoadingType.circular:
         return SizedBox(
           width: _indicatorSize,
           height: _indicatorSize,
-          child: CircularProgressIndicator(
-            color: color,
-            backgroundColor: widget.backgroundColor,
-            strokeWidth: widget.strokeWidth ?? 4.0,
-            value: widget.progress,
-          ),
+          child: CircularProgressIndicator(color: color, backgroundColor: widget.backgroundColor, strokeWidth: widget.strokeWidth ?? 4.0, value: widget.progress),
         );
-      
+
       case LoadingType.linear:
         return SizedBox(
           width: _indicatorSize * 3,
-          child: LinearProgressIndicator(
-            color: color,
-            backgroundColor: widget.backgroundColor,
-            value: widget.progress,
-          ),
+          child: LinearProgressIndicator(color: color, backgroundColor: widget.backgroundColor, value: widget.progress),
         );
-      
+
       case LoadingType.dots:
         return _buildDotsIndicator(color);
-      
+
       case LoadingType.spinner:
         return _buildSpinnerIndicator(color);
     }
@@ -143,7 +118,7 @@ class _LoadingDataState extends State<LoadingData>
             final delay = index * 0.2;
             final animationValue = (_dotsController.value - delay).clamp(0.0, 1.0);
             final scale = (sin(animationValue * pi) * 0.5 + 0.5).clamp(0.5, 1.0);
-            
+
             return Container(
               margin: EdgeInsets.symmetric(horizontal: _spacing / 4),
               child: Transform.scale(
@@ -151,10 +126,7 @@ class _LoadingDataState extends State<LoadingData>
                 child: Container(
                   width: _indicatorSize / 3,
                   height: _indicatorSize / 3,
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                  ),
+                  decoration: BoxDecoration(color: color, shape: BoxShape.circle),
                 ),
               ),
             );
@@ -174,19 +146,13 @@ class _LoadingDataState extends State<LoadingData>
             width: _indicatorSize,
             height: _indicatorSize,
             decoration: BoxDecoration(
-              border: Border.all(
-                color: color.withOpacity(0.3),
-                width: widget.strokeWidth ?? 3.0,
-              ),
+              border: Border.all(color: color.withValues(alpha: 0.3), width: widget.strokeWidth ?? 3.0),
               borderRadius: BorderRadius.circular(_indicatorSize / 2),
             ),
             child: Container(
               decoration: BoxDecoration(
                 border: Border(
-                  top: BorderSide(
-                    color: color,
-                    width: widget.strokeWidth ?? 3.0,
-                  ),
+                  top: BorderSide(color: color, width: widget.strokeWidth ?? 3.0),
                 ),
                 borderRadius: BorderRadius.circular(_indicatorSize / 2),
               ),
@@ -198,42 +164,29 @@ class _LoadingDataState extends State<LoadingData>
   }
 
   Widget _buildContent() {
-    final children = <Widget>[
-      _buildLoadingIndicator(),
-    ];
+    final children = <Widget>[_buildLoadingIndicator()];
 
     if (widget.showMessage && widget.message != null) {
       children.add(SizedBox(height: _spacing));
       children.add(
         Text(
           widget.message!,
-          style: widget.messageStyle ??
-              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
-                  ),
+          style: widget.messageStyle ?? Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
           textAlign: TextAlign.center,
         ),
       );
     }
 
-    return Column(
-      mainAxisAlignment: widget.mainAxisAlignment,
-      crossAxisAlignment: widget.crossAxisAlignment,
-      mainAxisSize: MainAxisSize.min,
-      children: children,
-    );
+    return Column(mainAxisAlignment: widget.mainAxisAlignment, crossAxisAlignment: widget.crossAxisAlignment, mainAxisSize: MainAxisSize.min, children: children);
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget content = Container(
-      padding: widget.padding,
-      child: _buildContent(),
-    );
+    Widget content = Container(padding: widget.padding, child: _buildContent());
 
     if (widget.overlay) {
       content = Container(
-        color: widget.overlayColor ?? Colors.black.withOpacity(0.3),
+        color: widget.overlayColor ?? Colors.black.withValues(alpha: 0.3),
         child: Center(child: content),
       );
     } else {
