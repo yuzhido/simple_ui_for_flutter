@@ -80,21 +80,12 @@ Widget buildImagePreview(FileUploadModel fileModel) {
   } else if (fileModel.url?.isNotEmpty == true) {
     imagePath = fileModel.url!;
   }
-
   if (imagePath.isEmpty) {
     debugPrint('❌ 图片路径为空');
     return Icon(Icons.image, color: Colors.grey.shade400, size: 40);
   }
   // 判断是否为网络URL
   final isNetworkUrl = imagePath.startsWith('http://') || imagePath.startsWith('https://');
-
-  debugPrint('🖼️ 构建图片预览调试信息开始================================================>:');
-  debugPrint('📄 图片本地路径: ${fileModel.path}');
-  debugPrint('📄 图片Url路径: ${fileModel.url}');
-  debugPrint('📄 图片Id: ${fileModel.id}');
-  debugPrint('🌐 是否为网络URL: $isNetworkUrl');
-  debugPrint('🖼️ 构建图片预览调试信息结束<================================================:');
-
   if (isNetworkUrl) {
     // 网络图片
     return NetworkImageShow(imagePath, fileModel.id);
@@ -139,5 +130,6 @@ FileUploadModel createFileUploadModel({required String fileName, required String
     fileSizeInfo: fileSizeInfo,
     status: UploadStatus.pending,
     progress: 0.0,
+    createTime: DateTime.now(),
   );
 }

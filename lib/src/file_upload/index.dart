@@ -145,7 +145,8 @@ class _FileUploadState extends State<FileUpload> {
     setState(() {
       _tempFiles.add(fileModel);
     });
-    widget.onFileChange?.call(fileModel, allFiles, 'add');
+    // 触发第一个文件改变事件
+    widget.onFileChange?.call(fileModel, selectedFiles, 'add');
 
     // 如果启用自动上传且配置有效，立即开始上传
     if (widget.autoUpload != true) return;
@@ -173,8 +174,7 @@ class _FileUploadState extends State<FileUpload> {
 
     if (removedFile != null) {
       // 触发回调，传递被移除的文件、所有文件列表和操作类型
-      final allFiles = [...selectedFiles, ..._tempFiles];
-      widget.onFileChange?.call(removedFile, allFiles, 'remove');
+      widget.onFileChange?.call(removedFile, selectedFiles, 'remove');
     }
   }
 
@@ -190,9 +190,9 @@ class _FileUploadState extends State<FileUpload> {
     }
     // 开始上传
     updateFileStatusById(file.id, UploadStatus.uploading, progress: 0.0);
-    // 触发文件状态变更回调 - 上传开始
-    final allFiles = [...selectedFiles, ..._tempFiles];
-    widget.onFileChange?.call(file, allFiles, 'uploading');
+    // 触发文件状态变更回调 - 上传开始-改变状态
+    file.status = UploadStatus.uploading;
+    widget.onFileChange?.call(file, selectedFiles, 'uploading');
     // 调用上传方法（支持uploadConfig和customUpload）
     _realUpload(file);
   }
@@ -209,10 +209,9 @@ class _FileUploadState extends State<FileUpload> {
       } else {
         // 否则只更新状态为失败
         updateFileStatusById(fileId, UploadStatus.failed);
-
+        failedFile.status = UploadStatus.failed;
         // 触发文件状态变更回调 - 上传失败
-        final allFiles = [...selectedFiles, ..._tempFiles];
-        widget.onFileChange?.call(failedFile, allFiles, 'failed');
+        widget.onFileChange?.call(failedFile, selectedFiles, 'failed');
       }
 
       // 触发失败回调
@@ -225,9 +224,6 @@ class _FileUploadState extends State<FileUpload> {
     final index = _tempFiles.indexWhere((file) => file.fileInfo?.id == fileId || file.id == fileId);
     if (index != -1) {
       final originalFile = _tempFiles[index];
-
-      print('🔄 上传成功，更新文件状态:\n');
-      print('✅ 上传成功返回的模型数据--->\n${updatedModel.toMap()}');
       // 只更新文件信息和状态
       final successFile = FileUploadModel(
         id: originalFile.id,
@@ -240,8 +236,9 @@ class _FileUploadState extends State<FileUpload> {
         fileSize: originalFile.fileSize,
         fileSizeInfo: originalFile.fileSizeInfo,
         url: updatedModel.url,
+        createTime: updatedModel.createTime,
+        updateTime: DateTime.now(),
       );
-      print('🎉 更新的模型数据--->\n${successFile.toMap()}');
       selectedFiles.add(successFile);
       _tempFiles.removeAt(index);
 
@@ -249,8 +246,7 @@ class _FileUploadState extends State<FileUpload> {
       widget.onUploadSuccess?.call(selectedFiles.last);
 
       // 触发文件变更回调
-      final allFiles = [...selectedFiles, ..._tempFiles];
-      widget.onFileChange?.call(selectedFiles.last, allFiles, 'success');
+      widget.onFileChange?.call(selectedFiles.last, selectedFiles, 'success');
     }
   }
 
@@ -268,24 +264,13 @@ class _FileUploadState extends State<FileUpload> {
 
       // 触发文件状态变更回调 - 上传进度更新
       if (status == UploadStatus.uploading) {
-        final allFiles = [...selectedFiles, ..._tempFiles];
-        widget.onFileChange?.call(_tempFiles[index], allFiles, 'progress');
+        widget.onFileChange?.call(_tempFiles[index], selectedFiles, 'progress');
       }
     }
   }
 
   /// 进行真实的HTTP上传方法
   Future<void> _realUpload(FileUploadModel fileModel) async {
-    print('111111111111111111111111111111111111111111111111111');
-    print('111111111111111111111111111111111111111111111111111${fileModel.toMap()}');
-    print('111111111111111111111111111111111111111111111111111');
-    print('111111111111111111111111111111111111111111111111111');
-    print('111111111111111111111111111111111111111111111111111');
-    print('111111111111111111111111111111111111111111111111111');
-    print('111111111111111111111111111111111111111111111111111');
-    print('111111111111111111111111111111111111111111111111111');
-    print('111111111111111111111111111111111111111111111111111');
-    print('111111111111111111111111111111111111111111111111111');
     await FileUploadUtils.realUpload(
       fileModel: fileModel,
       uploadConfig: widget.uploadConfig,

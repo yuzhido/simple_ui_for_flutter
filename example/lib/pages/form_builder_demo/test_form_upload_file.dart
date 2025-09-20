@@ -23,58 +23,6 @@ class _TestFormUploadFilePageState extends State<TestFormUploadFilePage> {
 
   int number = 0;
 
-  /// 自定义上传函数示例
-  Future<FileUploadModel?> _customUploadFunction(String filePath, Function(double) onProgress) async {
-    print('🚀 开始自定义上传文件: $filePath');
-
-    try {
-      final dio = Dio();
-      final formData = FormData();
-      final fileName = filePath.split('/').last.split('\\').last;
-
-      formData.files.add(MapEntry('file', await MultipartFile.fromFile(filePath, filename: fileName)));
-
-      final response = await dio.post(
-        '${Config.baseUrl}/upload/api/upload-file',
-        data: formData,
-        options: Options(headers: {'Authorization': 'Bearer token123'}),
-        onSendProgress: (sent, total) {
-          final progress = sent / total;
-          onProgress(progress);
-          print('📤 上传进度: ${(progress * 100).toInt()}%');
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final responseData = response.data;
-        print('✅ 上传成功: $responseData');
-
-        // 构建完整的图片URL
-        final serverPath = responseData['path'] ?? responseData['url'] ?? '';
-        final fullServerUrl = serverPath.startsWith('http') ? serverPath : '${Config.baseUrl}$serverPath';
-
-        return FileUploadModel(
-          fileInfo: FileInfo(
-            id: DateTime.now().millisecondsSinceEpoch.toString(),
-            fileName: fileName,
-            requestPath: serverPath, // requestPath存储服务器返回的相对路径
-          ),
-          name: fileName,
-          path: filePath, // 保留原始本地文件路径，用于上传前的预览
-          url: fullServerUrl, // url字段存储完整的服务器URL，用于上传后的访问
-          status: UploadStatus.success,
-          progress: 1.0,
-        );
-      } else {
-        print('❌ 上传失败: ${response.statusCode}');
-        return null;
-      }
-    } catch (e) {
-      print('❌ 上传异常: $e');
-      return null;
-    }
-  }
-
   void _initConfigs() {
     _configs = [
       // 基础图片上传 - 卡片样式
@@ -86,7 +34,7 @@ class _TestFormUploadFilePageState extends State<TestFormUploadFilePage> {
           FileUploadModel(
             fileInfo: FileInfo(id: 'demo_1', fileName: 'demo_image.jpg', requestPath: '/uploads/demo.jpg'),
             name: 'demo_image.jpg',
-            path: '${Config.baseUrl}/uploads/file-1758210644301-129721823.jpg',
+            path: '${Config.baseUrl}/uploads/file-1758361962259-284873273.jpeg',
             status: UploadStatus.success,
             progress: 1.0,
           ),
@@ -97,8 +45,6 @@ class _TestFormUploadFilePageState extends State<TestFormUploadFilePage> {
         fileSource: FileSource.imageOrCamera,
         onChange: (fieldName, value) {
           print('图片上传字段 $fieldName 值变更为: $value');
-          List<dynamic> files = value ?? [];
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('已上传 ${files.length} 张图片'), duration: Duration(seconds: 1)));
         },
       ),
 
@@ -133,12 +79,10 @@ class _TestFormUploadFilePageState extends State<TestFormUploadFilePage> {
         uploadConfig: UploadConfig(uploadUrl: '${Config.baseUrl}/upload/api/upload-file', headers: {'Authorization': 'Bearer token123'}),
         limit: 10,
         fileSource: FileSource.all,
-        onChange: (fieldName, value) {
+        onFileChange: (file, fileList, type) {
           print(number);
-          print('$number自定义样式上传字段 $fieldName 值变更为: $value');
+          print('$number自定义样式上传操作: $type, 当前文件: ${file.name}, 文件列表长度: ${fileList.length}');
           number++;
-          List<dynamic> files = value ?? [];
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('自定义上传区域已上传 ${files.length} 个文件'), duration: Duration(seconds: 1)));
         },
       ),
 
@@ -147,15 +91,76 @@ class _TestFormUploadFilePageState extends State<TestFormUploadFilePage> {
         name: 'customFunctionUpload',
         label: '自定义上传函数示例',
         required: false,
-        customUpload: _customUploadFunction,
+        customUpload: (String filePath, Function(double) onProgress) async {
+          print('🚀 开始自定义上传文件: $filePath');
+
+          try {
+            final dio = Dio();
+            final formData = FormData();
+            final fileName = filePath.split('/').last.split('\\').last;
+
+            formData.files.add(MapEntry('file', await MultipartFile.fromFile(filePath, filename: fileName)));
+
+            final response = await dio.post(
+              '${Config.baseUrl}/upload/api/upload-file',
+              data: formData,
+              onSendProgress: (sent, total) {
+                final progress = sent / total;
+                onProgress(progress);
+                print('📤 上传进度: ${(progress * 100).toInt()}%');
+              },
+            );
+
+            if (response.statusCode == 200) {
+              final responseData = response.data;
+              print('✅ 上传成功: $responseData');
+              print('✅ 上传成功: ${responseData['data']}');
+              print('✅ 上传成功: ${responseData['data']['requestPath']}');
+
+              // 构建完整的图片URL
+              final fullServerUrl = '${Config.baseUrl}${responseData['data']['requestPath']}';
+
+              return FileUploadModel(
+                fileInfo: FileInfo(
+                  id: "${responseData['data']['id']}",
+                  fileName: fileName,
+                  requestPath: "${responseData['data']['requestPath']}", // requestPath存储服务器返回的相对路径
+                ),
+                name: fileName,
+                path: filePath, // 保留原始本地文件路径，用于上传前的预览
+                url: fullServerUrl, // url字段存储完整的服务器URL，用于上传后的访问
+                status: UploadStatus.success,
+                progress: 1.0,
+              );
+            } else {
+              print('❌ 上传失败: ${response.statusCode}');
+              return null;
+            }
+          } catch (e) {
+            print('❌ 上传异常: $e');
+            return null;
+          }
+        },
         fileListType: FileListType.card,
         limit: 5,
         fileSource: FileSource.all,
-        onChange: (fieldName, value) {
-          number++;
-          value?.forEach((element) {
-            print('5555555555$number自定义样式上传字段 $fieldName  文件ID: ${element.status}');
-          });
+        onFileChange: (file, fileList, type) {
+          if (file.status == UploadStatus.success) {
+            print('66666666666666666666666666666666');
+            print(file.toMap());
+            print(fileList);
+            print(type);
+            print('自定义上传函数文件状态: ${file.status}');
+            print('66666666666666666666666666666666');
+          }
+          if (file.status == UploadStatus.pending) {
+            print('5555555555555555555555555555555');
+            print(file.toMap());
+            print(fileList);
+            print(type);
+            print('自定义上传函数文件状态: ${file.status}');
+            print('5555555555555555555555555555555');
+          }
         },
       ),
 

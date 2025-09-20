@@ -63,6 +63,8 @@ class FormBuilderConfig {
   final String? Function(dynamic)? validator;
   // 数据改变时的回调函数
   final void Function(String fieldName, dynamic value)? onChange;
+  // 文件上传时的回调函数（用于 upload 类型）
+  final void Function(FileUploadModel file, List<FileUploadModel> fileList, String type)? onFileChange;
   // 值格式化字符串（用于 date、time、datetime 类型）
   final String? valueFormat;
   // 自定义内容构建器（用于 custom 类型）
@@ -80,6 +82,7 @@ class FormBuilderConfig {
     this.placeholder,
     this.validator,
     this.onChange,
+    this.onFileChange,
     this.valueFormat,
     this.contentBuilder,
   }) {
@@ -250,6 +253,7 @@ class FormBuilderConfig {
       isShow: isShow,
       validator: validator,
       onChange: onChange,
+      onFileChange: onFileChange,
       props: UploadProps(
         customFileList: customFileList,
         fileListType: fileListType,

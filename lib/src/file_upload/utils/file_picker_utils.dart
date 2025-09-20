@@ -14,13 +14,6 @@ class FilePickerUtils {
 
       if (result != null && result.files.isNotEmpty) {
         PlatformFile file = result.files.first;
-        // 调试信息
-        debugPrint('🚀 第一步:选择的文件信息开始----------------------------------------------------->');
-        debugPrint('ℹ️ : 文件名: ${file.name}');
-        debugPrint('ℹ️ : 文件大小: ${formatFileSize(file.size)}');
-        debugPrint('ℹ️ : 文件路径: ${file.path}');
-        debugPrint('ℹ️ : 文件扩展名: ${file.extension}');
-        debugPrint('ℹ️ : MIME类型:  ${file.extension != null ? getMimeType(file.extension!) : '未知'}');
         if (file.path != null && file.name.isNotEmpty && onFileSelected != null) {
           // 封装成FileUploadModel并调用回调
           FileUploadModel fileUploadModel = createFileUploadModel(
@@ -31,9 +24,7 @@ class FilePickerUtils {
             fileSizeInfo: formatFileSize(file.size),
           );
           onFileSelected(fileUploadModel);
-          debugPrint('🎉 创建模型信息: ${fileUploadModel.toMap()}');
         }
-        debugPrint('✅ 选择的文件信息结束<-----------------------------------------------------');
       } else {
         debugPrint('⚠️ 用户取消了文件选择');
       }
@@ -47,8 +38,6 @@ class FilePickerUtils {
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 100);
-      // 调试信息
-      debugPrint('🚀 第一步:从相册选择的图片信息开始----------------------------------------------------->');
       if (image != null) {
         File imageFile = File(image.path);
         int fileSize = await imageFile.length();
@@ -56,10 +45,6 @@ class FilePickerUtils {
         if (onFileSelected != null && image.path.isNotEmpty) {
           // 生成合适的文件名
           String fileName = image.name.isNotEmpty ? image.name : 'gallery_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
-          debugPrint('ℹ️ : 文件名: ${image.name}');
-          debugPrint('ℹ️ : 文件大小: ${formatFileSize(fileSize)}');
-          debugPrint('ℹ️ : 文件路径: ${image.path}');
-          debugPrint('ℹ️ : MIME类型: ${image.mimeType ?? '未知'}');
           // 封装成FileUploadModel并调用回调
           FileUploadModel fileUploadModel = createFileUploadModel(
             fileName: fileName,
@@ -69,10 +54,7 @@ class FilePickerUtils {
             fileSizeInfo: formatFileSize(fileSize),
           );
           onFileSelected(fileUploadModel);
-          debugPrint('🎉 创建模型信息: ${fileUploadModel.toMap()}');
         }
-
-        debugPrint('✅ 从相册选择的图片信息结束<-----------------------------------------------------');
       } else {
         debugPrint('⚠️ 用户取消了图片选择');
       }
@@ -103,16 +85,6 @@ class FilePickerUtils {
         fileSizeInfo: formatFileSize(fileSize),
       );
       onFileSelected(fileUploadModel);
-
-      // 调试信息
-      debugPrint('🚀 第一步:拍照的图片信息开始----------------------------------------------------->');
-      // 生成合适的文件名
-      debugPrint('ℹ️ : 文件名: ${image.name}');
-      debugPrint('ℹ️ : 文件大小: ${formatFileSize(fileSize)}');
-      debugPrint('ℹ️ : 文件路径: ${image.path}');
-      debugPrint('ℹ️ : MIME类型: ${image.mimeType ?? '未知'}');
-      debugPrint('🎉 创建模型信息: ${fileUploadModel.toMap()}');
-      debugPrint('✅ 拍照的图片信息结束<-----------------------------------------------------');
     } catch (e) {
       debugPrint('⚠️ 拍照时发生错误: $e');
     }

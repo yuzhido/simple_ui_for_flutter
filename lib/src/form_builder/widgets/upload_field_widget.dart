@@ -7,7 +7,7 @@ import 'package:simple_ui/models/file_upload.dart';
 class UploadFieldWidget extends StatelessWidget {
   final FormBuilderConfig config;
   final dynamic value;
-  final Function(dynamic) onChanged;
+  final Function(List<FileUploadModel>) onChanged;
 
   const UploadFieldWidget({super.key, required this.config, this.value, required this.onChanged});
 
@@ -77,7 +77,11 @@ class UploadFieldWidget extends StatelessWidget {
               onFileChange: (FileUploadModel file, List<FileUploadModel> fileList, String type) {
                 onChanged(fileList);
                 state.didChange(fileList);
-                // 调用原有的回调
+                // 调用 FormBuilderConfig 中的 onFileChange 回调
+                if (config.onFileChange != null) {
+                  config.onFileChange!(file, fileList, type);
+                }
+                // 调用 props 中的回调（保持向后兼容）
                 if (props.onFileChange != null) {
                   props.onFileChange!(file, fileList, type);
                 }

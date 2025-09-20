@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:simple_ui/models/file_upload.dart';
 
@@ -186,10 +185,7 @@ class FileUploadUtils {
       final result = await customUpload(filePath, (progress) {
         onStatusUpdate(UploadStatus.uploading, progress: progress);
       });
-
       onStatusUpdate(UploadStatus.uploading, progress: 1.0);
-
-      debugPrint('🚀 返回的FileUploadModel:${result?.toMap()}');
       // 处理自定义上传返回的结果
       FileUploadModel updatedModel;
       if (result != null) {
@@ -205,10 +201,6 @@ class FileUploadUtils {
         onError('自定义上传失败');
         updatedModel = fileModel.copyWith(status: UploadStatus.failed, progress: 0.0);
       }
-
-      // 添加调试信息
-      debugPrint('🔄 🔄 🔄 🔄 🔄 更新FileUploadModel:${updatedModel.toMap()}');
-
       onSuccess(updatedModel);
       return FileUploadResult.success(updatedModel);
     } catch (e) {

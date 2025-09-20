@@ -133,7 +133,7 @@ class FileUploadModel {
   final FileSource source;
 
   /// 上传状态（等待、上传中、成功、失败）
-  final UploadStatus? status;
+  UploadStatus? status;
 
   /// 上传进度（0.0 - 1.0）
   final double progress;
