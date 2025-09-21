@@ -11,7 +11,7 @@ import 'package:simple_ui/src/widgets/no_data.dart';
 class TreeBottomSheet extends StatefulWidget {
   final List<TreeNode> data;
   final TreeNode? selectedNode;
-  final Function(TreeNode) onValueChanged;
+  final Function(TreeNode node, {List<Object>? selectedPath}) onValueChanged;
   final List<Object> expandPath;
 
   // 搜索相关属性
@@ -196,6 +196,97 @@ class _TreeBottomSheetState extends State<TreeBottomSheet> with TickerProviderSt
   }
 
   // 懒加载模式下的路径展开
+  /// 计算选中节点的完整路径（用于传递给父组件）
+  List<Object> _calculateSelectedPath(TreeNode selectedNode) {
+    if (!widget.isLazyLoading) {
+      // 非懒加载模式：在完整数据中查找路径
+      return _findSelectedPathInData(_searchManager.currentData, selectedNode.id);
+    } else {
+      // 懒加载模式：优先使用_findNodePath方法
+      final path = _findNodePath(selectedNode.id.toString());
+      if (path.isNotEmpty) {
+        return path.map((id) => id as Object).toList();
+      }
+      
+      // 如果_findNodePath找不到路径，尝试基于当前展开状态构建路径
+      return _buildPathFromExpandedNodes(selectedNode);
+    }
+  }
+
+  /// 基于当前展开的节点构建选中路径
+  List<Object> _buildPathFromExpandedNodes(TreeNode selectedNode) {
+    // 这是一个备用方法，当无法通过数据查找路径时使用
+    // 我们尝试从展开的节点中推断路径
+    
+    // 首先检查选中节点是否在顶级数据中
+    for (final topNode in _searchManager.currentData) {
+      if (topNode.id == selectedNode.id) {
+        return [selectedNode.id];
+      }
+    }
+    
+    // 如果不在顶级，尝试从已展开的节点中构建路径
+    // 这里我们使用一个简化的方法：如果节点不在顶级，
+    // 我们假设它是某个已展开节点的子节点
+    for (final expandedNodeId in expandedNodes) {
+      final children = widget.loadedChildren[expandedNodeId];
+      if (children != null) {
+        for (final child in children) {
+          if (child.id == selectedNode.id) {
+            // 找到了父节点，递归构建完整路径
+            final parentPath = _buildPathFromExpandedNodes(
+              _findNodeInAllData(expandedNodeId.toString()) ?? 
+              TreeNode(id: expandedNodeId.toString(), label: '', hasChildren: false)
+            );
+            return [...parentPath, selectedNode.id];
+          }
+        }
+      }
+    }
+    
+    // 如果都找不到，至少返回节点本身的ID
+    return [selectedNode.id];
+  }
+
+  /// 在所有数据中查找节点（包括顶级数据和已加载的子节点）
+  TreeNode? _findNodeInAllData(String nodeId) {
+    // 在顶级数据中查找
+    for (final node in _searchManager.currentData) {
+      if (node.id.toString() == nodeId) {
+        return node;
+      }
+    }
+    
+    // 在已加载的子节点中查找
+    for (final children in widget.loadedChildren.values) {
+      for (final child in children) {
+        if (child.id.toString() == nodeId) {
+          return child;
+        }
+      }
+    }
+    
+    return null;
+  }
+
+  /// 在给定数据中查找选中路径（递归）
+  List<Object> _findSelectedPathInData(List<TreeNode> nodes, dynamic targetId) {
+    for (var node in nodes) {
+      if (node.id == targetId) {
+        return [node.id];
+      }
+      // 递归搜索子节点
+      final children = _getNodeChildren(node);
+      if (children.isNotEmpty) {
+        final path = _findSelectedPathInData(children, targetId);
+        if (path.isNotEmpty) {
+          return [node.id, ...path];
+        }
+      }
+    }
+    return [];
+  }
+
   /// 查找指定节点的完整路径（包括节点本身）
   /// 遍历所有缓存数据，包括顶级数据和loadedChildren
   List<String> _findNodePath(String targetNodeId) {
@@ -316,19 +407,8 @@ class _TreeBottomSheetState extends State<TreeBottomSheet> with TickerProviderSt
       }
     }
 
-    // 如果选中的节点有子节点，也展开它
-    final selectedNode = _findNodeById(selectedNodeId);
-    if (selectedNode != null && selectedNode.hasChildren) {
-      // 如果节点还没有加载子节点，则先加载子节点
-      if (loadData && !widget.loadedChildren.containsKey(selectedNodeId)) {
-        await _lazyLoadChildrenSync(selectedNodeId);
-      }
-
-      // 只有在加载数据或已经加载过子节点的情况下才展开节点
-      if (loadData || widget.loadedChildren.containsKey(selectedNodeId)) {
-        expandedNodes.add(selectedNodeId);
-      }
-    }
+    // 注意：不自动展开选中节点本身的子数据
+    // 选中节点应该可见但不展开，只有用户主动点击展开按钮时才加载子数据
     if (mounted) {
       setState(() {});
     }
@@ -515,7 +595,9 @@ class _TreeBottomSheetState extends State<TreeBottomSheet> with TickerProviderSt
           color: Colors.transparent,
           child: InkWell(
             onTap: () {
-              widget.onValueChanged(node);
+              // 计算选中节点的完整路径
+              final selectedPath = _calculateSelectedPath(node);
+              widget.onValueChanged(node, selectedPath: selectedPath);
             },
             borderRadius: BorderRadius.circular(8),
             child: Container(

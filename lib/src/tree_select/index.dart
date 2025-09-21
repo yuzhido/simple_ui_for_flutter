@@ -198,10 +198,15 @@ class _TreeSelectState extends State<TreeSelect> with TickerProviderStateMixin {
   }
 
   // 处理选中事件
-  void _handleSelection(TreeNode node) {
+  void _handleSelection(TreeNode node, {List<Object>? selectedPath}) {
     setState(() {
       selectedNode = node;
       selectedLabel = node.label;
+      
+      // 在懒加载模式下，缓存选中路径以便下次展开
+      if (widget.isLazyLoading && selectedPath != null && selectedPath.isNotEmpty) {
+        _cachedSelectedPath = selectedPath;
+      }
     });
 
     // 调用值变化回调
@@ -270,10 +275,24 @@ class _TreeSelectState extends State<TreeSelect> with TickerProviderStateMixin {
     // 如果有默认值且之前没找到，重新查找
     if (widget.initialValueId != null && selectedNode == null) {
       _findSelectedNodeById(data, widget.initialValueId!);
+      // 在懒加载模式下，如果找到了节点，计算并缓存完整路径
+      if (widget.isLazyLoading && selectedNode != null) {
+        final fullPath = _findSelectedPath(data, selectedNode!.id);
+        if (fullPath.isNotEmpty) {
+          _cachedSelectedPath = fullPath;
+        }
+      }
     } else if (widget.initialValue != null && selectedNode == null) {
       // 如果有初始值对象但之前没设置，重新设置
       selectedNode = widget.initialValue;
       selectedLabel = widget.initialValue!.label;
+      // 在懒加载模式下，计算并缓存完整路径
+      if (widget.isLazyLoading) {
+        final fullPath = _findSelectedPath(data, widget.initialValue!.id);
+        if (fullPath.isNotEmpty) {
+          _cachedSelectedPath = fullPath;
+        }
+      }
     }
 
     // 触发自定义回调（如果有）
@@ -318,12 +337,16 @@ class _TreeSelectState extends State<TreeSelect> with TickerProviderStateMixin {
     if (selectedNode != null) {
       if (widget.isLazyLoading) {
         // 懒加载模式下的路径处理
-        if (_displayData.isNotEmpty) {
-          // 如果有显示数据，尝试计算完整路径
-          selectedPath = _findSelectedPath(_displayData, selectedNode!.id);
-        } else if (_cachedSelectedPath != null) {
-          // 如果没有显示数据但有缓存路径，使用缓存路径
+        if (_cachedSelectedPath != null) {
+          // 优先使用缓存路径，这是最可靠的
           selectedPath = _cachedSelectedPath!;
+        } else if (_displayData.isNotEmpty) {
+          // 如果没有缓存路径但有显示数据，尝试计算完整路径
+          selectedPath = _findSelectedPath(_displayData, selectedNode!.id);
+          // 如果找到了路径，缓存起来
+          if (selectedPath.isNotEmpty) {
+            _cachedSelectedPath = selectedPath;
+          }
         } else {
           // 否则只提供选中节点的ID
           selectedPath = [selectedNode!.id];
