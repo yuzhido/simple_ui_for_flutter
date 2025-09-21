@@ -297,8 +297,8 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
                     TreeSelect(
                       data: list,
                       placeholder: '请选择地区',
-                      selectedValue: selectedNode?.id,
-                      onSelect: (node) {
+                      initialValue: selectedNode,
+                      onValueChanged: (node) {
                         setState(() {
                           selectedNode = node;
                         });
@@ -350,8 +350,8 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
                                 child: TreeSelect(
                                   data: list,
                                   placeholder: '通过ID自动选中',
-                                  initialValue: 'zhongguancun', // 通过ID自动选中"中关村街道"
-                                  onSelect: (node) {
+                                  initialValueId: 'zhongguancun', // 通过ID自动选中"中关村街道"
+                                  onValueChanged: (node) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text('选择了: ${node.label}'),
@@ -369,7 +369,7 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
                                   data: list,
                                   placeholder: '通过对象自动选中',
                                   initialValue: _getNodeById('lujiazui'), // 通过TreeNode对象自动选中"陆家嘴街道"
-                                  onSelect: (node) {
+                                  onValueChanged: (node) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text('选择了: ${node.label}'),
@@ -441,11 +441,9 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
                           TreeSelect(
                             data: list,
                             placeholder: '请选择地区',
-                            initialValue: _bidirectionalValue,
+                            initialValueId: _bidirectionalValue,
                             onValueChanged: (value) {
-                              setState(() {
-                                _bidirectionalValue = value is TreeNode ? value.id : value;
-                              });
+                              setState(() {});
                             },
                           ),
                           const SizedBox(height: 16),
@@ -546,24 +544,7 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
                           const SizedBox(height: 12),
                           Text('点击按钮可以动态改变组件的初始选中值', style: TextStyle(fontSize: 12, color: Colors.green.shade600, height: 1.4)),
                           const SizedBox(height: 16),
-                          TreeSelect(
-                            data: list,
-                            placeholder: '动态初始值',
-                            initialValue: _dynamicInitialValue,
-                            onSelect: (node) {
-                              setState(() {
-                                _dynamicInitialValue = node.id;
-                              });
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('选择了: ${node.label}'),
-                                  backgroundColor: Colors.green.shade600,
-                                  behavior: SnackBarBehavior.floating,
-                                  duration: const Duration(seconds: 1),
-                                ),
-                              );
-                            },
-                          ),
+                          TreeSelect(data: list, placeholder: '动态初始值', initialValueId: _dynamicInitialValue),
                           const SizedBox(height: 16),
                           Wrap(
                             spacing: 8,
@@ -636,16 +617,6 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
 
                               return list1;
                             },
-                            onSelect: (node) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('远程搜索选择了: ${node.label}'),
-                                  backgroundColor: Colors.orange.shade600,
-                                  behavior: SnackBarBehavior.floating,
-                                  duration: const Duration(seconds: 1),
-                                ),
-                              );
-                            },
                           ),
                         ],
                       ),
@@ -679,7 +650,7 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
                             data: list,
                             placeholder: '本地过滤地区',
                             filterable: true,
-                            onSelect: (node) {
+                            onValueChanged: (node) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text('本地过滤选择了: ${node.label}'),

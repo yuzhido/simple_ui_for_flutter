@@ -16,3 +16,5 @@ export 'src/form_builder/index.dart';
 export 'src/loading_data/index.dart';
 // 导出上传文件组件
 export 'src/file_upload/index.dart';
+// 导出输入搜索组件
+export 'src/widgets/input_search.dart';

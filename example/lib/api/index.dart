@@ -19,11 +19,13 @@ export 'http_client.dart';
 
 // 导出数据模型
 export 'models/user.dart';
+export 'models/area_location.dart';
 
 // 导出各模块 API
 export 'user_api.dart';
 export 'school_api.dart';
 export 'city_api.dart';
+export 'area_location_api.dart';
 
 // 导出使用示例
 export 'example_usage.dart';

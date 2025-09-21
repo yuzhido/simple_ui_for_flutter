@@ -4,6 +4,8 @@ import 'package:example/pages/loading_data/index.dart';
 import 'package:example/pages/new_file_upload/index.dart';
 import 'package:example/pages/notice_info/index.dart';
 import 'package:example/pages/tree_select/index.dart';
+import 'package:example/pages/tree_select/new_tree_node.dart';
+import 'package:example/pages/tree_select/lazy_loading_example.dart';
 import 'package:example/pages/database_demo/index.dart';
 import 'package:example/pages/permission_request/index.dart';
 import 'package:example/pages/table_show/index.dart';
@@ -69,6 +71,20 @@ class HomePage extends StatelessWidget {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const TreeSelectPage()));
               },
               child: Text('跳转查看树形选择（TreeSelect）示例'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const NewTreeNodePage()));
+              },
+              child: Text('跳转查看TreeSelect远程搜索与本地过滤示例'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const LazyLoadingExamplePage()));
+              },
+              child: Text('跳转查看TreeSelect懒加载功能示例'),
             ),
 
             ElevatedButton(
