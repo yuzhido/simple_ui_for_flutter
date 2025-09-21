@@ -16,8 +16,10 @@ class TreeSearchController {
   String _searchKeyword = '';
   bool _isSearching = false;
 
+
+
   // 回调函数
-  final VoidCallback? onStateChanged;
+  VoidCallback? onStateChanged;
   final BuildContext? context;
 
   TreeSearchController({
@@ -53,8 +55,9 @@ class TreeSearchController {
       List<TreeNode> results;
 
       if (remote && remoteFetch != null) {
-        // 远程搜索
+        // 远程搜索 - 每次都执行远程搜索
         results = await remoteFetch!(searchText);
+        debugPrint('执行远程搜索: $searchText, 结果数量: ${results.length}');
       } else if (filterable) {
         // 本地过滤
         results = _filterData(originalData, searchText);
@@ -91,6 +94,15 @@ class TreeSearchController {
     _currentData = originalData;
     _searchKeyword = '';
     _setSearching(false);
+  }
+
+
+
+
+
+  /// 设置状态变化回调
+  void setStateChangedCallback(VoidCallback? callback) {
+    onStateChanged = callback;
   }
 
   /// 设置搜索状态

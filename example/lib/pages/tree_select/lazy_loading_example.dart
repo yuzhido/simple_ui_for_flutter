@@ -23,6 +23,9 @@ class _LazyLoadingExamplePageState extends State<LazyLoadingExamplePage> {
   void initState() {
     super.initState();
     // 移除初始化时的数据加载，改为懒加载模式
+
+    // 添加测试用的初始选中值（使用真实的API节点）
+    selectedNode = TreeNode(id: "huamu", label: "花木街道", hasChildren: true);
   }
 
   // 统一的远程数据获取函数
@@ -33,7 +36,11 @@ class _LazyLoadingExamplePageState extends State<LazyLoadingExamplePage> {
 
       if (keyword.isEmpty) {
         // 空关键词：加载顶级数据
-        final response = await AreaLocationApi.getTopLevelAreas(limit: 50);
+        final response = await AreaLocationApi.searchAreaLocations(keyword: '滨江', limit: 50);
+        print('6666666666666666666666666666666666666666666666666666666');
+        print(response);
+        print(response);
+        print('6666666666666666666666666666666666666666666666666666666');
 
         if (response['success'] == true && response['data'] != null && response['data']['list'] != null) {
           final List<dynamic> list = response['data']['list'];

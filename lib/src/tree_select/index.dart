@@ -76,25 +76,22 @@ class _TreeSelectState extends State<TreeSelect> with TickerProviderStateMixin {
   List<TreeNode> _displayData = []; // 当前显示的数据
   late TreeSearchController _searchManager; // 搜索管理器
 
-  // 新增：远程数据缓存
-  List<TreeNode>? _cachedRemoteData; // 缓存的远程数据
+  // 统一的数据缓存机制
+  List<TreeNode>? _cachedData; // 统一的数据缓存（远程搜索或懒加载的顶级数据）
   bool _hasLoadedInitialData = false; // 是否已加载过初始数据
 
-  // 优化：使用ValueNotifier管理远程数据状态
-  late final ValueNotifier<List<TreeNode>?> _remoteDataNotifier;
-
-  // 新增：懒加载相关状态
+  // 懒加载相关状态
   final Set<Object> _loadingNodes = {}; // 正在加载子节点的节点ID集合
   final Map<Object, List<TreeNode>> _loadedChildren = {}; // 已加载的子节点缓存 nodeId -> children
+
+  // 选中路径缓存（用于懒加载模式下的路径展开）
+  List<Object>? _cachedSelectedPath;
 
   @override
   void initState() {
     super.initState();
     _animationController = AnimationController(duration: const Duration(milliseconds: 150), vsync: this);
     _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeInOut));
-
-    // 初始化ValueNotifier
-    _remoteDataNotifier = ValueNotifier<List<TreeNode>?>(_cachedRemoteData);
 
     // 初始化显示数据
     _initializeDisplayData();
@@ -108,9 +105,9 @@ class _TreeSelectState extends State<TreeSelect> with TickerProviderStateMixin {
 
   // 初始化显示数据
   void _initializeDisplayData() {
-    if (widget.remote) {
-      // 远程模式：优先使用缓存数据，如果没有缓存则使用传入的data
-      _displayData = _cachedRemoteData ?? widget.data;
+    if (widget.remote || widget.isLazyLoading) {
+      // 远程模式或懒加载模式：优先使用缓存数据，如果没有缓存则使用传入的data
+      _displayData = _cachedData ?? widget.data;
     } else {
       // 本地模式：直接使用传入的data
       _displayData = widget.data;
@@ -119,7 +116,7 @@ class _TreeSelectState extends State<TreeSelect> with TickerProviderStateMixin {
 
   // 初始化搜索管理器
   void _initializeSearchManager() {
-    final sourceData = widget.remote ? (_cachedRemoteData ?? widget.data) : widget.data;
+    final sourceData = (widget.remote || widget.isLazyLoading) ? (_cachedData ?? widget.data) : widget.data;
     _searchManager = TreeSearchUtils.createController(
       searchController: _searchController,
       originalData: sourceData,
@@ -143,14 +140,25 @@ class _TreeSelectState extends State<TreeSelect> with TickerProviderStateMixin {
       // 直接使用传入的TreeNode对象
       selectedNode = widget.initialValue;
       selectedLabel = widget.initialValue!.label;
+
+      // 在懒加载模式下，如果有初始值但没有缓存数据，预设选中路径
+      if (widget.isLazyLoading && _cachedData == null) {
+        _cachedSelectedPath = [widget.initialValue!.id];
+      }
     } else if (widget.initialValueId != null) {
       // 根据ID查找对应的节点
-      final searchData = widget.remote ? (_cachedRemoteData ?? widget.data) : widget.data;
+      final searchData = (widget.remote || widget.isLazyLoading) ? (_cachedData ?? widget.data) : widget.data;
       _findSelectedNodeById(searchData, widget.initialValueId!);
+
+      // 在懒加载模式下，如果有初始值ID但没有缓存数据，预设选中路径
+      if (widget.isLazyLoading && _cachedData == null) {
+        _cachedSelectedPath = [widget.initialValueId!];
+      }
     } else {
       // 如果都为null，清空内部状态
       selectedNode = null;
       selectedLabel = null;
+      _cachedSelectedPath = null;
     }
   }
 
@@ -160,25 +168,30 @@ class _TreeSelectState extends State<TreeSelect> with TickerProviderStateMixin {
 
     // 如果data发生变化，重新处理数据
     if (oldWidget.data != widget.data) {
-      // 如果是远程模式且data发生变化，清空缓存重新初始化
-      if (widget.remote) {
-        _cachedRemoteData = null;
+      // 如果是远程模式或懒加载模式且data发生变化，清空缓存重新初始化
+      if (widget.remote || widget.isLazyLoading) {
+        _cachedData = null;
         _hasLoadedInitialData = false;
+        _loadedChildren.clear();
+        _loadingNodes.clear();
       }
       _initializeDisplayData(); // 重新初始化显示数据
     }
 
-    // 如果初始值发生变化，重新处理初始值（但不重置远程数据缓存）
+    // 如果初始值发生变化，重新处理初始值（但不重置缓存数据）
     if (oldWidget.initialValue != widget.initialValue || oldWidget.initialValueId != widget.initialValueId) {
       _handleInitialValue();
     }
 
-    // 如果remote属性发生变化，重置相关状态
-    if (oldWidget.remote != widget.remote) {
-      if (!widget.remote) {
-        // 从远程模式切换到本地模式，清空缓存
-        _cachedRemoteData = null;
+    // 如果remote或isLazyLoading属性发生变化，重置相关状态
+    if (oldWidget.remote != widget.remote || oldWidget.isLazyLoading != widget.isLazyLoading) {
+      if (!widget.remote && !widget.isLazyLoading) {
+        // 从远程模式或懒加载模式切换到本地模式，清空缓存
+        _cachedData = null;
         _hasLoadedInitialData = false;
+        _loadedChildren.clear();
+        _loadingNodes.clear();
+        _cachedSelectedPath = null;
       }
       _initializeDisplayData();
     }
@@ -202,7 +215,6 @@ class _TreeSelectState extends State<TreeSelect> with TickerProviderStateMixin {
   void dispose() {
     _animationController.dispose();
     _searchController.dispose();
-    _remoteDataNotifier.dispose();
     super.dispose();
   }
 
@@ -238,26 +250,30 @@ class _TreeSelectState extends State<TreeSelect> with TickerProviderStateMixin {
     return null;
   }
 
-  /// 优化：处理初始数据加载完成
+  /// 处理初始数据加载完成
   void _handleInitialDataLoaded(List<TreeNode> data) {
     // 防止重复加载相同数据
-    if (_cachedRemoteData != null && _listEquals(_cachedRemoteData!, data)) {
+    if (_cachedData != null && _listEquals(_cachedData!, data)) {
       return;
     }
 
     // 批量更新状态，减少重绘次数
     setState(() {
-      _cachedRemoteData = data;
+      _cachedData = data;
       _displayData = data;
       _hasLoadedInitialData = true;
     });
 
-    // 更新ValueNotifier，通知监听者
-    _remoteDataNotifier.value = data;
+    // 更新搜索管理器的源数据
+    _searchManager.updateSourceData(data);
 
     // 如果有默认值且之前没找到，重新查找
     if (widget.initialValueId != null && selectedNode == null) {
       _findSelectedNodeById(data, widget.initialValueId!);
+    } else if (widget.initialValue != null && selectedNode == null) {
+      // 如果有初始值对象但之前没设置，重新设置
+      selectedNode = widget.initialValue;
+      selectedLabel = widget.initialValue!.label;
     }
 
     // 触发自定义回调（如果有）
@@ -300,7 +316,22 @@ class _TreeSelectState extends State<TreeSelect> with TickerProviderStateMixin {
     // 获取选中项的路径
     List<Object> selectedPath = [];
     if (selectedNode != null) {
-      selectedPath = _findSelectedPath(_displayData, selectedNode!.id);
+      if (widget.isLazyLoading) {
+        // 懒加载模式下的路径处理
+        if (_displayData.isNotEmpty) {
+          // 如果有显示数据，尝试计算完整路径
+          selectedPath = _findSelectedPath(_displayData, selectedNode!.id);
+        } else if (_cachedSelectedPath != null) {
+          // 如果没有显示数据但有缓存路径，使用缓存路径
+          selectedPath = _cachedSelectedPath!;
+        } else {
+          // 否则只提供选中节点的ID
+          selectedPath = [selectedNode!.id];
+        }
+      } else {
+        // 普通模式下直接计算路径
+        selectedPath = _findSelectedPath(_displayData, selectedNode!.id);
+      }
     }
 
     // 立即显示弹窗，不等待数据加载
@@ -321,9 +352,11 @@ class _TreeSelectState extends State<TreeSelect> with TickerProviderStateMixin {
         lazyLoadChildren: widget.lazyLoadChildren,
         loadingNodes: widget.loadingNodes ?? _loadingNodes,
         loadedChildren: widget.loadedChildren ?? _loadedChildren,
-        // 新增：传递是否需要初始加载的标志
-        needsInitialLoad: widget.remote && !_hasLoadedInitialData,
+        // 传递是否需要初始加载的标志
+        needsInitialLoad: (widget.remote || widget.isLazyLoading) && !_hasLoadedInitialData,
         onInitialDataLoaded: _handleInitialDataLoaded,
+        // 传递主组件的搜索管理器，避免重新创建
+        searchManager: _searchManager,
       ),
     );
   }

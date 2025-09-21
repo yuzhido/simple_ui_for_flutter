@@ -32,6 +32,9 @@ class TreeBottomSheet extends StatefulWidget {
   final bool needsInitialLoad;
   final Function(List<TreeNode>)? onInitialDataLoaded;
 
+  // 新增：可选的搜索管理器，如果提供则复用，否则创建新的
+  final TreeSearchController? searchManager;
+
   const TreeBottomSheet({
     super.key,
     required this.data,
@@ -48,6 +51,7 @@ class TreeBottomSheet extends StatefulWidget {
     required this.loadedChildren,
     this.needsInitialLoad = false,
     this.onInitialDataLoaded,
+    this.searchManager,
   });
 
   @override
@@ -61,7 +65,6 @@ class _TreeBottomSheetState extends State<TreeBottomSheet> with TickerProviderSt
   late ScrollController _scrollController;
 
   // 搜索相关状态
-  List<TreeNode> _currentData = [];
   late TreeSearchController _searchManager;
 
   @override
@@ -72,49 +75,88 @@ class _TreeBottomSheetState extends State<TreeBottomSheet> with TickerProviderSt
     _scrollController = ScrollController();
     _slideController.forward();
 
-    // 初始化当前数据
-    _currentData = widget.data;
-    
-    // 初始化搜索管理器
-    _searchManager = TreeSearchUtils.createController(
-      searchController: widget.searchController,
-      originalData: widget.data,
-      remote: widget.remote,
-      filterable: widget.filterable,
-      remoteFetch: widget.remoteFetch,
-      context: mounted ? context : null,
-      onStateChanged: () {
+    // 初始化搜索管理器：优先使用传入的搜索管理器，否则创建新的
+    if (widget.searchManager != null) {
+      // 复用传入的搜索管理器
+      _searchManager = widget.searchManager!;
+      // 设置状态变化回调
+      _searchManager.setStateChangedCallback(() {
         if (mounted) {
-          setState(() {
-            _currentData = _searchManager.currentData;
-          });
+          setState(() {});
         }
-      },
-    );
+      });
+    } else {
+      // 创建新的搜索管理器（向后兼容）
+      _searchManager = TreeSearchUtils.createController(
+        searchController: widget.searchController,
+        originalData: widget.data,
+        remote: widget.remote,
+        filterable: widget.filterable,
+        remoteFetch: widget.remoteFetch,
+        context: mounted ? context : null,
+        onStateChanged: () {
+          if (mounted) {
+            setState(() {});
+          }
+        },
+      );
+    }
 
     // 如果需要初始加载数据，则在弹窗显示后立即开始加载
     if (widget.needsInitialLoad && widget.remoteFetch != null) {
       _loadInitialData();
-    }
-
-    // 根据选中路径自动展开节点
-    _expandSelectedPath();
-
-    // 延迟滚动到选中项位置
-    if (widget.selectedNode != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToSelectedItem();
+    } else {
+      // 不需要初始加载时，直接展开选中路径（异步）
+      _expandSelectedPath().then((_) {
+        // 展开完成后，延迟滚动到选中项位置
+        if (widget.selectedNode != null && mounted) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _scrollToSelectedItem();
+          });
+        }
       });
     }
   }
 
   // 加载初始数据
   Future<void> _loadInitialData() async {
-    // 使用搜索管理器进行初始数据加载
-    await _searchManager.search('');
+    // 如果使用的是复用的搜索管理器且已有数据，则不重新加载
+    if (widget.searchManager != null && _searchManager.currentData.isNotEmpty) {
+      // 延迟通知主组件数据已加载，避免在构建期间调用setState
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onInitialDataLoaded?.call(_searchManager.currentData);
+      });
+      // 数据已存在，直接展开选中项路径（异步）
+      if (mounted) {
+        _expandSelectedPath(loadData: false).then((_) {
+          // 展开完成后，延迟滚动到选中项位置
+          if (widget.selectedNode != null && mounted) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _scrollToSelectedItem();
+            });
+          }
+        });
+      }
+    } else {
+      // 使用搜索管理器进行初始数据加载
+      await _searchManager.search('');
+      // 延迟通知主组件数据已加载，避免在构建期间调用setState
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onInitialDataLoaded?.call(_searchManager.currentData);
+      });
 
-    // 通知主组件数据已加载
-    widget.onInitialDataLoaded?.call(_searchManager.currentData);
+      // 数据加载完成后，重新展开选中项路径（异步）
+      if (mounted) {
+        _expandSelectedPath().then((_) {
+          // 展开完成后，延迟滚动到选中项位置
+          if (widget.selectedNode != null && mounted) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _scrollToSelectedItem();
+            });
+          }
+        });
+      }
+    }
   }
 
   @override
@@ -127,7 +169,6 @@ class _TreeBottomSheetState extends State<TreeBottomSheet> with TickerProviderSt
   @override
   void didUpdateWidget(TreeBottomSheet oldWidget) {
     super.didUpdateWidget(oldWidget);
-
     // 如果数据发生变化，更新搜索管理器的源数据
     if (oldWidget.data != widget.data) {
       _searchManager.updateSourceData(widget.data);
@@ -135,25 +176,166 @@ class _TreeBottomSheetState extends State<TreeBottomSheet> with TickerProviderSt
   }
 
   // 根据选中路径自动展开节点
-  void _expandSelectedPath() {
-    if (widget.expandPath.isNotEmpty) {
-      // 展开选中路径上的所有父节点（除了最后一个节点，因为它是选中项本身）
-      for (int i = 0; i < widget.expandPath.length - 1; i++) {
-        final nodeId = widget.expandPath[i];
-        expandedNodes.add(nodeId);
+  Future<void> _expandSelectedPath({bool loadData = true}) async {
+    if (widget.expandPath.isEmpty) {
+      return;
+    }
 
-        // 懒加载模式下，如果节点还没有加载子节点，则触发懒加载
-        if (widget.isLazyLoading && !widget.loadedChildren.containsKey(nodeId)) {
-          _lazyLoadChildren(nodeId);
+    if (!widget.isLazyLoading) {
+      // 非懒加载模式：直接展开所有父节点
+      for (var nodeId in widget.expandPath) {
+        expandedNodes.add(nodeId);
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    } else {
+      // 逐级展开路径
+      await _expandPathWithLazyLoading(loadData: loadData);
+    }
+  }
+
+  // 懒加载模式下的路径展开
+  /// 查找指定节点的完整路径（包括节点本身）
+  /// 遍历所有缓存数据，包括顶级数据和loadedChildren
+  List<String> _findNodePath(String targetNodeId) {
+    // 首先在顶级数据中查找
+    final topLevelPath = _findPathInNodes(_searchManager.currentData, targetNodeId, []);
+    if (topLevelPath.isNotEmpty) {
+      return topLevelPath;
+    }
+
+    // 然后在所有已加载的子节点中查找
+    for (final entry in widget.loadedChildren.entries) {
+      final parentId = entry.key.toString();
+      final children = entry.value;
+
+      // 在这些子节点中查找目标节点
+      final childPath = _findPathInNodes(children, targetNodeId, [parentId]);
+      if (childPath.isNotEmpty) {
+        // 需要找到parentId的完整路径，然后拼接
+        final parentPath = _findNodePath(parentId);
+        if (parentPath.isNotEmpty) {
+          // 移除重复的parentId
+          final fullPath = [...parentPath, ...childPath.skip(1)];
+          return fullPath;
+        } else {
+          // parentId是顶级节点
+          return childPath;
         }
       }
+    }
+
+    return <String>[];
+  }
+
+  /// 在指定节点列表中查找目标节点的路径
+  List<String> _findPathInNodes(List<TreeNode> nodes, String targetNodeId, List<String> currentPath) {
+    for (final node in nodes) {
+      final newPath = <String>[...currentPath, node.id];
+
+      // 如果当前节点就是目标节点，返回完整路径
+      if (node.id == targetNodeId) {
+        return newPath;
+      }
+
+      // 如果当前节点有子节点，递归查找
+      if (node.children != null && node.children!.isNotEmpty) {
+        final result = _findPathInNodes(node.children!, targetNodeId, newPath);
+        if (result.isNotEmpty) {
+          return result;
+        }
+      }
+    }
+
+    return <String>[];
+  }
+
+  /// 根据ID查找节点
+  TreeNode? _findNodeById(String nodeId) {
+    // 首先在顶级数据中查找
+    final topLevelNode = _findNodeInList(_searchManager.currentData, nodeId);
+    if (topLevelNode != null) {
+      return topLevelNode;
+    }
+
+    // 然后在所有已加载的子节点中查找
+    for (final children in widget.loadedChildren.values) {
+      final node = _findNodeInList(children, nodeId);
+      if (node != null) {
+        return node;
+      }
+    }
+
+    return null;
+  }
+
+  /// 在节点列表中查找指定ID的节点
+  TreeNode? _findNodeInList(List<TreeNode> nodes, String nodeId) {
+    for (final node in nodes) {
+      if (node.id == nodeId) {
+        return node;
+      }
+      if (node.children != null && node.children!.isNotEmpty) {
+        final found = _findNodeInList(node.children!, nodeId);
+        if (found != null) {
+          return found;
+        }
+      }
+    }
+    return null;
+  }
+
+  Future<void> _expandPathWithLazyLoading({bool loadData = true}) async {
+    if (widget.expandPath.isEmpty) {
+      return;
+    }
+
+    // 获取选中节点的ID
+    final selectedNodeId = widget.expandPath[0].toString();
+
+    // 使用新的方法查找节点的完整路径
+    final fullPath = _findNodePath(selectedNodeId);
+
+    if (fullPath.isEmpty) {
+      return;
+    }
+
+    // 展开路径上的所有父节点（不包括选中节点本身）
+    for (int i = 0; i < fullPath.length - 1; i++) {
+      final nodeId = fullPath[i];
+
+      // 如果节点还没有加载子节点，则先加载子节点
+      if (loadData && !widget.loadedChildren.containsKey(nodeId)) {
+        await _lazyLoadChildrenSync(nodeId);
+      }
+
+      // 只有在加载数据或已经加载过子节点的情况下才展开节点
+      if (loadData || widget.loadedChildren.containsKey(nodeId)) {
+        expandedNodes.add(nodeId);
+      }
+    }
+
+    // 如果选中的节点有子节点，也展开它
+    final selectedNode = _findNodeById(selectedNodeId);
+    if (selectedNode != null && selectedNode.hasChildren) {
+      // 如果节点还没有加载子节点，则先加载子节点
+      if (loadData && !widget.loadedChildren.containsKey(selectedNodeId)) {
+        await _lazyLoadChildrenSync(selectedNodeId);
+      }
+
+      // 只有在加载数据或已经加载过子节点的情况下才展开节点
+      if (loadData || widget.loadedChildren.containsKey(selectedNodeId)) {
+        expandedNodes.add(selectedNodeId);
+      }
+    }
+    if (mounted) {
+      setState(() {});
     }
   }
 
   // 处理搜索
   void _handleSearch() => _searchManager.search();
-
-
 
   // 清空搜索
   void _clearSearch() => _searchManager.clear();
@@ -242,7 +424,7 @@ class _TreeBottomSheetState extends State<TreeBottomSheet> with TickerProviderSt
     }
 
     // 找到对应的节点
-    TreeNode? targetNode = _findNodeById(_currentData, nodeId);
+    TreeNode? targetNode = _findNodeById(nodeId.toString());
     if (targetNode == null) return;
 
     // 标记为加载中
@@ -273,29 +455,43 @@ class _TreeBottomSheetState extends State<TreeBottomSheet> with TickerProviderSt
     }
   }
 
-  // 在数据中查找指定ID的节点
-  TreeNode? _findNodeById(List<TreeNode> nodes, String targetId) {
-    for (var node in nodes) {
-      if (node.id == targetId) {
-        return node;
-      }
-
-      // 获取子节点（考虑懒加载模式）
-      List<TreeNode> children = [];
-      if (widget.isLazyLoading) {
-        children = widget.loadedChildren[node.id] ?? [];
-      } else {
-        children = node.children ?? [];
-      }
-
-      if (children.isNotEmpty) {
-        final result = _findNodeById(children, targetId);
-        if (result != null) {
-          return result;
-        }
-      }
+  // 同步版本的懒加载子节点（用于展开路径时等待加载完成）
+  Future<void> _lazyLoadChildrenSync(dynamic nodeId) async {
+    if (widget.lazyLoadChildren == null || widget.loadingNodes.contains(nodeId)) {
+      return;
     }
-    return null;
+
+    // 如果已经加载过，直接返回
+    if (widget.loadedChildren.containsKey(nodeId)) {
+      return;
+    }
+
+    // 找到对应的节点
+    TreeNode? targetNode = _findNodeById(nodeId.toString());
+    if (targetNode == null) return;
+
+    // 标记为加载中
+    widget.loadingNodes.add(nodeId);
+    if (mounted) {
+      setState(() {});
+    }
+
+    try {
+      // 调用懒加载函数
+      final children = await widget.lazyLoadChildren!(targetNode);
+
+      // 更新缓存
+      widget.loadedChildren[nodeId] = children;
+
+      // 移除加载状态
+      widget.loadingNodes.remove(nodeId);
+    } catch (e) {
+      // 加载失败，移除加载状态
+      widget.loadingNodes.remove(nodeId);
+
+      debugPrint('懒加载子节点失败: $e');
+      // 注意：这里不显示错误提示，因为是自动展开过程中的加载
+    }
   }
 
   Widget _buildTreeItem(TreeNode node, int level) {
@@ -390,7 +586,9 @@ class _TreeBottomSheetState extends State<TreeBottomSheet> with TickerProviderSt
                 controller: widget.searchController,
                 hintText: widget.remote ? '输入关键词搜索' : '输入关键词过滤',
                 onChanged: (value) {
-                  if (widget.filterable) {
+                  // 只有在本地过滤模式下才启用延迟搜索
+                  // 远程搜索模式下不使用onChanged，避免与点击事件冲突
+                  if (widget.filterable && !widget.remote) {
                     // 本地过滤时实时响应输入变化
                     if (value.isEmpty) {
                       _clearSearch();
