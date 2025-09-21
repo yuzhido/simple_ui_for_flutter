@@ -28,7 +28,9 @@ enum FormBuilderType {
   datetime,
   // 上传12
   upload,
-  // 自定义13
+  // 树选择13
+  treeSelect,
+  // 自定义14
   custom,
 }
 

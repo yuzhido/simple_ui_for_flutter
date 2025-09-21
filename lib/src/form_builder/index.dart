@@ -241,6 +241,8 @@ class _FormBuilderState extends State<FormBuilder> {
         return UploadFieldWidget(config: config, value: currentValue, onChanged: onFieldChanged);
       case FormBuilderType.custom:
         return CustomFieldWidget(config: config, value: currentValue, onChanged: onFieldChanged);
+      default:
+        return Container();
     }
   }
 }
