@@ -12,6 +12,7 @@ import 'package:example/pages/table_show/index.dart';
 import 'package:example/pages/form_builder_demo/index.dart';
 import 'package:example/pages/user_list/index.dart';
 import 'package:example/pages/compress_demo/index.dart';
+import 'package:example/pages/scan_qrcode/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'pages/dropdown_choose/index.dart';
@@ -153,6 +154,13 @@ class HomePage extends StatelessWidget {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const LoadingDataPage()));
               },
               child: Text('跳转查看数据驱动表单（LoadingDataPage）加载数据示例'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const ScanQrcodePage()));
+              },
+              child: Text('跳转查看扫码组件（ScanQrcode）示例'),
             ),
           ],
         ),

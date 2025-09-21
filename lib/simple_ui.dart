@@ -18,3 +18,5 @@ export 'src/loading_data/index.dart';
 export 'src/file_upload/index.dart';
 // 导出输入搜索组件
 export 'src/widgets/input_search.dart';
+// 导出扫描二维码组件
+export 'src/scan_qrcode/index.dart';
