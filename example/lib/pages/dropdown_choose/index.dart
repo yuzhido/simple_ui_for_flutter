@@ -29,6 +29,7 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
   SelectData<String>? filteredValue;
   SelectData<User>? remoteSelectedValue;
   SelectData<User>? remoteWithDefaultValue;
+  SelectData<User>? alwaysFreshRemoteValue;
   List<SelectData<String>> localMultipleSelected = [];
   List<SelectData<User>> remoteMultipleSelected = [];
 
@@ -306,6 +307,51 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
             ),
             const SizedBox(height: 24),
 
+            // 新功能：每次打开都获取最新数据
+            _buildSectionTitle('7. 每次打开都获取最新数据（alwaysFreshData: true）'),
+            const SizedBox(height: 8),
+            Text(
+              '当前选择: ${alwaysFreshRemoteValue?.label ?? '未选择'}',
+              style: const TextStyle(fontSize: 14, color: Color(0xFF666666), fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(height: 12),
+            DropdownChoose<User>(
+              remote: true,
+              remoteFetch: _fetchRemoteUsers,
+              alwaysFreshData: true,
+              defaultValue: alwaysFreshRemoteValue,
+              onSingleSelected: (val) {
+                setState(() {
+                  alwaysFreshRemoteValue = val;
+                });
+                _showToast('选择了最新数据：${val.label}');
+              },
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3E5F5),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFF9C27B0)),
+              ),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '新功能说明：',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF7B1FA2)),
+                  ),
+                  SizedBox(height: 4),
+                  Text('• alwaysFreshData: true - 每次打开弹窗都自动获取最新数据'),
+                  Text('• onDialogOpen - 弹窗打开时的回调函数'),
+                  Text('• 适用于需要实时数据的场景'),
+                  Text('• 确保用户看到的始终是最新的选项'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
             // 使用说明
             _buildSectionTitle('使用说明'),
             const SizedBox(height: 8),
@@ -334,6 +380,8 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
                   Text('• onMultipleSelected: 多选回调函数'),
                   Text('• showAdd: 显示"去新增"入口'),
                   Text('• onAdd: 点击新增的回调函数'),
+                  Text('• alwaysFreshData: 每次打开弹窗都获取最新数据（仅remote模式）'),
+                  Text('• onDialogOpen: 弹窗打开时的回调函数'),
                   Text('• 支持自定义样式和交互'),
                 ],
               ),

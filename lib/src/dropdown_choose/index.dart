@@ -18,10 +18,12 @@ class DropdownChoose<T> extends StatefulWidget {
   final String? multipleTitleText;
   // 未选择时的占位提示文案，默认“请选择选项”
   final String? placeholderText;
-  // 远程搜索时，是否在列表底部显示“去新增”提示
+  // 远程搜索时，是否在列表底部显示"去新增"提示
   final bool showAdd;
-  // 点击“去新增”的回调，携带当前输入框关键词
+  // 点击"去新增"的回调，携带当前输入框关键词
   final void Function(String keyword)? onAdd;
+  // 是否每次打开弹窗都获取最新数据（仅在remote模式下生效）
+  final bool alwaysFreshData;
 
   const DropdownChoose({
     super.key,
@@ -38,6 +40,7 @@ class DropdownChoose<T> extends StatefulWidget {
     this.placeholderText,
     this.showAdd = false,
     this.onAdd,
+    this.alwaysFreshData = false,
   }) : assert(!(singleTitleText != null && multipleTitleText != null), 'DropdownChoose: singleTitleText 与 multipleTitleText 不能同时传入'),
        assert((showAdd == false && onAdd == null) || (showAdd == true && onAdd != null), 'DropdownChoose: 使用新增入口时必须同时传入 showAdd: true 与 onAdd 回调');
 
@@ -55,9 +58,10 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
   Timer? _debounceTimer; // 新增：防抖定时器
   // 保存底部弹窗的StatefulBuilder的setState，用于在其他弹窗操作后同步更新底部可选区域
   StateSetter? _modalSetState;
-  // 远程搜索不再自动触发，必须点击“搜索”按钮
+  // 远程搜索不再自动触发，必须点击"搜索"按钮
   // 弹窗显示且当前没有数据时，允许自动触发一次搜索
   bool _hasTriggeredInitialFetch = false;
+  bool _hasTriggeredModalAutoFetch = false; // 是否已触发过弹窗自动获取
 
   @override
   void initState() {
@@ -226,11 +230,19 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
             builder: (BuildContext context, StateSetter setState) {
               // 记录底部弹窗的setState，便于在其他地方（如“已选择”弹窗）触发刷新
               _modalSetState = setState;
-              // 弹窗显示时如果没有任何数据，仅自动触发一次搜索；其余情况必须点击“搜索”按钮
+              // 弹窗显示时的自动搜索逻辑
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (widget.remote && widget.remoteFetch != null && !_hasTriggeredInitialFetch && _list.isEmpty) {
-                  _hasTriggeredInitialFetch = true;
-                  _performRemoteSearchInModal(setState);
+                if (widget.remote && widget.remoteFetch != null && !_hasTriggeredModalAutoFetch) {
+                  _hasTriggeredModalAutoFetch = true;
+                  // 如果启用了 alwaysFreshData，每次打开弹窗都获取最新数据
+                  if (widget.alwaysFreshData) {
+                    _performRemoteSearchInModal(setState);
+                  }
+                  // 否则只在没有数据且未触发过初始搜索时自动搜索一次
+                  else if (!_hasTriggeredInitialFetch && _list.isEmpty) {
+                    _hasTriggeredInitialFetch = true;
+                    _performRemoteSearchInModal(setState);
+                  }
                 }
               });
 
@@ -551,10 +563,11 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
         );
       },
     );
-    // 弹窗关闭后，清理setState引用并重置首次搜索标志
+    // 弹窗关闭后，清理setState引用并重置搜索标志
     modalFuture.whenComplete(() {
       _modalSetState = null;
       _hasTriggeredInitialFetch = false;
+      _hasTriggeredModalAutoFetch = false; // 重置弹窗自动获取标志
     });
   }
 
@@ -729,9 +742,11 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
   Future<void> _performRemoteSearchInModal(StateSetter setState) async {
     if (_isLoading) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
 
     try {
       final list = await widget.remoteFetch?.call(_searchController.text);
