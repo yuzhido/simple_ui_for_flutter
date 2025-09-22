@@ -11,4 +11,5 @@ export 'date_field_widget.dart';
 export 'time_field_widget.dart';
 export 'datetime_field_widget.dart';
 export 'upload_field_widget.dart';
+export 'tree_select_field_widget.dart';
 export 'custom_field_widget.dart';

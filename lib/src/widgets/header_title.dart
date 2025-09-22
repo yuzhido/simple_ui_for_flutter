@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 
 // 头部标题区域
 class HeaderTitle extends StatelessWidget {
-  final String? singleTitleText;
-  final String? multipleTitleText;
+  final String title;
   final bool multiple;
-  const HeaderTitle({super.key, this.singleTitleText, this.multipleTitleText, this.multiple = false});
+  const HeaderTitle({super.key, this.title = '请选择', this.multiple = false});
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -19,7 +18,7 @@ class HeaderTitle extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            multiple == false ? (singleTitleText ?? '请选择') : (multipleTitleText ?? '请选择（可多选）'),
+            multiple == false ? (title) : ('请选择（可多选）'),
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Color(0xFF333333)),
           ),
           GestureDetector(

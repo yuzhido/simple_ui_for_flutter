@@ -384,7 +384,6 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
                                       if (isFooter) {
                                         return InkWell(
                                           onTap: () {
-                                            print('Add');
                                             widget.onAdd?.call(_searchController.text);
                                           },
                                           child: Container(

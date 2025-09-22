@@ -7,6 +7,9 @@ import 'package:example/pages/form_builder_demo/alwaysfresh_test.dart';
 import 'package:example/pages/notice_info/index.dart';
 import 'package:example/pages/permission_request/index.dart';
 import 'package:example/pages/scan_qrcode/index.dart';
+import 'package:example/pages/tree_select/advanced_example.dart';
+import 'package:example/pages/tree_select/use_cases_example.dart';
+import 'package:example/pages/tree_select/new_tree_example.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -59,6 +62,21 @@ class HomePage extends StatelessWidget {
             ElevatedButton(
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TreeSelectExamplePage())),
               child: const Text('多级选择（TreeSelect）示例'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TreeSelectAdvancedExample())),
+              child: const Text('TreeSelect 高级示例（懒加载+远程搜索）'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TreeSelectUseCasesExample())),
+              child: const Text('TreeSelect 业务场景示例'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NewTreeExamplePage())),
+              child: const Text('TreeSelect 完整功能示例'),
             ),
             const SizedBox(height: 12),
 

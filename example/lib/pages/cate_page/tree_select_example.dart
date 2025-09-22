@@ -1,7 +1,6 @@
-import 'package:example/pages/cascading_select/index.dart';
+import 'package:example/pages/tree_select/form_builder_example.dart';
 import 'package:example/pages/tree_select/index.dart';
-import 'package:example/pages/tree_select/lazy_loading_example.dart';
-import 'package:example/pages/tree_select/new_tree_node.dart';
+import 'package:example/pages/tree_select/new_tree_example.dart';
 import 'package:flutter/material.dart';
 
 class TreeSelectExamplePage extends StatefulWidget {
@@ -18,9 +17,12 @@ class _TreeSelectExamplePageState extends State<TreeSelectExamplePage> {
       body: Column(
         children: [
           ElevatedButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CascadingSelectPage())),
-            child: const Text('三级级联多选（CascadingSelect）示例'),
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const NewTreeExamplePage()));
+            },
+            child: Text('跳转查看最新树形选择（NewTreeExamplePage）示例'),
           ),
+          const SizedBox(height: 12),
           ElevatedButton(
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const TreeSelectPage()));
@@ -29,17 +31,8 @@ class _TreeSelectExamplePageState extends State<TreeSelectExamplePage> {
           ),
           const SizedBox(height: 12),
           ElevatedButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const NewTreeNodePage()));
-            },
-            child: Text('跳转查看TreeSelect远程搜索与本地过滤示例'),
-          ),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const LazyLoadingExamplePage()));
-            },
-            child: Text('跳转查看TreeSelect懒加载功能示例'),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FormBuilderTreeSelectExample())),
+            child: const Text('FormBuilder TreeSelect 真实API示例'),
           ),
         ],
       ),

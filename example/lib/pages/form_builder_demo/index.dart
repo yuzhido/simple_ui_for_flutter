@@ -222,14 +222,14 @@ class _FormBuilderDemoState extends State<FormBuilderDemo> {
         multiple: true,
         filterable: true,
         options: const [
-          SelectData(label: 'Flutter', value: 'flutter'),
-          SelectData(label: 'Dart', value: 'dart'),
-          SelectData(label: 'React', value: 'react'),
-          SelectData(label: 'Vue', value: 'vue'),
-          SelectData(label: 'Angular', value: 'angular'),
-          SelectData(label: 'Node.js', value: 'nodejs'),
-          SelectData(label: 'Python', value: 'python'),
-          SelectData(label: 'Java', value: 'java'),
+          SelectData(label: 'Flutter', data: 'flutter', value: 'flutter'),
+          SelectData(label: 'Dart', data: 'dart', value: 'dart'),
+          SelectData(label: 'React', data: 'react', value: 'react'),
+          SelectData(label: 'Vue', data: 'vue', value: 'vue'),
+          SelectData(label: 'Angular', data: 'angular', value: 'angular'),
+          SelectData(label: 'Node.js', data: 'nodejs', value: 'nodejs'),
+          SelectData(label: 'Python', data: 'python', value: 'python'),
+          SelectData(label: 'Java', data: 'java', value: 'java'),
         ],
         onChange: (fieldName, value) {
           print('字段 $fieldName 值变更为: $value');
@@ -355,6 +355,95 @@ class _FormBuilderDemoState extends State<FormBuilderDemo> {
           print('自定义上传函数字段 $fieldName 值变更为: $value');
           List<dynamic> files = value ?? [];
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('自定义上传函数已上传 ${files.length} 个文件'), duration: Duration(seconds: 1)));
+        },
+      ),
+      // TreeSelect 单选示例
+      FormBuilderConfig.treeSelect<String>(
+        name: 'department',
+        label: '部门选择',
+        required: false,
+        defaultValue: null,
+        multiple: false,
+        options: [
+          SelectData(
+            label: '技术部',
+            value: 'tech',
+            data: 'tech',
+            hasChildren: true,
+            children: [
+              SelectData(label: '前端组', value: 'frontend', data: 'frontend'),
+              SelectData(label: '后端组', value: 'backend', data: 'backend'),
+              SelectData(label: '移动端组', value: 'mobile', data: 'mobile'),
+            ],
+          ),
+          SelectData(
+            label: '产品部',
+            value: 'product',
+            data: 'product',
+            hasChildren: true,
+            children: [
+              SelectData(label: '产品设计', value: 'design', data: 'design'),
+              SelectData(label: '用户研究', value: 'research', data: 'research'),
+            ],
+          ),
+          SelectData(
+            label: '运营部',
+            value: 'operation',
+            data: 'operation',
+            hasChildren: false,
+          ),
+        ],
+        onChange: (fieldName, value) {
+          print('字段 $fieldName 值变更为: $value');
+          if (value != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('部门选择: ${value.label}'), duration: Duration(seconds: 1))
+            );
+          }
+        },
+      ),
+      // TreeSelect 多选示例
+      FormBuilderConfig.treeSelect<String>(
+        name: 'permissions',
+        label: '权限选择',
+        required: false,
+        defaultValue: [],
+        multiple: true,
+        options: [
+          SelectData(
+            label: '用户管理',
+            value: 'user_mgmt',
+            data: 'user_mgmt',
+            hasChildren: true,
+            children: [
+              SelectData(label: '查看用户', value: 'user_view', data: 'user_view'),
+              SelectData(label: '编辑用户', value: 'user_edit', data: 'user_edit'),
+              SelectData(label: '删除用户', value: 'user_delete', data: 'user_delete'),
+            ],
+          ),
+          SelectData(
+            label: '内容管理',
+            value: 'content_mgmt',
+            data: 'content_mgmt',
+            hasChildren: true,
+            children: [
+              SelectData(label: '发布内容', value: 'content_publish', data: 'content_publish'),
+              SelectData(label: '审核内容', value: 'content_review', data: 'content_review'),
+            ],
+          ),
+          SelectData(
+            label: '系统设置',
+            value: 'system_settings',
+            data: 'system_settings',
+            hasChildren: false,
+          ),
+        ],
+        onChange: (fieldName, value) {
+          print('字段 $fieldName 值变更为: $value');
+          List<dynamic> permissions = value ?? [];
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('已选择 ${permissions.length} 个权限'), duration: Duration(seconds: 1))
+          );
         },
       ),
       FormBuilderConfig.custom(

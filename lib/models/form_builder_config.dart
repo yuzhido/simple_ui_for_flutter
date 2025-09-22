@@ -357,6 +357,54 @@ class FormBuilderConfig {
     );
   }
 
+  // 工厂构造方法 - 树形选择
+  static FormBuilderConfig treeSelect<T>({
+    required String name,
+    String? label,
+    bool required = false,
+    dynamic defaultValue,
+    List<SelectData<T>>? options,
+    String? title,
+    String? hintText,
+    bool multiple = false,
+    bool remote = false,
+    Future<List<SelectData<T>>> Function(String)? remoteFetch,
+    bool filterable = false,
+    bool lazyLoad = false,
+    Future<List<SelectData<T>>> Function(SelectData<T>)? lazyLoadFetch,
+    bool isCacheData = true,
+    void Function(dynamic, SelectData<T>?)? onSingleSelected,
+    void Function(List<dynamic>, List<SelectData<T>>)? onMultipleSelected,
+    bool isShow = true,
+    String? Function(dynamic)? validator,
+    void Function(String fieldName, dynamic value)? onChange,
+  }) {
+    return FormBuilderConfig(
+      name: name,
+      type: FormBuilderType.treeSelect,
+      label: label,
+      required: required,
+      defaultValue: defaultValue,
+      props: TreeSelectProps<T>(
+        options: options ?? [],
+        title: title ?? '树形选择器',
+        hintText: hintText ?? '请输入关键字搜索',
+        multiple: multiple,
+        remote: remote,
+        remoteFetch: remoteFetch,
+        filterable: filterable,
+        lazyLoad: lazyLoad,
+        lazyLoadFetch: lazyLoadFetch,
+        isCacheData: isCacheData,
+        onSingleSelected: onSingleSelected,
+        onMultipleSelected: onMultipleSelected,
+      ),
+      isShow: isShow,
+      validator: validator,
+      onChange: onChange,
+    );
+  }
+
   // 工厂构造方法 - 自定义
   factory FormBuilderConfig.custom({
     required String name,
@@ -446,5 +494,36 @@ class UploadProps {
     this.defaultValue,
     this.uploadIcon,
     this.uploadText,
+  });
+}
+
+// 树形选择属性
+class TreeSelectProps<T> {
+  final List<SelectData<T>> options; // 备选数据
+  final String title; // 顶部title
+  final String hintText; // 顶部提示
+  final bool multiple; // 选择模式
+  final bool remote; // 是否开启远程搜索
+  final Future<List<SelectData<T>>> Function(String)? remoteFetch; // 远程搜索
+  final bool filterable; // 是否可过滤
+  final bool lazyLoad; // 是否懒加载
+  final Future<List<SelectData<T>>> Function(SelectData<T>)? lazyLoadFetch; // 懒加载函数
+  final bool isCacheData; // 是否缓存数据
+  final void Function(dynamic, SelectData<T>?)? onSingleSelected; // 单选回调
+  final void Function(List<dynamic>, List<SelectData<T>>)? onMultipleSelected; // 多选回调
+
+  const TreeSelectProps({
+    required this.options,
+    this.title = '树形选择器',
+    this.hintText = '请输入关键字搜索',
+    this.multiple = false,
+    this.remote = false,
+    this.remoteFetch,
+    this.filterable = false,
+    this.lazyLoad = false,
+    this.lazyLoadFetch,
+    this.isCacheData = true,
+    this.onSingleSelected,
+    this.onMultipleSelected,
   });
 }

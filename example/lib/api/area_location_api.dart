@@ -12,17 +12,8 @@ class AreaLocationApi {
   /// [parentId] 父级 ID，获取子级区域
   /// [level] 层级筛选
   /// [label] 标签搜索（模糊匹配）
-  static Future<Map<String, dynamic>> getAreaLocationList({
-    int page = 1,
-    int limit = 100,
-    String? parentId,
-    int? level,
-    String? label,
-  }) async {
-    final queryParams = <String, dynamic>{
-      'page': page,
-      'limit': limit,
-    };
+  static Future<Map<String, dynamic>> getAreaLocationList({int page = 1, int limit = 100, String? parentId, int? level, String? label}) async {
+    final queryParams = <String, dynamic>{'page': page, 'limit': limit};
 
     if (parentId != null && parentId.isNotEmpty) {
       queryParams['parentId'] = parentId;
@@ -61,10 +52,7 @@ class AreaLocationApi {
     }
 
     // 构造请求体，确保所有必填字段都有值
-    final body = <String, dynamic>{
-      'id': areaLocation.id!.trim(),
-      'label': areaLocation.label!.trim(),
-    };
+    final body = <String, dynamic>{'id': areaLocation.id!.trim(), 'label': areaLocation.label!.trim()};
 
     // 添加可选字段
     if (areaLocation.parentId != null && areaLocation.parentId!.trim().isNotEmpty) {
@@ -123,7 +111,7 @@ class AreaLocationApi {
   /// 删除区域位置（软删除）
   ///
   /// [id] 区域位置 ID
-  /// 
+  ///
   /// 特殊功能：
   /// - 软删除：将 isActive 设为 false，不物理删除数据
   /// - 自动更新父级：删除后自动更新父级区域的 hasChildren 字段
@@ -160,21 +148,21 @@ class AreaLocationApi {
   /// [includeInactive] 是否包含已停用的区域，默认 false
   static Future<List<AreaLocation>> getChildrenRecursively(String parentId, {bool includeInactive = false}) async {
     final List<AreaLocation> allChildren = [];
-    
+
     try {
       // 获取直接子级
       final response = await getAreaLocationList(parentId: parentId, limit: 1000);
-      
+
       if (response['success'] == true && response['data'] != null && response['data']['list'] != null) {
         final List<dynamic> list = response['data']['list'];
-        
+
         for (final item in list) {
           final areaLocation = AreaLocation.fromJson(item);
-          
+
           // 根据 includeInactive 参数决定是否包含已停用的区域
           if (includeInactive || (areaLocation.isActive == true)) {
             allChildren.add(areaLocation);
-            
+
             // 如果有子级，递归获取
             if (areaLocation.hasChildren == true && areaLocation.id != null) {
               final grandChildren = await getChildrenRecursively(areaLocation.id!, includeInactive: includeInactive);
@@ -187,7 +175,7 @@ class AreaLocationApi {
       print('获取子级区域失败: $e');
       // 不抛出异常，返回已获取的部分数据
     }
-    
+
     return allChildren;
   }
 
@@ -196,17 +184,17 @@ class AreaLocationApi {
   /// [id] 区域位置 ID
   static Future<List<AreaLocation>> getAreaPath(String id) async {
     final List<AreaLocation> path = [];
-    
+
     try {
       String? currentId = id;
-      
+
       while (currentId != null && currentId.isNotEmpty) {
         final response = await getAreaLocation(currentId);
-        
+
         if (response['success'] == true && response['data'] != null) {
           final areaLocation = AreaLocation.fromJson(response['data']);
           path.insert(0, areaLocation); // 插入到开头，保持从根到叶的顺序
-          
+
           currentId = areaLocation.parentId;
         } else {
           break;
@@ -216,7 +204,7 @@ class AreaLocationApi {
       print('获取区域路径失败: $e');
       // 不抛出异常，返回已获取的部分路径
     }
-    
+
     return path;
   }
 
@@ -227,24 +215,8 @@ class AreaLocationApi {
   /// [parentId] 限制搜索的父级区域
   /// [page] 页码，默认 1
   /// [limit] 每页数量，默认 50
-  static Future<Map<String, dynamic>> searchAreaLocations({
-    required String keyword,
-    int? level,
-    String? parentId,
-    int page = 1,
-    int limit = 50,
-  }) async {
-    if (keyword.trim().isEmpty) {
-      throw ApiException('搜索关键词不能为空');
-    }
-
-    return await getAreaLocationList(
-      page: page,
-      limit: limit,
-      parentId: parentId,
-      level: level,
-      label: keyword.trim(),
-    );
+  static Future<Map<String, dynamic>> searchAreaLocations({required String keyword, int? level, String? parentId, int page = 1, int limit = 50}) async {
+    return await getAreaLocationList(page: page, limit: limit, parentId: parentId, level: level, label: keyword.trim());
   }
 
   /// 获取顶级区域列表（level = 1）
@@ -252,11 +224,7 @@ class AreaLocationApi {
   /// [page] 页码，默认 1
   /// [limit] 每页数量，默认 100
   static Future<Map<String, dynamic>> getTopLevelAreas({int page = 1, int limit = 100}) async {
-    return await getAreaLocationList(
-      page: page,
-      limit: limit,
-      level: 1,
-    );
+    return await getAreaLocationList(page: page, limit: limit, level: 1);
   }
 
   /// 检查区域 ID 是否已存在

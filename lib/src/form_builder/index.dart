@@ -239,10 +239,10 @@ class _FormBuilderState extends State<FormBuilder> {
         return DateTimeFieldWidget(config: config, value: currentValue, onChanged: onFieldChanged);
       case FormBuilderType.upload:
         return UploadFieldWidget(config: config, value: currentValue, onChanged: onFieldChanged);
+      case FormBuilderType.treeSelect:
+        return TreeSelectFieldWidget(config: config, value: currentValue, onChanged: onFieldChanged);
       case FormBuilderType.custom:
         return CustomFieldWidget(config: config, value: currentValue, onChanged: onFieldChanged);
-      default:
-        return Container();
     }
   }
 }
