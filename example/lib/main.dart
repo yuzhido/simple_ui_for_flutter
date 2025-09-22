@@ -1,5 +1,6 @@
 import 'package:example/pages/form_builder_demo/default_value.dart';
 import 'package:example/pages/form_builder_demo/test_form_upload_file.dart';
+import 'package:example/pages/form_builder_demo/alwaysfresh_test.dart';
 import 'package:example/pages/loading_data/index.dart';
 import 'package:example/pages/new_file_upload/index.dart';
 import 'package:example/pages/notice_info/index.dart';
@@ -154,6 +155,13 @@ class HomePage extends StatelessWidget {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const LoadingDataPage()));
               },
               child: Text('跳转查看数据驱动表单（LoadingDataPage）加载数据示例'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const AlwaysFreshTestPage()));
+              },
+              child: Text('跳转查看AlwaysFreshData功能测试'),
             ),
             const SizedBox(height: 12),
             ElevatedButton(

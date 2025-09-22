@@ -83,6 +83,7 @@ class DropdownFieldWidget extends StatelessWidget {
               placeholderText: config.placeholder ?? '请选择',
               showAdd: propsRaw.showAdd,
               onAdd: propsRaw.onAdd,
+              alwaysFreshData: propsRaw.alwaysFreshData,
               onSingleSelected: (value) {
                 onChanged(value.value);
                 state.didChange(value.value);

@@ -258,6 +258,29 @@ class _FormBuilderDemoState extends State<FormBuilderDemo> {
           }
         },
       ),
+      // 新功能示例：展示 alwaysFreshData、onDialogOpen、onDialogClose
+      FormBuilderConfig.dropdown<User>(
+        name: 'advancedRemoteUsers',
+        label: '高级远程用户选择（新功能演示）',
+        required: false,
+        remote: true,
+        remoteFetch: _fetchRemoteUsers,
+        alwaysFreshData: false, // 只在第一次打开弹窗时获取数据，之后使用缓存
+        showAdd: true,
+        onAdd: (val) {
+          debugPrint('高级模式添加新项: $val');
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('添加新用户: $val'), duration: Duration(seconds: 2)));
+        },
+        onSingleSelected: (val) {
+          print('高级模式选择用户: ${val.data}');
+        },
+        onChange: (fieldName, value) {
+          print('高级字段 $fieldName 值变更为: $value');
+          if (value != null) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('高级模式：用户已选择'), duration: Duration(seconds: 1), backgroundColor: Colors.purple));
+          }
+        },
+      ),
       FormBuilderConfig.upload(
         name: 'avatar',
         label: '头像',

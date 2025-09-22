@@ -187,6 +187,7 @@ class FormBuilderConfig {
     Function(List<SelectData<T>>)? onMultipleSelected,
     bool showAdd = false,
     void Function(String keyword)? onAdd,
+    bool alwaysFreshData = false,
     bool isShow = true,
     String? Function(dynamic)? validator,
     void Function(String fieldName, dynamic value)? onChange,
@@ -207,6 +208,7 @@ class FormBuilderConfig {
         onMultipleSelected: onMultipleSelected,
         showAdd: showAdd,
         onAdd: onAdd,
+        alwaysFreshData: alwaysFreshData,
       ),
       placeholder: placeholder,
       isShow: isShow,
@@ -391,6 +393,8 @@ class DropdownProps<T> {
   final Function(List<SelectData<T>>)? onMultipleSelected;
   final bool showAdd;
   final void Function(String keyword)? onAdd;
+  // 是否每次打开弹窗都获取最新数据（仅在remote模式下生效）
+  final bool alwaysFreshData;
 
   const DropdownProps({
     required this.options,
@@ -402,6 +406,7 @@ class DropdownProps<T> {
     this.onMultipleSelected,
     this.showAdd = false,
     this.onAdd,
+    this.alwaysFreshData = false,
   });
 }
 
