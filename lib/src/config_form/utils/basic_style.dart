@@ -1,36 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:simple_ui/models/form_builder_config.dart';
 
-/// 文本字段组件
-class TextFieldWidget extends StatelessWidget {
-  final FormBuilderConfig config;
-  final dynamic value;
-  final TextEditingController? controller;
-  final Function(String) onChanged;
-
-  const TextFieldWidget({super.key, required this.config, this.value, this.controller, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      initialValue: controller == null ? value?.toString() : null,
-      decoration: _inputDecoration('请输入${config.label ?? ''}'),
-      onChanged: onChanged,
-      validator:
-          config.validator ??
-          (value) {
-            if (config.required && (value == null || value.trim().isEmpty)) {
-              return '${config.label}必填';
-            }
-            return null;
-          },
-    );
-  }
-
-  InputDecoration _inputDecoration(String hint) {
+// 基本样式类，用于生成输入框的样式
+class BasicStyle {
+  static inputStyle(String? hintText, {Widget? suffixIcon}) {
     return InputDecoration(
-      hintText: hint,
+      hintText: '请输入${hintText ?? ''}',
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: BorderSide(color: Colors.grey.shade300),
@@ -51,10 +25,13 @@ class TextFieldWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: Colors.red, width: 2),
       ),
+      suffixIcon: suffixIcon,
       errorStyle: const TextStyle(color: Colors.red),
       filled: true,
       fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     );
   }
+
+  static dateStyle() {}
 }
