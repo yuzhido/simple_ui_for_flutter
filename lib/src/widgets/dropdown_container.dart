@@ -5,19 +5,19 @@ class DropdownContainer<T> extends StatefulWidget {
   // 是否多选
   final bool? multiple;
   // 提示词占位符
-  final String tipsInfo;
+  final String tips;
   // 多选的数据
   final List<SelectData<T>>? items;
   // 单选的数据
   final SelectData<T>? item;
   // 是否正在进行选择
   final bool isChoosing;
-  const DropdownContainer({super.key, this.multiple = false, this.tipsInfo = '请选择选项', this.items, this.item, this.isChoosing = false});
+  const DropdownContainer({super.key, this.multiple = false, this.tips = '请选择选项', this.items, this.item, this.isChoosing = false});
   @override
-  State<DropdownContainer> createState() => _DropdownContainerState();
+  State<DropdownContainer<T>> createState() => _DropdownContainerState<T>();
 }
 
-class _DropdownContainerState extends State<DropdownContainer> {
+class _DropdownContainerState<T> extends State<DropdownContainer<T>> {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -34,7 +34,7 @@ class _DropdownContainerState extends State<DropdownContainer> {
           Expanded(
             child: widget.multiple == true
                 ? (widget.items?.isEmpty ?? true
-                      ? Text(widget.tipsInfo, style: const TextStyle(fontSize: 16, color: Color(0xFF999999)))
+                      ? Text(widget.tips, style: const TextStyle(fontSize: 16, color: Color(0xFF999999)))
                       : SizedBox(
                           height: 30,
                           child: ListView.separated(
@@ -57,7 +57,7 @@ class _DropdownContainerState extends State<DropdownContainer> {
                           ),
                         ))
                 : Text(
-                    widget.item?.label ?? (widget.tipsInfo),
+                    widget.item?.label ?? (widget.tips),
                     style: TextStyle(
                       fontSize: 16,
                       color: widget.item != null ? const Color(0xFF333333) : const Color(0xFF999999),

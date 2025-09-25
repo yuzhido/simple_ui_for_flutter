@@ -8,12 +8,14 @@ class LoadingData extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(strokeWidth: 3, valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade600)),
+          const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF007AFF)), strokeWidth: 3),
           const SizedBox(height: 16),
           Text(
-            '正在加载数据...',
-            style: TextStyle(fontSize: 16, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+            '正在搜索中...',
+            style: TextStyle(color: Color(0xFF666666), fontSize: 16, fontWeight: FontWeight.w500),
           ),
+          const SizedBox(height: 8),
+          Text('正在为您搜索相关数据', style: TextStyle(color: Color(0xFF999999), fontSize: 14)),
         ],
       ),
     );

@@ -1,391 +1,392 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/simple_ui.dart';
 import '../../api/user_api.dart';
+import '../../api/city_api.dart';
 import '../../api/models/user.dart';
 
-class DropdownSelectPage extends StatefulWidget {
-  const DropdownSelectPage({super.key});
+// 复杂数据类型示例
+class UserModel {
+  final int id;
+  final String name;
+  final String email;
+  final String department;
+
+  UserModel({required this.id, required this.name, required this.email, required this.department});
+
   @override
-  State<DropdownSelectPage> createState() => _DropdownSelectPageState();
+  String toString() => 'UserModel(id: $id, name: $name, email: $email, department: $department)';
 }
 
-class _DropdownSelectPageState extends State<DropdownSelectPage> {
-  // 下拉选择数据
-  final List<SelectData<String>> singleChoose = const [
-    SelectData(label: '选项1', value: '1', data: 'data1'),
-    SelectData(label: '选项2', value: '2', data: 'data2'),
-    SelectData(label: '选项3', value: '3', data: 'data3'),
-    SelectData(label: '选项4', value: '4', data: 'data4'),
-    SelectData(label: '选项5', value: '5', data: 'data5'),
-    SelectData(label: '苹果', value: 'apple', data: 'fruit'),
-    SelectData(label: '香蕉', value: 'banana', data: 'fruit'),
-    SelectData(label: '橙子', value: 'orange', data: 'fruit'),
-    SelectData(label: '葡萄', value: 'grape', data: 'fruit'),
-    SelectData(label: '西瓜', value: 'watermelon', data: 'fruit'),
+class DropdownChoosePage extends StatefulWidget {
+  const DropdownChoosePage({super.key});
+  @override
+  State<DropdownChoosePage> createState() => _DropdownChoosePageState();
+}
+
+class _DropdownChoosePageState extends State<DropdownChoosePage> {
+  // 基础示例数据
+  final List<SelectData<String>> fruitOptions = [
+    SelectData(label: '苹果', value: 'apple', data: 'apple'),
+    SelectData(label: '香蕉', value: 'banana', data: 'banana'),
+    SelectData(label: '橙子', value: 'orange', data: 'orange'),
+    SelectData(label: '葡萄', value: 'grape', data: 'grape'),
+    SelectData(label: '草莓', value: 'strawberry', data: 'strawberry'),
+    SelectData(label: '蓝莓', value: 'blueberry', data: 'blueberry'),
+    SelectData(label: '芒果', value: 'mango', data: 'mango'),
+    SelectData(label: '西瓜', value: 'watermelon', data: 'watermelon'),
   ];
 
-  // 当前选中的值
-  SelectData<String>? selectedValue;
-  SelectData<String>? filteredValue;
-  SelectData<User>? remoteSelectedValue;
-  SelectData<User>? remoteWithDefaultValue;
-  SelectData<User>? alwaysFreshRemoteValue;
-  List<SelectData<String>> localMultipleSelected = [];
-  List<SelectData<User>> remoteMultipleSelected = [];
+  // 复杂数据类型示例数据
+  final List<SelectData<UserModel>> userOptions = [
+    SelectData(
+      label: '张三 (技术部)',
+      value: 1,
+      data: UserModel(id: 1, name: '张三', email: 'zhangsan@example.com', department: '技术部'),
+    ),
+    SelectData(
+      label: '李四 (产品部)',
+      value: 2,
+      data: UserModel(id: 2, name: '李四', email: 'lisi@example.com', department: '产品部'),
+    ),
+    SelectData(
+      label: '王五 (设计部)',
+      value: 3,
+      data: UserModel(id: 3, name: '王五', email: 'wangwu@example.com', department: '设计部'),
+    ),
+    SelectData(
+      label: '赵六 (运营部)',
+      value: 4,
+      data: UserModel(id: 4, name: '赵六', email: 'zhaoliu@example.com', department: '运营部'),
+    ),
+  ];
+
+  // 各种示例的选中值
+  SelectData<String>? basicSingleValue;
+  List<SelectData<String>> basicMultipleValues = [];
+  SelectData<String>? filterableSingleValue;
+  List<SelectData<String>> filterableMultipleValues = [];
+  SelectData<String>? remoteSingleValue;
+  List<SelectData<String>> remoteMultipleValues = [];
+  SelectData<String>? addButtonValue;
+  SelectData<UserModel>? complexSingleValue;
+  List<SelectData<UserModel>> complexMultipleValues = [];
 
   @override
   void initState() {
     super.initState();
-    // 设置默认选中第一个选项
-    selectedValue = singleChoose.first;
-
-    // 设置远程搜索的默认值（模拟编辑模式）
-    remoteWithDefaultValue = SelectData<User>(
-      label: '张三_2 (19岁)',
-      value: '68ca1dee02cf5e1946e341d7',
-      data: User(id: '68ca1dee02cf5e1946e341d7', name: '张三_2', age: 19, address: '淄博市新城区,镇区,区区,县区,市区691路34号', school: '中国传媒大学', birthday: '2006-04-15T00:00:00.000Z'),
-    );
-
-    // 设置本地多选的默认值
-    localMultipleSelected = [
-      singleChoose[0], // 选项1
-      singleChoose[5], // 苹果
-    ];
-
-    // 设置远程多选的默认值
-    remoteMultipleSelected = [
-      SelectData<User>(
-        label: '李四_2 (50岁)',
-        value: '68ca1dee02cf5e1946e341d9',
-        data: User(id: '68ca1dee02cf5e1946e341d9', name: '李四_2', age: 50, address: '重庆市西城市,镇市,区市,县市,市市686街705号', school: '北京师范大学', birthday: '1975-01-10T00:00:00.000Z'),
-      ),
-      SelectData<User>(
-        label: '范五十 (52岁)',
-        value: '68ca1dee02cf5e1946e341d5',
-        data: User(id: '68ca1dee02cf5e1946e341d5', name: '范五十', age: 52, address: '合肥市西城市,镇市,区市,县市,市市104路295号', school: '西南大学', birthday: '1973-04-20T00:00:00.000Z'),
-      ),
-    ];
+    // 设置一些默认值进行测试
+    basicSingleValue = fruitOptions[1]; // 默认选中香蕉
+    basicMultipleValues = [fruitOptions[0], fruitOptions[2]]; // 默认选中苹果和橙子
+    complexSingleValue = userOptions[0]; // 默认选中张三
   }
 
-  // 远程搜索用户数据
-  Future<List<SelectData<User>>> _fetchRemoteUsers(String? keyword) async {
+  // 模拟远程搜索方法
+  Future<List<SelectData<String>>> _remoteSearch(String query) async {
+    // 模拟网络延迟
+    await Future.delayed(const Duration(milliseconds: 800));
+
+    // 模拟搜索结果
+    final allFruits = [
+      ...fruitOptions,
+      SelectData(label: '柠檬', value: 'lemon', data: 'lemon'),
+      SelectData(label: '桃子', value: 'peach', data: 'peach'),
+      SelectData(label: '梨子', value: 'pear', data: 'pear'),
+      SelectData(label: '樱桃', value: 'cherry', data: 'cherry'),
+    ];
+
+    return allFruits.where((option) => option.label.toLowerCase().contains(query.toLowerCase())).toList();
+  }
+
+  // 远程搜索用户信息
+  Future<List<SelectData<User>>> _remoteSearchUsers(String query) async {
     try {
-      final response = await UserApi.getUserList(page: 1, limit: 20, name: keyword?.isNotEmpty == true ? keyword : null);
+      // 调用真实的用户API
+      final response = await UserApi.getUserList(page: 1, limit: 20, name: query.isNotEmpty ? query : null);
 
       // 检查响应结构
       if (response['success'] == true && response['data'] != null) {
-        final data = response['data'];
+        final List<dynamic> usersData = response['data'];
 
-        // 检查data是直接数组还是包含users字段的Map
-        List<dynamic> usersData;
-        if (data is List) {
-          // data直接是用户数组
-          usersData = data;
-        } else if (data is Map<String, dynamic> && data['users'] is List) {
-          // data是Map，包含users字段
-          usersData = data['users'];
-        } else {
-          return [];
-        }
-
-        if (usersData.isEmpty) {
-          return [];
-        }
-
+        // 将JSON数据转换为User对象，然后转换为SelectData格式
         return usersData.map((userJson) {
-          try {
-            if (userJson is Map<String, dynamic>) {
-              final user = User.fromJson(userJson);
-              return SelectData<User>(label: '${user.name ?? '未知用户'} (${user.age ?? '未知年龄'}岁)', value: user.id ?? '', data: user);
-            } else {
-              return SelectData<User>(
-                label: '数据格式错误',
-                value: 'error',
-                data: User(name: '数据格式错误', age: 0, address: '', school: '', birthday: ''),
-              );
-            }
-          } catch (e) {
-            return SelectData<User>(
-              label: '解析失败的用户',
-              value: 'error',
-              data: User(name: '解析失败', age: 0, address: '', school: '', birthday: ''),
-            );
-          }
+          final user = User.fromJson(userJson);
+          return SelectData<User>(label: '${user.name} (${user.school ?? '未知学校'})', value: user.id.toString(), data: user);
         }).toList();
-      } else {
-        return [];
       }
+      return [];
     } catch (e) {
+      // 如果请求失败，返回空列表
+      print('远程搜索用户失败: $e');
       return [];
     }
+  }
+
+  // 远程搜索城市信息
+  Future<List<SelectData<City>>> _remoteSearchCities(String query) async {
+    try {
+      // 调用真实的城市API
+      final response = await CityApi.getCityList(page: 1, limit: 20, name: query.isNotEmpty ? query : null);
+
+      // 检查响应结构
+      if (response['success'] == true && response['data'] != null) {
+        final List<dynamic> citiesData = response['data'];
+
+        // 将JSON数据转换为City对象，然后转换为SelectData格式
+        return citiesData.map((cityJson) {
+          final city = City.fromJson(cityJson);
+          return SelectData<City>(label: '${city.name} (${city.province ?? '未知省份'})', value: city.id.toString(), data: city);
+        }).toList();
+      }
+      return [];
+    } catch (e) {
+      // 如果请求失败，返回空列表
+      print('远程搜索城市失败: $e');
+      return [];
+    }
+  }
+
+  // 显示添加对话框
+  _showAddDialog(keyword) {
+    print('keyword: $keyword');
+    showDialog(
+      context: context,
+      builder: (context) {
+        String newFruit = '';
+        return AlertDialog(
+          title: const Text('添加新水果'),
+          content: TextField(
+            onChanged: (value) {
+              newFruit = value;
+            },
+            decoration: const InputDecoration(hintText: '请输入水果名称'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('取消'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (newFruit.isNotEmpty) {
+                  final newOption = SelectData(label: newFruit, value: newFruit.toLowerCase().replaceAll(' ', '_'), data: newFruit);
+                  setState(() {
+                    fruitOptions.add(newOption);
+                    addButtonValue = newOption;
+                  });
+                }
+                Navigator.of(context).pop();
+              },
+              child: const Text('添加'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('下拉选择组件示例'), backgroundColor: const Color(0xFF007AFF), foregroundColor: Colors.white),
+      appBar: AppBar(title: const Text('DropdownChoose 示例')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('DropdownChoose 组件使用示例', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 24),
-
-            // 基础单选示例
-            _buildSectionTitle('1. 基础单选'),
-            const SizedBox(height: 8),
-            Text(
-              '当前选择: ${selectedValue?.label ?? '未选择'}',
-              style: const TextStyle(fontSize: 14, color: Color(0xFF666666), fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 12),
+            // 1. 基础单选示例
+            _buildSectionTitle('1. 基础单选示例'),
             DropdownChoose<String>(
-              list: singleChoose,
-              defaultValue: selectedValue,
-              onSingleSelected: (val) {
+              options: fruitOptions,
+              defaultValue: basicSingleValue,
+              onSingleChanged: (value, data, selectData) {
                 setState(() {
-                  selectedValue = val;
+                  basicSingleValue = selectData;
                 });
-                _showToast('选择了：${val.label}');
               },
+              tips: '请选择水果',
             ),
+            _buildResultText('选中的值: ${basicSingleValue?.label ?? '无'}'),
             const SizedBox(height: 24),
 
-            // 本地搜索过滤示例
-            _buildSectionTitle('2. 本地搜索过滤（filterable: true）'),
-            const SizedBox(height: 8),
-            Text(
-              '当前选择: ${filteredValue?.label ?? '未选择'}',
-              style: const TextStyle(fontSize: 14, color: Color(0xFF666666), fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 12),
+            // 2. 基础多选示例
+            _buildSectionTitle('2. 基础多选示例'),
             DropdownChoose<String>(
-              list: singleChoose,
+              options: fruitOptions,
+              multiple: true,
+              defaultValue: basicMultipleValues,
+              onMultipleChanged: (values, datas, selectDatas) {
+                setState(() {
+                  basicMultipleValues = selectDatas;
+                });
+              },
+              tips: '请选择水果（多选）',
+            ),
+            _buildResultText('选中的值: ${basicMultipleValues.map((e) => e.label).join(', ')}'),
+            const SizedBox(height: 24),
+
+            // 3. 可过滤单选示例
+            _buildSectionTitle('3. 可过滤单选示例'),
+            DropdownChoose<String>(
+              options: fruitOptions,
               filterable: true,
-              defaultValue: filteredValue,
-              onSingleSelected: (val) {
+              defaultValue: filterableSingleValue,
+              onSingleChanged: (value, data, selectData) {
                 setState(() {
-                  filteredValue = val;
+                  filterableSingleValue = selectData;
                 });
-                _showToast('过滤选择了：${val.label}');
               },
+              tips: '请输入或选择水果',
             ),
+            _buildResultText('选中的值: ${filterableSingleValue?.label ?? '无'}'),
             const SizedBox(height: 24),
 
-            // 远程搜索示例
-            _buildSectionTitle('3. 远程搜索（remote: true）'),
-            const SizedBox(height: 8),
-            Text(
-              '当前选择: ${remoteSelectedValue?.label ?? '未选择'}',
-              style: const TextStyle(fontSize: 14, color: Color(0xFF666666), fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 12),
-            DropdownChoose<User>(
-              remote: true,
-              remoteFetch: _fetchRemoteUsers,
-              defaultValue: remoteSelectedValue,
-              showAdd: true,
-              onAdd: (val) {
-                print(val);
-              },
-              onSingleSelected: (val) {
-                setState(() {
-                  remoteSelectedValue = val;
-                });
-                _showToast('远程搜索选择了：${val.label}');
-              },
-            ),
-            const SizedBox(height: 24),
-
-            // 远程搜索 + 默认值示例
-            _buildSectionTitle('4. 远程搜索 + 默认值（编辑模式）'),
-            const SizedBox(height: 8),
-            Text(
-              '当前选择: ${remoteWithDefaultValue?.label ?? '未选择'}',
-              style: const TextStyle(fontSize: 14, color: Color(0xFF666666), fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 12),
-            DropdownChoose<User>(
-              remote: true,
-              remoteFetch: _fetchRemoteUsers,
-              defaultValue: remoteWithDefaultValue,
-              onSingleSelected: (val) {
-                setState(() {
-                  remoteWithDefaultValue = val;
-                });
-                _showToast('编辑模式选择了：${val.label}');
-              },
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF3E0),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFFF9800)),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '编辑模式说明：',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFE65100)),
-                  ),
-                  SizedBox(height: 4),
-                  Text('• 模拟编辑场景，预设了默认选中的用户'),
-                  Text('• 即使远程搜索没有返回这个用户，也能正确显示'),
-                  Text('• 适用于编辑表单时的数据回显'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // 本地数据多选示例
-            _buildSectionTitle('5. 本地数据多选（multiple: true）'),
-            const SizedBox(height: 8),
-            Text(
-              '当前选择: ${localMultipleSelected.isEmpty ? '未选择' : localMultipleSelected.map((e) => e.label).join(', ')}',
-              style: const TextStyle(fontSize: 14, color: Color(0xFF666666), fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 12),
+            // 4. 可过滤多选示例
+            _buildSectionTitle('4. 可过滤多选示例'),
             DropdownChoose<String>(
-              list: singleChoose,
+              options: fruitOptions,
+              filterable: true,
               multiple: true,
-              defaultValue: localMultipleSelected,
-              onMultipleSelected: (vals) {
+              defaultValue: filterableMultipleValues,
+              onMultipleChanged: (values, datas, selectDatas) {
                 setState(() {
-                  localMultipleSelected = vals;
+                  filterableMultipleValues = selectDatas;
                 });
-                _showToast('本地多选选择了：${vals.map((e) => e.label).join(', ')}');
               },
+              tips: '请输入或选择水果（多选）',
             ),
+            _buildResultText('选中的值: ${filterableMultipleValues.map((e) => e.label).join(', ')}'),
             const SizedBox(height: 24),
 
-            // 远程多选示例
-            _buildSectionTitle('6. 远程多选（remote: true, multiple: true）'),
-            const SizedBox(height: 8),
-            Text(
-              '当前选择: ${remoteMultipleSelected.isEmpty ? '未选择' : remoteMultipleSelected.map((e) => e.label).join(', ')}',
-              style: const TextStyle(fontSize: 14, color: Color(0xFF666666), fontWeight: FontWeight.w500),
+            // 5. 远程搜索单选示例
+            _buildSectionTitle('5. 远程搜索单选示例'),
+            DropdownChoose<String>(
+              remote: true,
+              remoteSearch: _remoteSearch,
+              defaultValue: remoteSingleValue,
+              onSingleChanged: (value, data, selectData) {
+                setState(() {
+                  remoteSingleValue = selectData;
+                });
+              },
+              tips: '请输入搜索关键词',
             ),
-            const SizedBox(height: 12),
+            _buildResultText('选中的值: ${remoteSingleValue?.label ?? '无'}'),
+            const SizedBox(height: 24),
+
+            // 6. 远程搜索多选示例
+            _buildSectionTitle('6. 远程搜索多选示例'),
+            DropdownChoose<String>(
+              remote: true,
+              multiple: true,
+              remoteSearch: _remoteSearch,
+              defaultValue: remoteMultipleValues,
+              onMultipleChanged: (values, datas, selectDatas) {
+                setState(() {
+                  remoteMultipleValues = selectDatas;
+                });
+              },
+              tips: '请输入搜索关键词（多选）',
+            ),
+            _buildResultText('选中的值: ${remoteMultipleValues.map((e) => e.label).join(', ')}'),
+            const SizedBox(height: 24),
+
+            // 7. 带添加按钮的示例
+            _buildSectionTitle('7. 带添加按钮的示例'),
+            DropdownChoose<String>(
+              options: fruitOptions,
+              showAdd: true,
+              remote: true,
+              remoteSearch: _remoteSearch,
+              defaultValue: addButtonValue,
+              onSingleChanged: (value, data, selectData) {
+                setState(() {
+                  addButtonValue = selectData;
+                });
+              },
+              onAdd: (keyword) => _showAddDialog(keyword),
+              tips: '请选择或添加水果',
+            ),
+            _buildResultText('选中的值: ${addButtonValue?.label ?? '无'}'),
+            const SizedBox(height: 24),
+
+            // 8. 复杂数据类型单选示例
+            _buildSectionTitle('8. 复杂数据类型单选示例'),
+            DropdownChoose<UserModel>(
+              options: userOptions,
+              defaultValue: complexSingleValue,
+              onSingleChanged: (value, data, selectData) {
+                setState(() {
+                  complexSingleValue = selectData;
+                });
+              },
+              tips: '请选择用户',
+            ),
+            _buildResultText('选中的用户: ${complexSingleValue?.data.name ?? '无'} (${complexSingleValue?.data.department ?? ''})'),
+            const SizedBox(height: 24),
+
+            // 9. 复杂数据类型多选示例
+            _buildSectionTitle('9. 复杂数据类型多选示例'),
+            DropdownChoose<UserModel>(
+              options: userOptions,
+              multiple: true,
+              defaultValue: complexMultipleValues,
+              onMultipleChanged: (values, datas, selectDatas) {
+                setState(() {
+                  complexMultipleValues = selectDatas;
+                });
+              },
+              tips: '请选择用户（多选）',
+            ),
+            _buildResultText('选中的用户: ${complexMultipleValues.map((e) => '${e.data.name}(${e.data.department})').join(', ')}'),
+            const SizedBox(height: 24),
+
+            // 10. 远程搜索 + 可过滤 + 多选组合示例
+            _buildSectionTitle('10. 远程搜索 + 可过滤 + 多选组合示例'),
+            DropdownChoose<String>(
+              remote: true,
+              multiple: true,
+              remoteSearch: _remoteSearch,
+              onMultipleChanged: (values, datas, selectDatas) {
+                setState(() {
+                  // 这里不设置状态，仅作为演示
+                });
+              },
+              tips: '远程搜索 + 过滤 + 多选',
+            ),
+            _buildResultText('这是一个功能组合示例，展示了远程搜索、过滤和多选的组合使用'),
+            const SizedBox(height: 40),
+
+            // 真实接口示例 - 远程搜索用户信息
+            _buildSectionTitle('真实接口示例 - 远程搜索用户信息'),
             DropdownChoose<User>(
               remote: true,
-              remoteFetch: _fetchRemoteUsers,
-              multiple: true,
-              defaultValue: remoteMultipleSelected,
-              onMultipleSelected: (vals) {
+              remoteSearch: _remoteSearchUsers,
+              onSingleChanged: (value, data, selectData) {
                 setState(() {
-                  remoteMultipleSelected = vals;
+                  // 处理用户选择
                 });
-                _showToast('远程多选选择了：${vals.map((e) => e.label).join(', ')}');
               },
+              tips: '搜索用户信息（姓名、学校等）',
             ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE8F5E8),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF4CAF50)),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '多选模式说明：',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF2E7D32)),
-                  ),
-                  SizedBox(height: 4),
-                  Text('• 支持同时选择多个选项'),
-                  Text('• 显示已选择的项目数量'),
-                  Text('• 可以查看和移除已选择的项目'),
-                  Text('• 支持本地和远程数据源'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
+            _buildResultText('使用真实的getUserList接口进行远程搜索，支持按姓名、学校等条件搜索用户'),
+            const SizedBox(height: 20),
 
-            // 新功能：每次打开都获取最新数据
-            _buildSectionTitle('7. 每次打开都获取最新数据（alwaysFreshData: true）'),
-            const SizedBox(height: 8),
-            Text(
-              '当前选择: ${alwaysFreshRemoteValue?.label ?? '未选择'}',
-              style: const TextStyle(fontSize: 14, color: Color(0xFF666666), fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 12),
-            DropdownChoose<User>(
+            // 真实接口示例 - 远程搜索城市信息
+            _buildSectionTitle('真实接口示例 - 远程搜索城市信息'),
+            DropdownChoose<City>(
               remote: true,
-              remoteFetch: _fetchRemoteUsers,
-              alwaysFreshData: true,
-              defaultValue: alwaysFreshRemoteValue,
-              onSingleSelected: (val) {
+              remoteSearch: _remoteSearchCities,
+              onSingleChanged: (value, data, selectData) {
                 setState(() {
-                  alwaysFreshRemoteValue = val;
+                  // 处理城市选择
                 });
-                _showToast('选择了最新数据：${val.label}');
               },
+              tips: '搜索城市信息（城市名、省份等）',
             ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF3E5F5),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF9C27B0)),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '新功能说明：',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF7B1FA2)),
-                  ),
-                  SizedBox(height: 4),
-                  Text('• alwaysFreshData: true - 每次打开弹窗都自动获取最新数据'),
-                  Text('• onDialogOpen - 弹窗打开时的回调函数'),
-                  Text('• 适用于需要实时数据的场景'),
-                  Text('• 确保用户看到的始终是最新的选项'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // 使用说明
-            _buildSectionTitle('使用说明'),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE3F2FD),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFF2196F3)),
-              ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '组件特性：',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1976D2)),
-                  ),
-                  SizedBox(height: 8),
-                  Text('• list: 传入选项数据列表（本地模式）'),
-                  Text('• remote: 启用远程搜索功能'),
-                  Text('• remoteFetch: 远程数据获取函数'),
-                  Text('• multiple: 启用多选模式'),
-                  Text('• filterable: 启用本地搜索过滤功能'),
-                  Text('• defaultValue: 设置默认选中值（单选传入SelectData，多选传入List）'),
-                  Text('• onSingleSelected: 单选回调函数'),
-                  Text('• onMultipleSelected: 多选回调函数'),
-                  Text('• showAdd: 显示"去新增"入口'),
-                  Text('• onAdd: 点击新增的回调函数'),
-                  Text('• alwaysFreshData: 每次打开弹窗都获取最新数据（仅remote模式）'),
-                  Text('• onDialogOpen: 弹窗打开时的回调函数'),
-                  Text('• 支持自定义样式和交互'),
-                ],
-              ),
-            ),
+            _buildResultText('使用真实的getCityList接口进行远程搜索，支持按城市名、省份等条件搜索城市'),
+            const SizedBox(height: 40),
           ],
         ),
       ),
@@ -393,20 +394,27 @@ class _DropdownSelectPageState extends State<DropdownSelectPage> {
   }
 
   Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF333333)),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Text(
+        title,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+      ),
     );
   }
 
-  void _showToast(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        duration: const Duration(seconds: 2),
-        backgroundColor: const Color(0xFF007AFF),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+  Widget _buildResultText(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Text(text, style: const TextStyle(fontSize: 14, color: Colors.black87)),
       ),
     );
   }
