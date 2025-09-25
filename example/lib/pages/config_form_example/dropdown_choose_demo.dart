@@ -19,7 +19,7 @@ class _DropdownChooseDemoPageState extends State<DropdownChooseDemoPage> {
   Map<String, dynamic> _formData = {};
 
   Future<List<SelectData<String>>> _remoteSearch(String keyword) async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 800));
     if (keyword.isEmpty) return _deptOptions;
     return _deptOptions.where((e) => e.label.contains(keyword) || e.value.contains(keyword)).toList();
   }
@@ -58,12 +58,28 @@ class _DropdownChooseDemoPageState extends State<DropdownChooseDemoPage> {
           label: '部门(远程搜索)',
           required: true,
           remote: true,
+          alwaysRefresh: true,
           remoteSearch: _remoteSearch,
           tips: '支持远程搜索',
           showAdd: true,
           onAdd: (text) {
-            // 示例：添加一条新选项（仅示例，本地集合未持久化）
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('新增: $text')));
+            print(text);
+          },
+        ),
+      ),
+      FormConfig.dropdown<String>(
+        DropdownFieldConfig<String>(
+          name: 'deptRemote',
+          label: '部门(远程搜索)',
+          required: true,
+          remote: true,
+          multiple: true,
+          alwaysRefresh: true,
+          remoteSearch: _remoteSearch,
+          tips: '支持远程搜索',
+          showAdd: true,
+          onAdd: (text) {
+            print(text);
           },
         ),
       ),

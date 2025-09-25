@@ -201,6 +201,8 @@ class DropdownFieldConfig<T> extends BaseFieldConfig {
   final bool filterable;
   // 是否远程搜索
   final bool remote;
+  // 是否总是刷新数据（仅在remote为true时有效）
+  final bool alwaysRefresh;
   // 远程搜索函数
   final Future<List<SelectData<T>>> Function(String)? remoteSearch;
   // 是否显示新增按钮
@@ -223,6 +225,7 @@ class DropdownFieldConfig<T> extends BaseFieldConfig {
     super.isShow = true,
     this.options = const [],
     this.multiple = false,
+    this.alwaysRefresh = false,
     this.filterable = false,
     this.remote = false,
     this.remoteSearch,

@@ -15,6 +15,10 @@ class ChooseContent<T> extends StatefulWidget {
   final bool remote;
   // 远程搜索方法-一个返回Future<List<SelectData<T>>>的函数
   final Future<List<SelectData<T>>> Function(String)? remoteSearch;
+  // 是否总是刷新数据（仅在remote为true时有效）
+  final bool alwaysRefresh;
+  // 缓存更新回调-用于将搜索结果缓存到父组件
+  final void Function(List<SelectData<T>>)? onCacheUpdate;
   // 是否显示新增按钮
   final bool showAdd;
   // 是否多选
@@ -33,6 +37,7 @@ class ChooseContent<T> extends StatefulWidget {
     super.key,
     this.filterable = false,
     this.remote = false,
+    this.alwaysRefresh = false,
     this.showAdd = false,
     this.multiple = false,
     this.onAdd,
@@ -41,6 +46,7 @@ class ChooseContent<T> extends StatefulWidget {
     this.defaultValue,
     this.tips,
     this.remoteSearch,
+    this.onCacheUpdate,
   });
   @override
   State<ChooseContent<T>> createState() => _ChooseContentState<T>();
@@ -69,6 +75,8 @@ class _ChooseContentState<T> extends State<ChooseContent<T>> {
     _filteredList = List.from(_dataList);
     // 初始化默认选中值
     _initializeDefaultValue();
+    // 如果是远程搜索且没有初始数据，自动加载
+    _autoLoadRemoteDataIfNeeded();
   }
 
   @override
@@ -123,6 +131,20 @@ class _ChooseContentState<T> extends State<ChooseContent<T>> {
     }
   }
 
+  // 自动加载远程数据（如果需要）
+  void _autoLoadRemoteDataIfNeeded() async {
+    // 远程搜索模式下的加载逻辑
+    if (widget.remote && widget.remoteSearch != null) {
+      if (widget.alwaysRefresh) {
+        // 如果设置了总是刷新，每次都重新加载数据
+        await _handleRemoteFetch();
+      } else if (_dataList.isEmpty) {
+        // 如果没有设置总是刷新，只在没有初始数据时才自动加载
+        await _handleRemoteFetch();
+      }
+    }
+  }
+
   // 本地筛选（仅当启用filterable时）
   void _handleLocalFilter(String keyword) {
     if (!widget.filterable) return;
@@ -155,6 +177,11 @@ class _ChooseContentState<T> extends State<ChooseContent<T>> {
         // 选中状态的判断在build方法中通过比较value来实现
         // 如果搜索结果中包含已选中的项目，它们会自动显示为选中状态
       });
+
+      // 将搜索结果缓存到父组件（特别是空关键字的初始搜索结果）
+      if (keyword.isEmpty && widget.onCacheUpdate != null) {
+        widget.onCacheUpdate!(list);
+      }
     } catch (e) {
       setState(() {
         _dataList = [];

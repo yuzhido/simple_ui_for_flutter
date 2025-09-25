@@ -10,6 +10,8 @@ class DropdownChoose<T> extends StatefulWidget {
   final bool remote;
   // 远程搜索方法-一个返回Future<List<SelectData<T>>>的函数
   final Future<List<SelectData<T>>> Function(String)? remoteSearch;
+  // 是否总是刷新数据（仅在remote为true时有效）
+  final bool alwaysRefresh;
   // 是否显示新增按钮
   final bool showAdd;
   // 是否多选
@@ -20,6 +22,8 @@ class DropdownChoose<T> extends StatefulWidget {
   final void Function(dynamic, T, SelectData<T>)? onSingleChanged;
   // 多选模式回调 - 参数: (选中的value值列表, 选中的data值列表, 选中的完整数据列表)
   final void Function(List<dynamic>, List<T>, List<SelectData<T>>)? onMultipleChanged;
+  // 缓存更新回调 - 当远程搜索或其他操作更新缓存数据时调用
+  final void Function(List<SelectData<T>>)? onCacheUpdate;
   // 默认展示的数据
   final List<SelectData<T>> options;
   // 占位符文本
@@ -30,11 +34,13 @@ class DropdownChoose<T> extends StatefulWidget {
     super.key,
     this.filterable = false,
     this.remote = false,
+    this.alwaysRefresh = false,
     this.showAdd = false,
     this.multiple = false,
     this.onAdd,
     this.onSingleChanged,
     this.onMultipleChanged,
+    this.onCacheUpdate,
     this.options = const [],
     this.defaultValue,
     this.tips = '',
@@ -54,16 +60,14 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
   bool isChoosing = false;
   // 缓存的远程数据
   List<SelectData<T>> _cachedOptions = [];
-  // 是否已经加载过数据
-  bool _hasLoadedData = false;
 
   @override
   void initState() {
     super.initState();
     // 初始化默认值
     _initDefaultValue();
-    // 如果是远程搜索且options为空，自动加载一次数据
-    _autoLoadDataIfNeeded();
+    // 初始化缓存数据（仅缓存外界传递的options）
+    _initCachedOptions();
   }
 
   // 初始化默认值
@@ -84,39 +88,34 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
     }
   }
 
-  // 自动加载数据（如果需要）
-  void _autoLoadDataIfNeeded() async {
-    // 只有在远程搜索模式下，且options为空或长度为0时，才自动加载
-    if (widget.remote && widget.remoteSearch != null && (widget.options.isEmpty) && !_hasLoadedData) {
-      try {
-        final result = await widget.remoteSearch!('');
-        if (mounted) {
-          setState(() {
-            _cachedOptions = result;
-            _hasLoadedData = true;
-          });
-        }
-      } catch (e) {
-        // 加载失败时不做处理，保持原有逻辑
-        if (mounted) {
-          setState(() {
-            _hasLoadedData = true; // 标记已尝试加载，避免重复请求
-          });
-        }
-      }
+  // 初始化缓存数据
+  void _initCachedOptions() {
+    // 如果外界传递了options，将其缓存起来
+    if (widget.options.isNotEmpty) {
+      _cachedOptions = List.from(widget.options);
     }
+    // 注意：远程搜索模式下，不在初始化时加载数据，而是在点击弹窗时才加载
   }
 
   // 获取有效的options数据
   List<SelectData<T>> _getEffectiveOptions() {
     List<SelectData<T>> effectiveOptions;
 
-    // 如果是远程搜索模式且有缓存数据，优先使用缓存数据
-    if (widget.remote && _cachedOptions.isNotEmpty) {
-      effectiveOptions = List.from(_cachedOptions);
+    if (widget.remote) {
+      // 远程搜索模式：优先使用缓存的远程数据
+      if (_cachedOptions.isNotEmpty) {
+        effectiveOptions = List.from(_cachedOptions);
+      } else {
+        // 如果还没有缓存数据，返回空列表（等待加载）
+        effectiveOptions = <SelectData<T>>[];
+      }
     } else {
-      // 否则使用原始的widget.options
-      effectiveOptions = List.from(widget.options);
+      // 非远程搜索模式：使用外界传递的options或缓存的options
+      if (_cachedOptions.isNotEmpty) {
+        effectiveOptions = List.from(_cachedOptions);
+      } else {
+        effectiveOptions = List.from(widget.options);
+      }
     }
 
     // 确保选中的数据也包含在options中，以便正确显示选中状态
@@ -170,6 +169,18 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
     }
   }
 
+  // 更新缓存数据（由ChooseContent回调）
+  void _updateCache(List<SelectData<T>> newData) {
+    setState(() {
+      _cachedOptions = List.from(newData);
+    });
+    
+    // 通知外部组件缓存数据已更新
+    if (widget.onCacheUpdate != null) {
+      widget.onCacheUpdate!(List.from(newData));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -193,6 +204,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
       setState(() => isChoosing = false);
       return;
     }
+
     // 显示弹窗
     await showModalBottomSheet(
       context: context,
@@ -211,11 +223,13 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
             filterable: widget.filterable,
             remote: widget.remote,
             remoteSearch: widget.remoteSearch,
+            alwaysRefresh: widget.alwaysRefresh,
             showAdd: widget.showAdd,
             multiple: widget.multiple,
             defaultValue: widget.multiple ? _selectedValues : _selectedValue,
             onSelected: _onSelected,
             onAdd: widget.onAdd,
+            onCacheUpdate: _updateCache,
           ),
           // child: StatefulBuilder(
           //   builder: (BuildContext context, StateSetter setState) {

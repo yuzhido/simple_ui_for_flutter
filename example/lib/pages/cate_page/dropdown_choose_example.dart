@@ -1,4 +1,5 @@
 import 'package:example/pages/dropdown_choose/index.dart';
+import 'package:example/pages/dropdown_choose/remote_search_demo.dart';
 import 'package:flutter/material.dart';
 
 class DropdownChooseExamplePage extends StatefulWidget {
@@ -19,7 +20,15 @@ class _DropdownChoosePageState extends State<DropdownChooseExamplePage> {
             child: const Text('下拉选择（DropdownChoose）示例'),
           ),
           const SizedBox(height: 12),
-
+          
+          ElevatedButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RemoteSearchDemoPage())),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue[600],
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('远程搜索演示'),
+          ),
           const SizedBox(height: 12),
         ],
       ),
