@@ -260,7 +260,7 @@ class UploadFieldConfig extends BaseFieldConfig {
     super.isShow = true,
     this.allowedTypes,
     this.maxFileSize,
-    this.maxFiles = 1,
+    this.maxFiles = -1,
     this.uploadUrl,
     this.fileListType = FileListType.card,
     this.fileSource = FileSource.all,

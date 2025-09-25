@@ -1,13 +1,13 @@
 import 'package:example/pages/dropdown_choose/index.dart';
 import 'package:flutter/material.dart';
 
-class DropdownChoosePage extends StatefulWidget {
-  const DropdownChoosePage({super.key});
+class DropdownChooseExamplePage extends StatefulWidget {
+  const DropdownChooseExamplePage({super.key});
   @override
-  State<DropdownChoosePage> createState() => _DropdownChoosePageState();
+  State<DropdownChooseExamplePage> createState() => _DropdownChoosePageState();
 }
 
-class _DropdownChoosePageState extends State<DropdownChoosePage> {
+class _DropdownChoosePageState extends State<DropdownChooseExamplePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -15,9 +15,11 @@ class _DropdownChoosePageState extends State<DropdownChoosePage> {
       body: Column(
         children: [
           ElevatedButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DropdownSelectPage())),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DropdownChoosePage())),
             child: const Text('下拉选择（DropdownChoose）示例'),
           ),
+          const SizedBox(height: 12),
+
           const SizedBox(height: 12),
         ],
       ),

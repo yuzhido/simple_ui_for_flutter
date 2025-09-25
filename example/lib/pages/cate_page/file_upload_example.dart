@@ -1,5 +1,4 @@
 import 'package:example/pages/compress_demo/index.dart';
-import 'package:example/pages/form_builder_demo/test_form_upload_file.dart';
 import 'package:example/pages/new_file_upload/index.dart';
 import 'package:flutter/material.dart';
 
@@ -22,12 +21,7 @@ class _FileUploadExamplePageState extends State<FileUploadExamplePage> {
             },
             child: Text('跳转查看最新文件上传组件（NewFileUpload）示例'),
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const TestFormUploadFilePage()));
-            },
-            child: Text('跳转查看表单文件上传组件（TestFormUploadFile）示例'),
-          ),
+
           ElevatedButton(
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const CompressDemoPage()));

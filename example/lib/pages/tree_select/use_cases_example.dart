@@ -79,10 +79,7 @@ class _TreeSelectUseCasesExampleState extends State<TreeSelectUseCasesExample> {
                 options: OrganizationData.getDepartments(),
                 lazyLoad: true,
                 lazyLoadFetch: OrganizationData.loadDepartmentMembers,
-                onSingleSelected: (value, item) {
-                  setState(() => selectedOrganization = item);
-                  _showSnackBar('选择了: ${item?.label}');
-                },
+                onSingleChanged: (value, selectedItem, data) {},
               ),
               result: selectedOrganization,
             ),
@@ -103,10 +100,7 @@ class _TreeSelectUseCasesExampleState extends State<TreeSelectUseCasesExample> {
                 remote: true,
                 remoteFetch: ProductCategoryData.searchCategories,
                 hintText: '搜索分类名称',
-                onSingleSelected: (value, item) {
-                  setState(() => selectedCategory = item);
-                  _showSnackBar('选择分类: ${item?.label}');
-                },
+                onSingleChanged: (value, selectedItem, data) {},
               ),
               result: selectedCategory,
             ),
@@ -124,10 +118,7 @@ class _TreeSelectUseCasesExampleState extends State<TreeSelectUseCasesExample> {
                 options: RegionData.getProvinces(),
                 lazyLoad: true,
                 lazyLoadFetch: RegionData.loadCities,
-                onSingleSelected: (value, item) {
-                  setState(() => selectedRegion = item);
-                  _showSnackBar('选择地区: ${item?.label}');
-                },
+                onSingleChanged: (value, selectedItem, data) {},
               ),
               result: selectedRegion,
             ),
@@ -146,10 +137,7 @@ class _TreeSelectUseCasesExampleState extends State<TreeSelectUseCasesExample> {
                 multiple: true,
                 lazyLoad: true,
                 lazyLoadFetch: PermissionData.loadPermissionItems,
-                onMultipleSelected: (values, items) {
-                  setState(() => selectedPermissions = items);
-                  _showSnackBar('选择了 ${items.length} 个权限');
-                },
+                onSingleChanged: (value, selectedItem, data) {},
               ),
               result: null,
               multiResult: selectedPermissions,
@@ -168,10 +156,7 @@ class _TreeSelectUseCasesExampleState extends State<TreeSelectUseCasesExample> {
                 options: DirectoryData.getRootDirectories(),
                 lazyLoad: true,
                 lazyLoadFetch: DirectoryData.loadSubDirectories,
-                onSingleSelected: (value, item) {
-                  setState(() => selectedDirectory = item);
-                  _showSnackBar('选择目录: ${item?.label}');
-                },
+                onSingleChanged: (value, selectedItem, data) {},
               ),
               result: selectedDirectory,
             ),

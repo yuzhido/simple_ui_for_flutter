@@ -10,8 +10,6 @@ export 'src/tree_select/index.dart';
 export 'src/notice_info/index.dart';
 // 导出表格展示组件
 export 'src/table_show/index.dart';
-// 导出FormBuilder组件
-export 'src/form_builder/index.dart';
 // 导出加载数据组件
 export 'src/loading_data/index.dart';
 // 导出上传文件组件
@@ -20,3 +18,5 @@ export 'src/file_upload/index.dart';
 export 'src/widgets/input_search.dart';
 // 导出扫描二维码组件
 export 'src/scan_qrcode/index.dart';
+// 导出配置表单组件
+export 'src/config_form/index.dart';

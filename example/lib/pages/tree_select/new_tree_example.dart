@@ -77,12 +77,7 @@ class _NewTreeExamplePageState extends State<NewTreeExamplePage> {
               hintText: '请选择一个城市',
               options: _getCityData(),
               defaultValue: defaultValue,
-              onSingleSelected: (value, selectedItem) {
-                setState(() {
-                  selectedCity = value;
-                });
-                print('选中城市: $value');
-              },
+              onSingleChanged: (value, selectedItem, data) {},
             ),
             _buildResultDisplay('选中城市: ${selectedCity ?? defaultValue?.first.label ?? '无'}（${selectedCity == null ? (defaultValue != null ? '默认值' : '无选择') : '用户选择'}）'),
 
@@ -122,18 +117,7 @@ class _NewTreeExamplePageState extends State<NewTreeExamplePage> {
 
             // 示例2：多选模式
             _buildSectionTitle('2. 多选模式示例'),
-            TreeSelect<Department>(
-              title: '选择多个部门',
-              hintText: '可以选择多个部门',
-              multiple: true,
-              options: _getDepartmentData(),
-              onMultipleSelected: (values, selectedItems) {
-                setState(() {
-                  selectedDepartments = selectedItems.map((item) => item.data).toList();
-                });
-                print('选中部门数量: ${selectedItems.length}');
-              },
-            ),
+            TreeSelect<Department>(title: '选择多个部门', hintText: '可以选择多个部门', multiple: true, options: _getDepartmentData(), onSingleChanged: (value, selectedItem, data) {}),
             _buildResultDisplay('选中部门: ${selectedDepartments.map((d) => d.name).join(', ')}'),
           ],
         ),
