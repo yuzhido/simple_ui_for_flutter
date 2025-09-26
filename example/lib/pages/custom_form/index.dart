@@ -9,48 +9,66 @@ class CustomFormPage extends StatefulWidget {
 }
 
 class _CustomFormPageState extends State<CustomFormPage> {
-  // 创建表单配置列表
+  // 创建表单配置列表 - 使用新的配置系统
   List<FormFiledConfig> get formConfigs => [
-    // 文本输入
-    FormFiledConfig(label: '用户名', prop: 'username', type: FormType.text, required: true, value: ''),
+    // 文本输入 - 使用新的便捷构造方法和特定属性
+    FormFiledConfig.text(
+      label: '用户名',
+      prop: 'username',
+      required: true,
+      value: '',
+      props: const TextFieldProps(placeholder: '请输入用户名', minLength: 3, maxLength: 20, showClearButton: true),
+    ),
 
-    // 数字输入
-    FormFiledConfig(label: '年龄', prop: 'age', type: FormType.number, required: true, value: 0),
+    // 整数输入 - 使用新的便捷构造方法和特定属性
+    FormFiledConfig.integer(
+      label: '年龄',
+      prop: 'age',
+      required: true,
+      value: 25,
+      props: const IntegerFieldProps(placeholder: '请输入年龄', minValue: 18, maxValue: 65),
+    ),
 
-    // 整数输入
-    FormFiledConfig(label: '身高(cm)', prop: 'height', type: FormType.integer, required: false, value: 170),
+    // 整数输入 - 身高
+    FormFiledConfig.integer(
+      label: '身高(cm)',
+      prop: 'height',
+      required: false,
+      value: 170,
+      props: const IntegerFieldProps(placeholder: '请输入身高', minValue: 100, maxValue: 250),
+    ),
 
-    // 多行文本
-    FormFiledConfig(label: '个人简介', prop: 'description', type: FormType.textarea, required: false, value: ''),
+    // 数字输入 - 体重
+    FormFiledConfig.number(
+      label: '体重(kg)',
+      prop: 'weight',
+      required: false,
+      value: 65.5,
+      props: const NumberFieldProps(placeholder: '请输入体重', minValue: 30.0, maxValue: 200.0, decimalPlaces: 1),
+    ),
 
-    // 单选
+    // 多行文本 - 使用新的便捷构造方法和特定属性
+    FormFiledConfig.textarea(
+      label: '个人简介',
+      prop: 'description',
+      required: false,
+      value: '',
+      props: const TextareaFieldProps(placeholder: '请输入个人简介', rows: 4, maxLength: 500),
+    ),
+
+    // 只读文本输入示例
+    FormFiledConfig.text(label: '用户ID', prop: 'userId', required: false, value: 'USER_12345', props: const TextFieldProps(readOnly: true, showClearButton: false)),
+
+    // 其他类型保持原样（暂未实现特定配置）
     FormFiledConfig(label: '性别', prop: 'gender', type: FormType.radio, required: true, value: 'male'),
-
-    // 多选
     FormFiledConfig(label: '兴趣爱好', prop: 'hobbies', type: FormType.checkbox, required: false, value: []),
-
-    // 下拉选择
     FormFiledConfig(label: '学历', prop: 'education', type: FormType.select, required: true, value: ''),
-
-    // 自定义下拉
     FormFiledConfig(label: '职业', prop: 'profession', type: FormType.dropdown, required: false, value: ''),
-
-    // 日期
     FormFiledConfig(label: '出生日期', prop: 'birthday', type: FormType.date, required: true, value: null),
-
-    // 时间
     FormFiledConfig(label: '工作时间', prop: 'workTime', type: FormType.time, required: false, value: null),
-
-    // 日期时间
     FormFiledConfig(label: '注册时间', prop: 'registerTime', type: FormType.datetime, required: false, value: null),
-
-    // 文件上传
     FormFiledConfig(label: '头像上传', prop: 'avatar', type: FormType.upload, required: false, value: null),
-
-    // 树选择
     FormFiledConfig(label: '所在地区', prop: 'region', type: FormType.treeSelect, required: false, value: ''),
-
-    // 自定义字段
     FormFiledConfig(label: '自定义字段', prop: 'custom', type: FormType.custom, required: false, value: ''),
   ];
 

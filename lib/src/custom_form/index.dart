@@ -14,6 +14,7 @@ class CustomForm extends StatefulWidget {
 class _CustomFormState extends State<CustomForm> {
   // 表单配置列表
   List<FormFiledConfig> configList = [];
+
   @override
   void initState() {
     super.initState();
@@ -23,22 +24,22 @@ class _CustomFormState extends State<CustomForm> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: configList.map((item) {
-        if (item.type == FormType.text) return InputForText();
-        if (item.type == FormType.number) return InputForNumber();
-        if (item.type == FormType.integer) return InputForInteger();
-        if (item.type == FormType.textarea) return InputForTextarea();
-        if (item.type == FormType.radio) return SelectForRadio();
-        if (item.type == FormType.checkbox) return SelectForCheckbox();
-        if (item.type == FormType.select) return SelectForSingle();
-        if (item.type == FormType.dropdown) return SelectForDropdown();
-        if (item.type == FormType.date) return DateForDate();
-        if (item.type == FormType.time) return DateForTime();
-        if (item.type == FormType.datetime) return DateForDateTime();
-        if (item.type == FormType.upload) return FileForUpload();
-        if (item.type == FormType.treeSelect) return SelectForTree();
-        if (item.type == FormType.custom) return InputForInteger();
-        return InputForInteger();
+      children: configList.where((item) => item.visible).map((item) {
+        if (item.type == FormType.text) return InputForText(config: item);
+        if (item.type == FormType.number) return InputForNumber(config: item);
+        if (item.type == FormType.integer) return InputForInteger(config: item);
+        if (item.type == FormType.textarea) return InputForTextarea(config: item);
+        if (item.type == FormType.radio) return SelectForRadio(config: item);
+        if (item.type == FormType.checkbox) return SelectForCheckbox(config: item);
+        if (item.type == FormType.select) return SelectForSingle(config: item);
+        if (item.type == FormType.dropdown) return SelectForDropdown(config: item);
+        if (item.type == FormType.date) return DateForDate(config: item);
+        if (item.type == FormType.time) return DateForTime(config: item);
+        if (item.type == FormType.datetime) return DateForDateTime(config: item);
+        if (item.type == FormType.upload) return FileForUpload(config: item);
+        if (item.type == FormType.treeSelect) return SelectForTree(config: item);
+        if (item.type == FormType.custom) return InputForInteger(config: item);
+        return InputForInteger(config: item);
       }).toList(),
     );
   }

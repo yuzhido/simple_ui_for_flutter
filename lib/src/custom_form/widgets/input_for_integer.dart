@@ -13,8 +13,69 @@ class InputForInteger extends StatefulWidget {
 }
 
 class _InputForIntegerState extends State<InputForInteger> {
+  late TextEditingController _controller;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.config.value?.toString() ?? '');
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  String? _validateInput(String? value) {
+    // 必填验证
+    if (widget.config.required && (value == null || value.isEmpty)) {
+      return '${widget.config.label}不能为空';
+    }
+
+    if (value != null && value.isNotEmpty) {
+      // 整数格式验证
+      final intValue = int.tryParse(value);
+      if (intValue == null) {
+        return '${widget.config.label}必须是整数';
+      }
+
+      // 如果有特定属性配置，进行相应验证
+      if (widget.config.props is IntegerFieldProps) {
+        final props = widget.config.props as IntegerFieldProps;
+
+        // 最小值验证
+        if (props.minValue != null && intValue < props.minValue!) {
+          return '${widget.config.label}不能小于${props.minValue}';
+        }
+
+        // 最大值验证
+        if (props.maxValue != null && intValue > props.maxValue!) {
+          return '${widget.config.label}不能大于${props.maxValue}';
+        }
+      }
+    }
+
+    // 自定义验证器
+    if (widget.config.validator != null) {
+      return widget.config.validator!(value);
+    }
+
+    return null;
+  }
+
+  void _onChanged(String value) {
+    setState(() {
+      _errorMessage = _validateInput(value);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    // 获取特定属性配置
+    final props = widget.config.props is IntegerFieldProps ? widget.config.props as IntegerFieldProps : null;
+
     return Stack(
       children: [
         Container(
@@ -23,18 +84,21 @@ class _InputForIntegerState extends State<InputForInteger> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              LabelInfo(label: '整数输入', required: true),
+              LabelInfo(label: widget.config.label, required: widget.config.required),
               TextFormField(
+                controller: _controller,
                 keyboardType: TextInputType.number,
+                readOnly: props?.readOnly ?? false,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: BasicStyle.inputStyle('请输入'),
-                onChanged: (val) {},
+                decoration: BasicStyle.inputStyle(props?.placeholder ?? '请输入${widget.config.label}'),
+                onChanged: _onChanged,
+                validator: _validateInput,
               ),
             ],
           ),
         ),
         // 错误信息
-        Positioned(bottom: 0, left: 0, child: ErrorInfo('校验失败')),
+        if (_errorMessage != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(_errorMessage!)),
       ],
     );
   }
