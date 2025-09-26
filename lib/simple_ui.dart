@@ -20,5 +20,3 @@ export 'src/widgets/input_search.dart';
 export 'src/scan_qrcode/index.dart';
 // 导出配置表单组件
 export 'src/config_form/index.dart';
-// 导出最新表单组件
-export 'src/custom_form/index.dart';
