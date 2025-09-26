@@ -1,6 +1,7 @@
 import 'package:simple_ui/models/select_data.dart';
 import 'package:simple_ui/models/file_upload.dart';
 import 'package:flutter/widgets.dart';
+import 'package:simple_ui/models/validator.dart';
 
 /// 基础字段配置
 abstract class BaseFieldConfig<T> {
@@ -322,9 +323,6 @@ class TreeSelectFieldConfig<T> extends BaseFieldConfig {
     this.isCacheData = true,
   });
 }
-
-/// 自定义验证器函数类型
-typedef FormValidator = String? Function(String? value);
 
 /// 第一个参数将会在运行时传入 FormConfig（或兼容对象），以便在回调中可获取验证器等能力
 typedef ContentBuilder = Widget Function(dynamic config, TextEditingController controller, Function(String) onChanged);
