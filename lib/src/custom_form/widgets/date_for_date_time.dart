@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:simple_ui/src/config_form/utils/basic_style.dart';
-import 'package:simple_ui/src/custom_form/index.dart';
+import 'package:simple_ui/src/custom_form/widgets/error_info.dart';
+import 'package:simple_ui/src/custom_form/widgets/label_info.dart';
+import 'package:simple_ui/src/widgets/choose_container.dart';
 
 class DateForDateTime extends StatefulWidget {
   const DateForDateTime({super.key});
@@ -20,9 +21,7 @@ class _DateForDateTimeState extends State<DateForDateTime> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               LabelInfo(label: '时间日期选择', required: true),
-              TextFormField(
-                readOnly: true,
-                decoration: BasicStyle.inputStyle('请选择时间', suffixIcon: const Icon(Icons.event)),
+              ChooseContainer(
                 onTap: () async {
                   final DateTime? pickedDate = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
                   if (pickedDate == null) return;
@@ -32,7 +31,8 @@ class _DateForDateTimeState extends State<DateForDateTime> {
                   two(int v) => v.toString().padLeft(2, '0');
                   final dateStr = '${pickedDate.year}-${two(pickedDate.month)}-${two(pickedDate.day)}';
                   final timeStr = '${two(pickedTime.hour)}:${two(pickedTime.minute)}';
-                  '$dateStr $timeStr'; // final dateTimeStr =
+                  final dateTimeStr = '$dateStr $timeStr';
+                  print(dateTimeStr);
                 },
               ),
             ],

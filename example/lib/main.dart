@@ -1,4 +1,5 @@
 import 'package:example/pages/cate_page/config_form_examples.dart';
+import 'package:example/pages/cate_page/custom_form_example_demos.dart';
 import 'package:example/pages/cate_page/dropdown_choose_example.dart';
 import 'package:example/pages/cate_page/file_upload_example.dart';
 import 'package:example/pages/cate_page/form_builder_example.dart';
@@ -51,6 +52,11 @@ class HomePage extends StatelessWidget {
             ElevatedButton(
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ConfigFormExamplesPage())),
               child: const Text('配置表单（ConfigForm）示例'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CustomFormExampleDemosPage())),
+              child: const Text('最新配置表单(CustomFormExampleDemosPage)示例'),
             ),
             const SizedBox(height: 12),
 

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/select_data.dart';
 import 'package:simple_ui/src/config_form/utils/basic_style.dart';
-import 'package:simple_ui/src/custom_form/index.dart';
+import 'package:simple_ui/src/custom_form/widgets/error_info.dart';
+import 'package:simple_ui/src/custom_form/widgets/label_info.dart';
 
 class SelectForRadio extends StatefulWidget {
   const SelectForRadio({super.key});

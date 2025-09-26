@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:simple_ui/src/custom_form/index.dart';
+import 'package:simple_ui/src/custom_form/widgets/error_info.dart';
+import 'package:simple_ui/src/custom_form/widgets/label_info.dart';
 import 'package:simple_ui/src/widgets/dropdown_container.dart';
 
 class SelectForDropdown extends StatefulWidget {
