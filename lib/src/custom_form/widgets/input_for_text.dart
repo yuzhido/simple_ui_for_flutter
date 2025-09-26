@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:simple_ui/src/config_form/utils/basic_style.dart';
 import 'package:simple_ui/src/custom_form/widgets/error_info.dart';
 import 'package:simple_ui/src/custom_form/widgets/label_info.dart';
@@ -22,12 +21,7 @@ class _InputForTextState extends State<InputForText> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               LabelInfo(label: '普通单行输入', required: true),
-              TextFormField(
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: BasicStyle.inputStyle('请输入'),
-                onChanged: (val) {},
-              ),
+              TextFormField(keyboardType: TextInputType.text, decoration: BasicStyle.inputStyle('请输入'), onChanged: (val) {}),
             ],
           ),
         ),

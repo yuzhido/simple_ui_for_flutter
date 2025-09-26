@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/form_type.dart';
 import 'package:simple_ui/src/custom_form/models/custom_form_config.dart';
+export 'package:simple_ui/src/custom_form/models/custom_form_config.dart';
 import 'package:simple_ui/src/custom_form/widgets/index.dart';
 
 class CustomForm extends StatefulWidget {

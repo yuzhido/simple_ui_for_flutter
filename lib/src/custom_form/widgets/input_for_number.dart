@@ -23,8 +23,8 @@ class _InputForNumberState extends State<InputForNumber> {
             children: [
               LabelInfo(label: '数字输入', required: true),
               TextFormField(
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
                 decoration: BasicStyle.inputStyle('请输入'),
                 onChanged: (val) {},
               ),

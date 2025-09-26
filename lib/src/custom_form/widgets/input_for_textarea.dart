@@ -22,12 +22,7 @@ class _InputForTextareaState extends State<InputForTextarea> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               LabelInfo(label: '普通文本域', required: true),
-              TextFormField(
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: BasicStyle.inputStyle('请输入'),
-                onChanged: (val) {},
-              ),
+              TextFormField(keyboardType: TextInputType.multiline, maxLines: 4, decoration: BasicStyle.inputStyle('请输入'), onChanged: (val) {}),
             ],
           ),
         ),
