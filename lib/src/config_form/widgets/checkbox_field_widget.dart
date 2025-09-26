@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/field_configs.dart';
 import 'package:simple_ui/models/select_data.dart';
-import 'package:simple_ui/models/config_form_model.dart';
 import 'package:simple_ui/src/config_form/utils/basic_style.dart';
 import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/config_form/utils/data_conversion_utils.dart';
+import 'package:simple_ui/models/form_type.dart';
 import 'base_field_widget.dart';
 
 class CheckboxFieldWidget<T> extends BaseFieldWidget {

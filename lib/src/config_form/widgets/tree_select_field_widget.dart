@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/select_data.dart';
 import 'package:simple_ui/models/field_configs.dart';
-import 'package:simple_ui/models/config_form_model.dart';
+import 'package:simple_ui/models/form_type.dart';
 import 'package:simple_ui/src/tree_select/index.dart';
 import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/config_form/utils/data_conversion_utils.dart';
@@ -42,7 +42,7 @@ class TreeSelectFieldWidget<T> extends BaseFieldWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 TreeSelect<T>(
-                  key: ValueKey('treeselect_${config.name}_$currentValue'), // 使用key强制重新创建组件
+                  key: ValueKey('treeSelect_${config.name}_$currentValue'), // 使用key强制重新创建组件
                   defaultValue: structuredDefault,
                   options: treeConfig.options,
                   multiple: treeConfig.multiple,

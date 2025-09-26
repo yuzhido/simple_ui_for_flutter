@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/field_configs.dart';
 import 'package:simple_ui/models/select_data.dart';
-import 'package:simple_ui/models/config_form_model.dart';
+import 'package:simple_ui/models/form_config.dart';
 import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/config_form/utils/data_conversion_utils.dart';
 import 'package:simple_ui/src/dropdown_choose/index.dart';
+import 'package:simple_ui/models/form_type.dart';
 import 'base_field_widget.dart';
 
 class DropdownFieldWidget<T> extends BaseFieldWidget {
@@ -12,11 +13,7 @@ class DropdownFieldWidget<T> extends BaseFieldWidget {
 
   @override
   Widget buildField(BuildContext context) {
-    return _DropdownFieldContent<T>(
-      config: config,
-      controller: controller,
-      onChanged: onChanged,
-    );
+    return _DropdownFieldContent<T>(config: config, controller: controller, onChanged: onChanged);
   }
 }
 
@@ -25,11 +22,7 @@ class _DropdownFieldContent<T> extends StatefulWidget {
   final TextEditingController controller;
   final Function(String) onChanged;
 
-  const _DropdownFieldContent({
-    required this.config,
-    required this.controller,
-    required this.onChanged,
-  });
+  const _DropdownFieldContent({required this.config, required this.controller, required this.onChanged});
 
   @override
   State<_DropdownFieldContent<T>> createState() => _DropdownFieldContentState<T>();
@@ -164,11 +157,15 @@ class _DropdownFieldContentState<T> extends State<_DropdownFieldContent<T>> {
 
       // 远程搜索场景：当_optionsList为空但currentValue有值时，创建临时SelectData
       if (dropdownConfig.remote && _optionsList.isEmpty) {
-        return values.map((value) => SelectData<T>(
-          label: value, // 暂时使用value作为label，DropdownChoose会在搜索后更新
-          value: value as T,
-          data: value as T,
-        )).toList();
+        return values
+            .map(
+              (value) => SelectData<T>(
+                label: value, // 暂时使用value作为label，DropdownChoose会在搜索后更新
+                value: value as T,
+                data: value as T,
+              ),
+            )
+            .toList();
       }
 
       return null;

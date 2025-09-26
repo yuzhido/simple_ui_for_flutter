@@ -1,4 +1,4 @@
-import 'package:simple_ui/models/config_form_model.dart';
+import 'package:simple_ui/models/form_type.dart';
 
 /// 数据转换工具类
 /// 统一处理表单字段的数据类型转换

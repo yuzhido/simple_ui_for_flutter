@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../models/config_form_model.dart';
+import 'package:simple_ui/models/form_config.dart';
+import 'package:simple_ui/models/form_type.dart';
 import 'widgets/field_factory.dart';
 import 'config_form_controller.dart';
 import 'utils/data_conversion_utils.dart';
