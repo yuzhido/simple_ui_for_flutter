@@ -3,9 +3,11 @@ import 'package:simple_ui/models/select_data.dart';
 import 'package:simple_ui/src/config_form/utils/basic_style.dart';
 import 'package:simple_ui/src/custom_form/widgets/error_info.dart';
 import 'package:simple_ui/src/custom_form/widgets/label_info.dart';
+import 'package:simple_ui/src/custom_form/models/custom_form_config.dart';
 
 class SelectForRadio extends StatefulWidget {
-  const SelectForRadio({super.key});
+  final FormFiledConfig config;
+  const SelectForRadio({super.key, required this.config});
   @override
   State<SelectForRadio> createState() => _SelectForRadioState();
 }

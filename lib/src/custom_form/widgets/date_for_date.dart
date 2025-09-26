@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:simple_ui/src/custom_form/widgets/error_info.dart';
 import 'package:simple_ui/src/custom_form/widgets/label_info.dart';
 import 'package:simple_ui/src/widgets/choose_container.dart';
+import 'package:simple_ui/src/custom_form/models/custom_form_config.dart';
 
 class DateForDate extends StatefulWidget {
-  const DateForDate({super.key});
+  final FormFiledConfig config;
+  const DateForDate({super.key, required this.config});
   @override
   State<DateForDate> createState() => _DateForDateState();
 }

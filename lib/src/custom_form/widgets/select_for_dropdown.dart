@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:simple_ui/src/custom_form/widgets/error_info.dart';
 import 'package:simple_ui/src/custom_form/widgets/label_info.dart';
 import 'package:simple_ui/src/widgets/dropdown_container.dart';
+import 'package:simple_ui/src/custom_form/models/custom_form_config.dart';
 
 class SelectForDropdown extends StatefulWidget {
-  const SelectForDropdown({super.key});
+  final FormFiledConfig config;
+  const SelectForDropdown({super.key, required this.config});
   @override
   State<SelectForDropdown> createState() => _SelectForDropdownState();
 }

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:simple_ui/simple_ui.dart';
+import 'package:simple_ui/models/index.dart';
+import 'package:simple_ui/src/custom_form/models/custom_form_config.dart';
 import 'package:simple_ui/src/custom_form/widgets/error_info.dart';
 import 'package:simple_ui/src/custom_form/widgets/label_info.dart';
+import 'package:simple_ui/src/file_upload/index.dart';
 
 class FileForUpload extends StatefulWidget {
-  const FileForUpload({super.key});
+  final FormFiledConfig config;
+  const FileForUpload({super.key, required this.config});
   @override
   State<FileForUpload> createState() => _FileForUploadState();
 }

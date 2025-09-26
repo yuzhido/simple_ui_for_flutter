@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:simple_ui/src/config_form/utils/basic_style.dart';
 import 'package:simple_ui/src/custom_form/widgets/error_info.dart';
 import 'package:simple_ui/src/custom_form/widgets/label_info.dart';
+import 'package:simple_ui/src/custom_form/models/custom_form_config.dart';
 
 class InputForTextarea extends StatefulWidget {
-  const InputForTextarea({super.key});
+  final FormFiledConfig config;
+  const InputForTextarea({super.key, required this.config});
   @override
   State<InputForTextarea> createState() => _InputForTextareaState();
 }
