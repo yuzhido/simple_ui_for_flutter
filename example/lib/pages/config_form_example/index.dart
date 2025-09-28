@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:simple_ui/simple_ui.dart';
+import 'package:flutter/services.dart';
+import 'package:simple_ui/models/form_config.dart';
+import 'package:simple_ui/models/form_type.dart';
+import 'package:simple_ui/models/select_data.dart';
+import 'package:simple_ui/src/config_form/index.dart';
 
 class ConfigFormExamplePage extends StatefulWidget {
   const ConfigFormExamplePage({super.key});
@@ -8,162 +12,246 @@ class ConfigFormExamplePage extends StatefulWidget {
 }
 
 class _ConfigFormExamplePageState extends State<ConfigFormExamplePage> {
+  late ConfigFormController _controller;
   Map<String, dynamic> _formData = {};
-  final ConfigFormController _formController = ConfigFormController();
 
-  // 示例配置
+  @override
+  void initState() {
+    super.initState();
+    _controller = ConfigFormController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  // 表单配置
   List<FormConfig> get _formConfigs => [
-    FormConfig.text(TextFieldConfig(name: 'username', label: '用户名', required: true, defaultValue: '默认用户名', minLength: 2, maxLength: 20)),
-    FormConfig.text(TextFieldConfig(name: 'email', label: '邮箱', required: true)),
-    FormConfig.integer(IntegerFieldConfig(name: 'age', label: '年龄', required: false, defaultValue: 25, minValue: 1, maxValue: 120)),
-    FormConfig.date(DateFieldConfig(name: 'birthday', label: '生日', required: false, minDate: DateTime(1900, 1, 1), maxDate: DateTime.now())),
-    FormConfig.textarea(TextareaFieldConfig(name: 'description', label: '个人描述', required: false, maxLength: 500, rows: 4)),
-    FormConfig.text(TextFieldConfig(name: 'phone', label: '手机号', required: false)),
-    FormConfig.text(
-      TextFieldConfig(
-        name: 'customField',
-        label: '自定义验证字段',
-        required: true,
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return '此字段不能为空';
-          }
-          if (value.length < 5) {
-            return '至少需要5个字符';
-          }
-          if (!value.contains('test')) {
-            return '必须包含"test"字符串';
-          }
-          return null;
-        },
+    // 文本输入
+    FormConfig(
+      type: FormType.text,
+      name: 'username',
+      label: '用户名',
+      required: true,
+      defaultValue: 'admin',
+      props: const TextFieldProps(minLength: 3, maxLength: 20, keyboardType: TextInputType.text),
+    ),
+
+    // 数字输入
+    FormConfig(
+      type: FormType.number,
+      name: 'price',
+      label: '价格',
+      required: true,
+      defaultValue: 99.99,
+      props: const NumberFieldConfig(minValue: 0, maxValue: 9999.99, decimalPlaces: 2),
+    ),
+
+    // 整数输入
+    FormConfig(type: FormType.integer, name: 'quantity', label: '数量', required: true, defaultValue: 1, props: const IntegerFieldConfig(minValue: 1, maxValue: 100)),
+
+    // 多行文本
+    FormConfig(type: FormType.textarea, name: 'description', label: '描述', required: false, defaultValue: '这是一个示例描述', props: const TextareaFieldConfig(rows: 4, maxLength: 500)),
+
+    // 单选
+    FormConfig(
+      type: FormType.radio,
+      name: 'gender',
+      label: '性别',
+      required: true,
+      defaultValue: 'male',
+      props: RadioFieldConfig<String>(
+        options: const [
+          SelectData(label: '男', value: 'male', data: '男性'),
+          SelectData(label: '女', value: 'female', data: '女性'),
+          SelectData(label: '其他', value: 'other', data: '其他'),
+        ],
       ),
+    ),
+
+    // 多选
+    FormConfig(
+      type: FormType.checkbox,
+      name: 'hobbies',
+      label: '爱好',
+      required: false,
+      defaultValue: ['reading', 'music'],
+      props: CheckboxFieldConfig<String>(
+        options: const [
+          SelectData(label: '阅读', value: 'reading', data: '阅读'),
+          SelectData(label: '音乐', value: 'music', data: '音乐'),
+          SelectData(label: '运动', value: 'sports', data: '运动'),
+          SelectData(label: '旅行', value: 'travel', data: '旅行'),
+          SelectData(label: '摄影', value: 'photography', data: '摄影'),
+        ],
+      ),
+    ),
+
+    // 下拉选择
+    FormConfig(
+      type: FormType.select,
+      name: 'city',
+      label: '城市',
+      required: true,
+      defaultValue: 'beijing',
+      props: SelectFieldConfig<String>(
+        options: const [
+          SelectData(label: '北京', value: 'beijing', data: '北京市'),
+          SelectData(label: '上海', value: 'shanghai', data: '上海市'),
+          SelectData(label: '广州', value: 'guangzhou', data: '广州市'),
+          SelectData(label: '深圳', value: 'shenzhen', data: '深圳市'),
+          SelectData(label: '杭州', value: 'hangzhou', data: '杭州市'),
+        ],
+      ),
+    ),
+
+    // 日期选择
+    FormConfig(
+      type: FormType.date,
+      name: 'birthday',
+      label: '生日',
+      required: false,
+      defaultValue: '1990-01-01',
+      props: const DateFieldConfig(format: 'YYYY-MM-DD'),
+    ),
+
+    // 时间选择
+    FormConfig(
+      type: FormType.time,
+      name: 'meeting_time',
+      label: '会议时间',
+      required: false,
+      defaultValue: '14:30',
+      props: const TimeFieldConfig(format: 'HH:mm'),
+    ),
+
+    // 日期时间选择
+    FormConfig(
+      type: FormType.datetime,
+      name: 'created_at',
+      label: '创建时间',
+      required: false,
+      defaultValue: '2024-01-01 10:00',
+      props: const DateTimeFieldConfig(format: 'YYYY-MM-DD HH:mm'),
     ),
   ];
 
+  // 表单数据变化回调
   void _onFormChanged(Map<String, dynamic> data) {
     setState(() {
       _formData = data;
     });
+    print('表单数据变化: $data');
   }
 
-  void _onFormSubmit(Map<String, dynamic> data) {
+  // 提交表单
+  void _submitForm() {
+    final formData = _controller.formData;
+    print('提交表单数据: $formData');
+
+    // 显示提交结果
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('表单数据'),
-        content: Text(data.toString()),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('确定'))],
+        title: const Text('表单提交'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('提交的数据:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              ...formData.entries.map((entry) => Padding(padding: const EdgeInsets.only(bottom: 4), child: Text('${entry.key}: ${entry.value}'))),
+            ],
+          ),
+        ),
+        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('确定'))],
       ),
     );
+  }
+
+  // 重置表单
+  void _resetForm() {
+    _controller.reset();
+    setState(() {
+      _formData = {};
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('配置表单示例'), backgroundColor: Colors.blue, foregroundColor: Colors.white),
+      appBar: AppBar(title: const Text('ConfigForm 示例'), backgroundColor: Theme.of(context).colorScheme.inversePrimary),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              '动态配置表单示例',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
-            ),
+            // 表单标题
+            const Text('ConfigForm 组件使用示例', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            const Text('通过配置动态生成表单，支持文本、数字、多行文本等输入类型，内置表单验证功能', style: TextStyle(fontSize: 14, color: Colors.grey)),
+            const Text('这个示例展示了 ConfigForm 组件支持的各种表单字段类型', style: TextStyle(fontSize: 16, color: Colors.grey)),
             const SizedBox(height: 24),
 
             // 表单组件
-            ConfigForm(
-              configs: _formConfigs,
-              onChanged: _onFormChanged,
-              controller: _formController,
-              submitBuilder: (formData) => Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      // 重置表单
-                      _formController.reset();
-                      setState(() {
-                        _formData.clear();
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
-                    child: const Text('重置'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      // 验证并提交表单
-                      final validatedData = _formController.save();
-                      if (validatedData != null) {
-                        _onFormSubmit(validatedData);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('请检查表单填写是否正确'), backgroundColor: Colors.red));
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+            ConfigForm(configs: _formConfigs, controller: _controller, onChanged: _onFormChanged),
+
+            const SizedBox(height: 24),
+
+            // 操作按钮
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _submitForm,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
                     child: const Text('提交表单'),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _resetForm,
+                    style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                    child: const Text('重置表单'),
+                  ),
+                ),
+              ],
             ),
 
-            // 实时显示表单数据
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey[300]!),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    '实时表单数据:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(_formData.isEmpty ? '暂无数据' : _formData.toString(), style: const TextStyle(fontSize: 12, color: Colors.black54)),
-                ],
-              ),
-            ),
+            const SizedBox(height: 24),
 
-            const SizedBox(height: 16),
-
-            // 配置说明
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue[200]!),
+            // 实时数据显示
+            if (_formData.isNotEmpty) ...[
+              const Text('实时表单数据:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: _formData.entries
+                      .map(
+                        (entry) => Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Text('${entry.key}: ${entry.value}', style: const TextStyle(fontFamily: 'monospace')),
+                        ),
+                      )
+                      .toList(),
+                ),
               ),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '配置说明:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    '• 用户名: 必填，2-20字符，带默认值\n'
-                    '• 邮箱: 必填，自动验证邮箱格式\n'
-                    '• 年龄: 可选，1-120岁，带默认值25\n'
-                    '• 生日: 可选日期选择器\n'
-                    '• 个人描述: 可选多行文本，最多500字符\n'
-                    '• 手机号: 可选，自动验证手机号格式\n'
-                    '• 自定义验证字段: 必填，至少5字符，必须包含"test"',
-                    style: TextStyle(fontSize: 12, color: Colors.blue),
-                  ),
-                ],
-              ),
-            ),
+            ],
           ],
         ),
       ),

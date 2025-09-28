@@ -1,107 +1,126 @@
 import 'package:flutter/material.dart';
-import 'package:simple_ui/models/form_type.dart';
-import 'utils/data_conversion_utils.dart';
+import 'package:simple_ui/models/form_config.dart';
+import 'utils/validation_utils.dart';
 
-class ConfigFormController {
+class ConfigFormController extends ChangeNotifier {
   GlobalKey<FormState>? _formKey;
-  Map<String, dynamic> Function()? _getFormData;
-  Map<String, TextEditingController>? _controllers;
-  Map<String, dynamic>? _formData;
-  Function(String, dynamic)? _updateFormData;
+  Map<String, dynamic> _formData = {};
+  final Map<String, String> _errors = {};
+  Function(Map<String, dynamic>)? _onChanged;
+
+  /// 获取表单数据
+  Map<String, dynamic> get formData => Map.unmodifiable(_formData);
+
+  /// 获取错误信息
+  Map<String, String> get errors => Map.unmodifiable(_errors);
 
   /// 内部方法，由ConfigForm组件调用
   void setFormKey(GlobalKey<FormState> formKey) {
     _formKey = formKey;
   }
 
-  void setGetFormData(Map<String, dynamic> Function() getFormData) {
-    _getFormData = getFormData;
+  void setOnChanged(Function(Map<String, dynamic>)? onChanged) {
+    _onChanged = onChanged;
   }
 
-  void setControllers(Map<String, TextEditingController> controllers) {
-    _controllers = controllers;
-  }
-
-  void setFormData(Map<String, dynamic> formData) {
-    _formData = formData;
-  }
-
-  void setUpdateFormData(Function(String, dynamic) updateFormData) {
-    _updateFormData = updateFormData;
+  /// 初始化表单数据
+  void initializeData(Map<String, dynamic> initialData) {
+    _formData = Map<String, dynamic>.from(initialData);
+    notifyListeners();
   }
 
   /// 验证表单
-  bool validate() {
-    return _formKey?.currentState?.validate() ?? false;
+  bool validate(List<FormConfig> configs) {
+    _errors.clear();
+    bool isValid = true;
+
+    for (var config in configs) {
+      final validator = ValidationUtils.getValidator(config);
+      if (validator != null) {
+        final value = _formData[config.name]?.toString() ?? '';
+        final error = validator(value);
+        if (error != null) {
+          _errors[config.name] = error;
+          isValid = false;
+        }
+      }
+    }
+
+    notifyListeners();
+    return isValid;
   }
 
   /// 获取表单数据
-  Map<String, dynamic>? getFormData() {
-    return _getFormData?.call();
+  Map<String, dynamic> getFormData() {
+    return Map<String, dynamic>.from(_formData);
   }
 
   /// 重置表单
   void reset() {
+    _formData.clear();
+    _errors.clear();
     _formKey?.currentState?.reset();
+    notifyListeners();
   }
 
   /// 保存表单（验证并获取数据）
-  Map<String, dynamic>? save() {
-    if (validate()) {
+  Map<String, dynamic>? save(List<FormConfig> configs) {
+    if (validate(configs)) {
       return getFormData();
     }
     return null;
   }
 
-  /// 动态设置字段值
+  /// 更新字段值
+  void updateField(String fieldName, dynamic value) {
+    _formData[fieldName] = value;
+    _errors.remove(fieldName); // 清除该字段的错误
+    notifyListeners();
+    _onChanged?.call(_formData);
+  }
+
+  /// 获取字段值
+  T? getValue<T>(String fieldName) {
+    return _formData[fieldName] as T?;
+  }
+
+  /// 设置字段值
   void setFieldValue(String fieldName, dynamic value) {
-    if (_controllers != null && _controllers!.containsKey(fieldName)) {
-      // 使用统一的数据转换工具，避免List被错误转换
-      _controllers![fieldName]!.text = DataConversionUtils.valueToControllerText(value, FormType.text);
-    }
-    if (_formData != null) {
-      _formData![fieldName] = value;
-    }
-    if (_updateFormData != null) {
-      _updateFormData!(fieldName, value);
-    }
+    updateField(fieldName, value);
   }
 
   /// 批量设置字段值
   void setFieldValues(Map<String, dynamic> values) {
-    values.forEach((fieldName, value) {
-      setFieldValue(fieldName, value);
-    });
-  }
-
-  /// 获取字段值
-  dynamic getFieldValue(String fieldName) {
-    // 优先返回已经解析过类型的表单数据
-    if (_formData != null && _formData!.containsKey(fieldName)) {
-      return _formData![fieldName];
-    }
-    // 回退到控件的字符串值
-    if (_controllers != null && _controllers!.containsKey(fieldName)) {
-      return _controllers![fieldName]!.text;
-    }
-    return null;
+    _formData.addAll(values);
+    notifyListeners();
+    _onChanged?.call(_formData);
   }
 
   /// 清空字段值
   void clearFieldValue(String fieldName) {
-    setFieldValue(fieldName, '');
+    _formData.remove(fieldName);
+    _errors.remove(fieldName);
+    notifyListeners();
+    _onChanged?.call(_formData);
   }
 
   /// 清空所有字段值
   void clearAllFields() {
-    if (_controllers != null) {
-      _controllers!.forEach((key, controller) {
-        // 明确设置为空字符串，而不是调用clear()
-        controller.text = '';
-      });
-    }
-    if (_formData != null) {
-      _formData!.clear();
-    }
+    _formData.clear();
+    _errors.clear();
+    notifyListeners();
+    _onChanged?.call(_formData);
+  }
+
+  /// 设置字段错误
+  void setFieldError(String fieldName, String error) {
+    _errors[fieldName] = error;
+    notifyListeners();
+  }
+
+  /// 清除字段错误
+  void clearFieldError(String fieldName) {
+    _errors.remove(fieldName);
+    notifyListeners();
   }
 }

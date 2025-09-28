@@ -1,93 +1,63 @@
 import 'package:flutter/material.dart';
-import 'package:simple_ui/models/field_configs.dart';
-import 'package:simple_ui/models/select_data.dart';
+import 'package:simple_ui/models/form_config.dart';
+import 'package:simple_ui/src/config_form/config_form_controller.dart';
 import 'package:simple_ui/src/config_form/utils/basic_style.dart';
 import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
-import 'package:simple_ui/src/config_form/utils/data_conversion_utils.dart';
-import 'package:simple_ui/models/form_type.dart';
 import 'package:simple_ui/src/config_form/widgets/index.dart';
-import '../base_field_widget.dart';
 
-class SelectForCheckbox<T> extends BaseFieldWidget {
-  const SelectForCheckbox({super.key, required super.config, required super.controller, required super.onChanged});
+class SelectForCheckbox extends StatefulWidget {
+  final FormConfig config;
+  final ConfigFormController controller;
+  final Function(Map<String, dynamic>)? onChanged;
 
+  const SelectForCheckbox({super.key, required this.config, required this.controller, required this.onChanged});
   @override
-  Widget buildField(BuildContext context) {
-    final checkboxConfig = config.config as CheckboxFieldConfig<T>;
+  State<SelectForCheckbox> createState() => _SelectForCheckboxState();
+}
 
-    return ValueListenableBuilder<TextEditingValue>(
-      valueListenable: controller,
-      builder: (context, value, child) {
-        // 使用统一的数据处理工具，智能处理controller文本
-        String currentValue = DataConversionUtils.smartProcessControllerText(value.text, FormType.checkbox);
-
-        return FormField<String>(
-          initialValue: currentValue,
-          validator: (v) {
-            final fn = ValidationUtils.getValidator(config);
-            return fn?.call(controller.text);
-          },
-          builder: (state) {
-            // 手动同步状态，确保FormField的状态与controller.text一致
-            if (state.value != currentValue) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                state.didChange(currentValue);
-              });
-            }
-
-            final Set<String> selected = {...((currentValue.isNotEmpty) ? currentValue.split(',').map((e) => e.trim()) : <String>[])};
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+class _SelectForCheckboxState extends State<SelectForCheckbox> {
+  @override
+  Widget build(BuildContext context) {
+    final checkboxConfig = widget.config;
+    return FormField<List<String>>(
+      validator: (v) {
+        final fn = ValidationUtils.getValidator(checkboxConfig);
+        return fn?.call('controller.text');
+      },
+      builder: (state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            LabelInfo(widget.config.label, widget.config.required),
+            Stack(
               children: [
-                Stack(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.only(bottom: 18),
-                      child: InputDecorator(
-                        decoration: BasicStyle.inputStyle(config.label ?? config.name),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: checkboxConfig.options.map((opt) {
-                            final isChecked = selected.contains(opt.value.toString());
+                Container(
+                  padding: EdgeInsets.only(bottom: 18),
+                  child: InputDecorator(
+                    decoration: BasicStyle.inputStyle(checkboxConfig.label),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children:
+                          (checkboxConfig.props as CheckboxFieldConfig?)?.options.map<Widget>((opt) {
                             return CheckboxListTile(
                               contentPadding: EdgeInsets.zero,
                               dense: true,
-                              value: isChecked,
+                              value: false,
                               title: Text(opt.label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                               onChanged: (bool? v) {
                                 if (v == null) return;
-                                if (v) {
-                                  selected.add(opt.value.toString());
-                                } else {
-                                  selected.remove(opt.value.toString());
-                                }
-                                final valueStr = selected.join(',');
-                                controller.text = valueStr;
-                                onChanged(valueStr);
-
-                                // 更新选中的数据列表
-                                final List<SelectData<T>> updatedSelectedData = checkboxConfig.options.where((option) => selected.contains(option.value.toString())).toList();
-
-                                // 调用回调函数，传递三个参数: (List<value>, List<data>, List<SelectData>)
-                                if (checkboxConfig.onChanged != null) {
-                                  checkboxConfig.onChanged!(updatedSelectedData.map((e) => e.value).toList(), updatedSelectedData.map((e) => e.data).toList(), updatedSelectedData);
-                                }
-
-                                state.didChange(valueStr);
                               },
                             );
-                          }).toList(),
-                        ),
-                      ),
+                          }).toList() ??
+                          <Widget>[],
                     ),
-                    if (state.errorText != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(state.errorText)),
-                  ],
+                  ),
                 ),
+                if (state.errorText != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(state.errorText)),
               ],
-            );
-          },
+            ),
+          ],
         );
       },
     );

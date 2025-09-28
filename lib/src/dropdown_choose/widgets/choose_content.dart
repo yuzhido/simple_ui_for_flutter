@@ -234,7 +234,7 @@ class _ChooseContentState<T> extends State<ChooseContent<T>> {
       child: Column(
         children: [
           // 顶部标题区域
-          HeaderTitle(title: '自定义选择-下拉系列请选择'),
+          HeaderTitle(title: widget.tips ?? "自定义选择"),
           // 搜索区域 - 根据条件显示
           if (widget.filterable || widget.remote)
             InputSearch(

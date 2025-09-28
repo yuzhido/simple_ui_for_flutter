@@ -9,7 +9,7 @@ class FormDataParser {
     if (value == null) return null;
 
     final fieldType = config.type;
-    final fieldConfig = config.config;
+    final fieldConfig = config;
 
     switch (fieldType) {
       case FormType.number:

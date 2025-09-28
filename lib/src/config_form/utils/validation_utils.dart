@@ -1,5 +1,4 @@
 import 'package:simple_ui/models/form_config.dart';
-import 'package:simple_ui/models/field_configs.dart';
 import 'package:simple_ui/models/form_type.dart';
 import 'package:simple_ui/models/validator.dart';
 
@@ -17,7 +16,7 @@ class ValidationUtils {
 
   /// 获取默认验证器
   static FormValidator? _getDefaultValidator(FormConfig config) {
-    return (String? value) {
+    return (dynamic value) {
       // 必填验证
       if (config.required && (value == null || value.isEmpty)) {
         return '${config.label}不能为空';
@@ -31,15 +30,15 @@ class ValidationUtils {
       // 根据字段类型进行验证
       switch (config.type) {
         case FormType.text:
-          return _validateText(value, config.config as TextFieldConfig);
+          return _validateText(value, config);
         case FormType.textarea:
-          return _validateTextarea(value, config.config as TextareaFieldConfig);
+          return _validateTextarea(value, config);
         case FormType.number:
-          return _validateNumber(value, config.config as NumberFieldConfig);
+          return _validateNumber(value, config);
         case FormType.integer:
-          return _validateInteger(value, config.config as IntegerFieldConfig);
+          return _validateInteger(value, config);
         case FormType.date:
-          return _validateDate(value, config.config as DateFieldConfig);
+          return _validateDate(value, config);
         default:
           return null;
       }
@@ -47,7 +46,7 @@ class ValidationUtils {
   }
 
   /// 验证文本字段
-  static String? _validateText(String value, TextFieldConfig config) {
+  static String? _validateText(String value, config) {
     // 长度验证
     if (config.minLength != null && value.length < config.minLength!) {
       return '${config.label}至少需要${config.minLength}个字符';
@@ -74,7 +73,7 @@ class ValidationUtils {
   }
 
   /// 验证多行文本字段
-  static String? _validateTextarea(String value, TextareaFieldConfig config) {
+  static String? _validateTextarea(String value, config) {
     // 长度验证
     if (config.minLength != null && value.length < config.minLength!) {
       return '${config.label}至少需要${config.minLength}个字符';
@@ -87,7 +86,7 @@ class ValidationUtils {
   }
 
   /// 验证数字字段
-  static String? _validateNumber(String value, NumberFieldConfig config) {
+  static String? _validateNumber(String value, config) {
     final number = double.tryParse(value);
     if (number == null) {
       return '请输入有效的数字';
@@ -113,7 +112,7 @@ class ValidationUtils {
   }
 
   /// 验证整数字段
-  static String? _validateInteger(String value, IntegerFieldConfig config) {
+  static String? _validateInteger(String value, config) {
     final integer = int.tryParse(value);
     if (integer == null) {
       return '请输入有效的整数';
@@ -131,7 +130,7 @@ class ValidationUtils {
   }
 
   /// 验证日期字段
-  static String? _validateDate(String value, DateFieldConfig config) {
+  static String? _validateDate(String value, config) {
     // 简单的日期格式验证
     final dateRegex = RegExp(r'^\d{4}-\d{2}-\d{2}$');
     if (!dateRegex.hasMatch(value)) {

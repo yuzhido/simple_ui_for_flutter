@@ -1,72 +1,246 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:simple_ui/models/file_upload.dart';
+import 'package:simple_ui/models/select_data.dart';
 import 'package:simple_ui/models/validator.dart';
 import 'package:simple_ui/models/form_type.dart';
-import 'package:simple_ui/src/config_form/widgets/index.dart';
-import 'field_configs.dart';
+import 'package:simple_ui/src/config_form/config_form_controller.dart';
 
-typedef FieldBuilder = Widget Function(FormConfig config, TextEditingController controller, Function(String) onChanged);
+abstract class BaseFieldConfig {
+  final String name;
+  final String label;
+  final bool required;
+  final dynamic defaultValue;
+  final FormValidator? validator;
+  final bool isShow;
+
+  const BaseFieldConfig({required this.name, required this.label, this.required = false, this.defaultValue, this.validator, this.isShow = true});
+}
 
 /// 统一的表单字段配置
-class FormConfig<T> {
+class FormConfig<T> extends BaseFieldConfig {
   final FormType type;
-  final BaseFieldConfig config;
-  final FieldBuilder? builder;
+  final T? props;
+  const FormConfig({required this.type, required super.name, required super.label, super.required = false, super.defaultValue, super.validator, super.isShow = true, this.props});
+}
 
-  const FormConfig({required this.type, required this.config, this.builder});
+/// 文本字段配置属性
+class TextFieldProps {
+  final int? minLength;
+  final int? maxLength;
+  final TextInputType? keyboardType; // 键盘类型
+  final List<TextInputFormatter>? inputFormatters; // 输入格式化器
+  final void Function(String val)? onChanged;
 
-  // 获取字段名称
-  String get name => config.name;
+  const TextFieldProps({this.minLength, this.maxLength, this.keyboardType, this.inputFormatters, this.onChanged});
+}
 
-  // 获取字段标签
-  String? get label => config.label;
+/// 多行文本字段配置
+class TextareaFieldConfig {
+  final int? minLength;
+  final int? maxLength;
+  final int? rows;
+  final void Function(String val)? onChanged;
+  const TextareaFieldConfig({this.minLength, this.maxLength, this.rows = 4, this.onChanged});
+}
 
-  // 是否必填
-  bool get required => config.required;
+/// 数字字段配置
+class NumberFieldConfig {
+  final double? minValue;
+  final double? maxValue;
+  final int? decimalPlaces;
+  final void Function(String val)? onChanged;
 
-  // 默认值
-  dynamic get defaultValue => config.defaultValue;
+  const NumberFieldConfig({this.minValue, this.maxValue, this.decimalPlaces, this.onChanged});
+}
 
-  // 验证器
-  FormValidator? get validator => config.validator;
+/// 整数字段配置
+class IntegerFieldConfig {
+  final int? minValue;
+  final int? maxValue;
+  final void Function(String val)? onChanged;
 
-  // 是否显示
-  bool get isShow => config.isShow;
-  // 便捷构造方法
-  static FormConfig text(TextFieldConfig config) => FormConfig(type: FormType.text, config: config);
-  static FormConfig textarea(TextareaFieldConfig config) => FormConfig(type: FormType.textarea, config: config);
-  static FormConfig number(NumberFieldConfig config) => FormConfig(type: FormType.number, config: config);
-  static FormConfig integer(IntegerFieldConfig config) => FormConfig(type: FormType.integer, config: config);
-  static FormConfig date(DateFieldConfig config) => FormConfig(type: FormType.date, config: config);
-  static FormConfig time(TimeFieldConfig config) => FormConfig(type: FormType.time, config: config);
-  static FormConfig datetime(DateTimeFieldConfig config) => FormConfig(type: FormType.datetime, config: config);
-  static FormConfig radio<T>(RadioFieldConfig<T> config) => FormConfig(
-    type: FormType.radio,
-    config: config,
-    builder: (FormConfig cfg, TextEditingController controller, Function(String) onChanged) =>
-        SelectForRadio<T>(config: cfg as dynamic, controller: controller, onChanged: onChanged),
-  );
-  static FormConfig checkbox<T>(CheckboxFieldConfig<T> config) => FormConfig(
-    type: FormType.checkbox,
-    config: config,
-    builder: (FormConfig cfg, TextEditingController controller, Function(String) onChanged) =>
-        SelectForCheckbox<T>(config: cfg as dynamic, controller: controller, onChanged: onChanged),
-  );
-  static FormConfig select<T>(SelectFieldConfig<T> config) => FormConfig(
-    type: FormType.select,
-    config: config,
-    builder: (FormConfig cfg, TextEditingController controller, Function(String) onChanged) =>
-        SelectForSelect<T>(config: cfg as dynamic, controller: controller, onChanged: onChanged),
-  );
-  static FormConfig dropdown<T>(DropdownFieldConfig<T> config) => FormConfig(
-    type: FormType.dropdown,
-    config: config,
-    builder: (FormConfig cfg, TextEditingController controller, Function(String) onChanged) => SelectForDropdown<T>(config: cfg, controller: controller, onChanged: onChanged),
-  );
-  static FormConfig upload(UploadFieldConfig config) => FormConfig(type: FormType.upload, config: config);
-  static FormConfig treeSelect<T>(TreeSelectFieldConfig<T> config) => FormConfig(
-    type: FormType.treeSelect,
-    config: config,
-    builder: (FormConfig cfg, TextEditingController controller, Function(String) onChanged) => SelectForTree<T>(config: cfg, controller: controller, onChanged: onChanged),
-  );
-  static FormConfig custom(CustomFieldConfig config) => FormConfig(type: FormType.custom, config: config);
+  const IntegerFieldConfig({this.minValue, this.maxValue, this.onChanged});
+}
+
+/// 日期字段配置
+class DateFieldConfig {
+  final DateTime? minDate;
+  final DateTime? maxDate;
+  final String? format;
+  final void Function(String val)? onChanged;
+
+  const DateFieldConfig({this.minDate, this.maxDate, this.format = 'YYYY-MM-DD', this.onChanged});
+}
+
+/// 时间字段配置
+class TimeFieldConfig {
+  final String? format;
+  final void Function(String val)? onChanged;
+
+  const TimeFieldConfig({this.format = 'HH:mm', this.onChanged});
+}
+
+/// 日期时间字段配置
+class DateTimeFieldConfig {
+  final DateTime? minDate;
+  final DateTime? maxDate;
+  final String? format;
+  final void Function(String val)? onChanged;
+
+  const DateTimeFieldConfig({this.minDate, this.maxDate, this.format = 'YYYY-MM-DD HH:mm', this.onChanged});
+}
+
+/// 单选字段配置
+class RadioFieldConfig<T> {
+  final List<SelectData<T>> options;
+  // 单选回调 - 参数: (选中的value值, 选中的data值, 选中的完整数据)
+  final void Function(dynamic, T, SelectData<T>)? onChanged;
+
+  const RadioFieldConfig({required this.options, this.onChanged});
+}
+
+/// 多选字段配置
+class CheckboxFieldConfig<T> {
+  final List<SelectData<T>> options;
+  // 多选回调 - 参数: (选中的value值列表, 选中的data值列表, 选中的完整数据列表)
+  final void Function(List<dynamic>, List<T>, List<SelectData<T>>)? onChanged;
+
+  const CheckboxFieldConfig({required this.options, this.onChanged});
+}
+
+/// 下拉选择字段配置
+class SelectFieldConfig<T> {
+  final List<SelectData<T>> options;
+  final bool multiple;
+  final bool searchable;
+  // 单选回调 - 参数: (选中的value值, 选中的data值, 选中的完整数据)
+  final void Function(dynamic, T, SelectData<T>)? onSingleChanged;
+  // 多选回调 - 参数: (选中的value值列表, 选中的data值列表, 选中的完整数据列表)
+  final void Function(List<dynamic>, List<T>, List<SelectData<T>>)? onMultipleChanged;
+
+  const SelectFieldConfig({required this.options, this.multiple = false, this.searchable = false, this.onSingleChanged, this.onMultipleChanged});
+}
+
+/// 自定义下拉选择字段配置（基于 DropdownChoose）
+class DropdownFieldConfig<T> {
+  // 选项（本地）
+  final List<SelectData<T>> options;
+  // 是否多选
+  final bool multiple;
+  // 是否可过滤（本地）
+  final bool filterable;
+  // 是否远程搜索
+  final bool remote;
+  // 是否总是刷新数据（仅在remote为true时有效）
+  final bool alwaysRefresh;
+  // 远程搜索函数
+  final Future<List<SelectData<T>>> Function(String)? remoteSearch;
+  // 是否显示新增按钮
+  final bool showAdd;
+  // 新增回调
+  final void Function(String)? onAdd;
+  // 占位提示
+  final String tips;
+  // 单选回调
+  final void Function(dynamic, T, SelectData<T>)? onSingleChanged;
+  // 多选回调
+  final void Function(List<dynamic>, List<T>, List<SelectData<T>>)? onMultipleChanged;
+
+  const DropdownFieldConfig({
+    this.options = const [],
+    this.multiple = false,
+    this.alwaysRefresh = false,
+    this.filterable = false,
+    this.remote = false,
+    this.remoteSearch,
+    this.showAdd = false,
+    this.onAdd,
+    this.tips = '',
+    this.onSingleChanged,
+    this.onMultipleChanged,
+  });
+}
+
+/// 文件上传字段配置
+class UploadFieldConfig {
+  final List<String>? allowedTypes;
+  final int? maxFileSize;
+  final int? maxFiles;
+  final String? uploadUrl;
+  // 上传行为与展示
+  final FileListType fileListType;
+  final FileSource fileSource;
+  final bool autoUpload;
+  final bool isRemoveFailFile;
+  // 自定义上传
+  final Future<FileUploadModel?> Function(String filePath, Function(double) onProgress)? customUpload;
+
+  /// 参数3: 操作类型 ('add' 或 'remove')
+  final Function(FileUploadModel currentFile, List<FileUploadModel> selectedFiles, String action)? onFileChange;
+
+  const UploadFieldConfig({
+    this.allowedTypes,
+    this.maxFileSize,
+    this.maxFiles = -1,
+    this.uploadUrl,
+    this.fileListType = FileListType.card,
+    this.fileSource = FileSource.all,
+    this.autoUpload = true,
+    this.isRemoveFailFile = false,
+    this.customUpload,
+    this.onFileChange,
+  });
+}
+
+/// 树选择字段配置
+class TreeSelectFieldConfig<T> {
+  final List<SelectData<T>> options;
+  final bool multiple;
+  final bool checkable;
+  // 顶部title
+  final String title;
+  // 顶部提示
+  final String hintText;
+  // 单选模式回调 - 参数: (选中的value值, 选中的data值, 选中的完整数据)
+  final void Function(dynamic, T, SelectData<T>)? onSingleChanged;
+  // 多选模式回调 - 参数: (选中的value值列表, 选中的data值列表, 选中的完整数据列表)
+  final void Function(List<dynamic>, List<T>, List<SelectData<T>>)? onMultipleChanged;
+  // 远程搜索
+  final Future<List<SelectData<T>>> Function(String)? remoteFetch;
+  // 是否开启远程搜索
+  final bool remote;
+  // 是否可过滤
+  final bool filterable;
+  // 是否懒加载
+  final bool lazyLoad;
+  // 懒加载函数 - 传入父节点，返回子节点列表
+  final Future<List<SelectData<T>>> Function(SelectData<T>)? lazyLoadFetch;
+  // 是否缓存数据
+  final bool isCacheData;
+
+  const TreeSelectFieldConfig({
+    required this.options,
+    this.multiple = false,
+    this.checkable = false,
+    this.title = '树形选择器',
+    this.hintText = '请输入关键字搜索',
+    this.onSingleChanged,
+    this.onMultipleChanged,
+    this.remoteFetch,
+    this.remote = false,
+    this.filterable = false,
+    this.lazyLoad = false,
+    this.lazyLoadFetch,
+    this.isCacheData = true,
+  });
+}
+
+/// 第一个参数将会在运行时传入 FormConfig（或兼容对象），以便在回调中可获取验证器等能力
+typedef ContentBuilder = Widget Function(dynamic config, ConfigFormController controller, Function(String) onChanged);
+
+/// 自定义字段配置：要求提供 contentBuilder
+class CustomFieldConfig {
+  final ContentBuilder contentBuilder;
+  const CustomFieldConfig({required this.contentBuilder});
 }

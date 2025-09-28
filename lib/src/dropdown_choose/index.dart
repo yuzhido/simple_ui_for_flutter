@@ -174,7 +174,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
     setState(() {
       _cachedOptions = List.from(newData);
     });
-    
+
     // 通知外部组件缓存数据已更新
     if (widget.onCacheUpdate != null) {
       widget.onCacheUpdate!(List.from(newData));
@@ -219,6 +219,7 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
             boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, -2))],
           ),
           child: ChooseContent<T>(
+            tips: widget.tips,
             options: _getEffectiveOptions(),
             filterable: widget.filterable,
             remote: widget.remote,
@@ -231,11 +232,6 @@ class _DropdownChooseState<T> extends State<DropdownChoose<T>> {
             onAdd: widget.onAdd,
             onCacheUpdate: _updateCache,
           ),
-          // child: StatefulBuilder(
-          //   builder: (BuildContext context, StateSetter setState) {
-          //     return ChooseContent();
-          //   },
-          // ),
         );
       },
     );

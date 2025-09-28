@@ -1,37 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:simple_ui/models/form_config.dart';
+import 'package:simple_ui/src/config_form/config_form_controller.dart';
 import 'package:simple_ui/src/config_form/utils/basic_style.dart';
 import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/config_form/widgets/index.dart';
-import '../base_field_widget.dart';
 
-class DateTimeForTime extends BaseFieldWidget {
-  const DateTimeForTime({super.key, required super.config, required super.controller, required super.onChanged});
+class DateTimeForTime extends StatefulWidget {
+  final FormConfig config;
+  final ConfigFormController controller;
+  final Function(Map<String, dynamic>)? onChanged;
 
+  const DateTimeForTime({super.key, required this.config, required this.controller, required this.onChanged});
   @override
-  Widget buildField(BuildContext context) {
+  State<DateTimeForTime> createState() => _DateTimeForTimeState();
+}
+
+class _DateTimeForTimeState extends State<DateTimeForTime> {
+  @override
+  Widget build(BuildContext context) {
     return FormField<String>(
-      initialValue: controller.text,
-      validator: ValidationUtils.getValidator(config),
+      initialValue: widget.controller.getValue(widget.config.name),
+      validator: ValidationUtils.getValidator(widget.config),
       builder: (state) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
+            LabelInfo(widget.config.label, widget.config.required),
             Stack(
               children: [
                 Container(
                   padding: EdgeInsets.only(bottom: 18),
                   child: TextFormField(
-                    controller: controller,
                     readOnly: true,
-                    decoration: BasicStyle.inputStyle(config.label ?? config.name, suffixIcon: const Icon(Icons.access_time)),
+                    decoration: BasicStyle.inputStyle(widget.config.label, suffixIcon: const Icon(Icons.access_time)),
                     onTap: () async {
                       final TimeOfDay? picked = await showTimePicker(context: context, initialTime: TimeOfDay.now());
                       if (picked != null) {
                         two(int v) => v.toString().padLeft(2, '0');
                         final timeStr = '${two(picked.hour)}:${two(picked.minute)}';
-                        controller.text = timeStr;
-                        onChanged(timeStr);
+                        widget.controller.setFieldValue(widget.config.name, timeStr);
                         state.didChange(timeStr);
                       }
                     },
