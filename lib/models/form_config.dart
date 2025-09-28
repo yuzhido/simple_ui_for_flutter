@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/validator.dart';
-import 'package:simple_ui/src/config_form/widgets/tree_select_field_widget.dart';
-import 'package:simple_ui/src/config_form/widgets/radio_field_widget.dart';
-import 'package:simple_ui/src/config_form/widgets/checkbox_field_widget.dart';
-import 'package:simple_ui/src/config_form/widgets/select_field_widget.dart';
 import 'package:simple_ui/models/form_type.dart';
+import 'package:simple_ui/src/config_form/widgets/index.dart';
 import 'field_configs.dart';
-import 'package:simple_ui/src/config_form/widgets/dropdown_field_widget.dart';
 
 typedef FieldBuilder = Widget Function(FormConfig config, TextEditingController controller, Function(String) onChanged);
 
@@ -47,30 +43,30 @@ class FormConfig<T> {
     type: FormType.radio,
     config: config,
     builder: (FormConfig cfg, TextEditingController controller, Function(String) onChanged) =>
-        RadioFieldWidget<T>(config: cfg as dynamic, controller: controller, onChanged: onChanged),
+        SelectForRadio<T>(config: cfg as dynamic, controller: controller, onChanged: onChanged),
   );
   static FormConfig checkbox<T>(CheckboxFieldConfig<T> config) => FormConfig(
     type: FormType.checkbox,
     config: config,
     builder: (FormConfig cfg, TextEditingController controller, Function(String) onChanged) =>
-        CheckboxFieldWidget<T>(config: cfg as dynamic, controller: controller, onChanged: onChanged),
+        SelectForCheckbox<T>(config: cfg as dynamic, controller: controller, onChanged: onChanged),
   );
   static FormConfig select<T>(SelectFieldConfig<T> config) => FormConfig(
     type: FormType.select,
     config: config,
     builder: (FormConfig cfg, TextEditingController controller, Function(String) onChanged) =>
-        SelectFieldWidget<T>(config: cfg as dynamic, controller: controller, onChanged: onChanged),
+        SelectForSelect<T>(config: cfg as dynamic, controller: controller, onChanged: onChanged),
   );
   static FormConfig dropdown<T>(DropdownFieldConfig<T> config) => FormConfig(
     type: FormType.dropdown,
     config: config,
-    builder: (FormConfig cfg, TextEditingController controller, Function(String) onChanged) => DropdownFieldWidget<T>(config: cfg, controller: controller, onChanged: onChanged),
+    builder: (FormConfig cfg, TextEditingController controller, Function(String) onChanged) => SelectForDropdown<T>(config: cfg, controller: controller, onChanged: onChanged),
   );
   static FormConfig upload(UploadFieldConfig config) => FormConfig(type: FormType.upload, config: config);
   static FormConfig treeSelect<T>(TreeSelectFieldConfig<T> config) => FormConfig(
     type: FormType.treeSelect,
     config: config,
-    builder: (FormConfig cfg, TextEditingController controller, Function(String) onChanged) => TreeSelectFieldWidget<T>(config: cfg, controller: controller, onChanged: onChanged),
+    builder: (FormConfig cfg, TextEditingController controller, Function(String) onChanged) => SelectForTree<T>(config: cfg, controller: controller, onChanged: onChanged),
   );
   static FormConfig custom(CustomFieldConfig config) => FormConfig(type: FormType.custom, config: config);
 }

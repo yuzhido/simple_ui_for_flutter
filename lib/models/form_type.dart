@@ -16,16 +16,16 @@ enum FormType {
   select,
   // 自定义下拉8
   dropdown,
-  // 日期9
-  date,
-  // 时间10
-  time,
-  // 日期时间11
-  datetime,
-  // 上传12
-  upload,
-  // 树选择13
+  // 树选择9
   treeSelect,
+  // 日期10
+  date,
+  // 时间11
+  time,
+  // 日期时间12
+  datetime,
+  // 上传13
+  upload,
   // 自定义14
   custom,
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/form_config.dart';
 import 'package:simple_ui/models/form_type.dart';
-import 'widgets/field_factory.dart';
+import 'package:simple_ui/src/config_form/widgets/index.dart';
 import 'config_form_controller.dart';
 import 'utils/data_conversion_utils.dart';
 export 'config_form_controller.dart';
@@ -271,15 +271,46 @@ class _ConfigFormState extends State<ConfigForm> {
         children: [
           ...widget.configs.where((config) => config.isShow).map((config) {
             final controller = _controllers[config.name];
+            // 报错提示信息：暂未实现的字段类型
             if (controller == null) {
               return Padding(padding: const EdgeInsets.only(bottom: 16), child: Text('暂未实现的字段类型: ${config.type}'));
             }
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: FieldFactory.buildField(config: config, controller: controller, onChanged: (value) => _updateFormData(config.name, value)),
-            );
+            if (config.type == FormType.text) {
+              return InputForText(config: config, controller: controller, onChanged: (value) => _updateFormData(config.name, value));
+            } else if (config.type == FormType.number) {
+              return InputForNumber(config: config, controller: controller, onChanged: (value) => _updateFormData(config.name, value));
+            } else if (config.type == FormType.integer) {
+              return InputForInteger(config: config, controller: controller, onChanged: (value) => _updateFormData(config.name, value));
+            } else if (config.type == FormType.textarea) {
+              return InputForTextarea(config: config, controller: controller, onChanged: (value) => _updateFormData(config.name, value));
+            } else if (config.type == FormType.radio) {
+              return SelectForRadio(config: config, controller: controller, onChanged: (value) => _updateFormData(config.name, value));
+            } else if (config.type == FormType.checkbox) {
+              return SelectForCheckbox(config: config, controller: controller, onChanged: (value) => _updateFormData(config.name, value));
+            } else if (config.type == FormType.select) {
+              return SelectForSelect(config: config, controller: controller, onChanged: (value) => _updateFormData(config.name, value));
+            } else if (config.type == FormType.dropdown) {
+              return SelectForDropdown(config: config, controller: controller, onChanged: (value) => _updateFormData(config.name, value));
+            } else if (config.type == FormType.treeSelect) {
+              return SelectForTree(config: config, controller: controller, onChanged: (value) => _updateFormData(config.name, value));
+            } else if (config.type == FormType.date) {
+              return DateTimeForDate(config: config, controller: controller, onChanged: (value) => _updateFormData(config.name, value));
+            } else if (config.type == FormType.time) {
+              return DateTimeForTime(config: config, controller: controller, onChanged: (value) => _updateFormData(config.name, value));
+            } else if (config.type == FormType.datetime) {
+              return DateTimeForDateTime(config: config, controller: controller, onChanged: (value) => _updateFormData(config.name, value));
+            } else if (config.type == FormType.upload) {
+              return UploadForFile(config: config, controller: controller, onChanged: (value) => _updateFormData(config.name, value));
+            } else if (config.type == FormType.custom) {
+              return CustomForAny(config: config, controller: controller, onChanged: (value) => _updateFormData(config.name, value));
+            } else {
+              return InputForText(config: config, controller: controller, onChanged: (value) => _updateFormData(config.name, value));
+            }
+            // return Padding(
+            //   padding: const EdgeInsets.only(bottom: 16),
+            //   child: FieldFactory.buildField(config: config, controller: controller, onChanged: (value) => _updateFormData(config.name, value)),
+            // );
           }),
-          if (widget.submitBuilder != null) ...[const SizedBox(height: 20), widget.submitBuilder!(_formData)],
         ],
       ),
     );

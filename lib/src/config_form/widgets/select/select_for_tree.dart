@@ -5,10 +5,10 @@ import 'package:simple_ui/models/form_type.dart';
 import 'package:simple_ui/src/tree_select/index.dart';
 import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/config_form/utils/data_conversion_utils.dart';
-import 'base_field_widget.dart';
+import '../base_field_widget.dart';
 
-class TreeSelectFieldWidget<T> extends BaseFieldWidget {
-  const TreeSelectFieldWidget({super.key, required super.config, required super.controller, required super.onChanged});
+class SelectForTree<T> extends BaseFieldWidget {
+  const SelectForTree({super.key, required super.config, required super.controller, required super.onChanged});
 
   @override
   Widget buildField(BuildContext context) {

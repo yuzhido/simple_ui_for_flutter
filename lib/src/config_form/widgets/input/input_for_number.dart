@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:simple_ui/src/config_form/utils/basic_style.dart';
 import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
-import 'base_field_widget.dart';
+import '../base_field_widget.dart';
 
-class IntegerFieldWidget extends BaseFieldWidget {
-  const IntegerFieldWidget({super.key, required super.config, required super.controller, required super.onChanged});
+class InputForNumber extends BaseFieldWidget {
+  const InputForNumber({super.key, required super.config, required super.controller, required super.onChanged});
 
   @override
   Widget buildField(BuildContext context) {
@@ -21,8 +21,8 @@ class IntegerFieldWidget extends BaseFieldWidget {
           children: [
             TextFormField(
               controller: controller,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
               decoration: BasicStyle.inputStyle(config.label ?? config.name),
               onChanged: (val) {
                 onChanged(val);

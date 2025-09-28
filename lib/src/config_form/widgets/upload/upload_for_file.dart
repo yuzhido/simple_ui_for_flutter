@@ -4,10 +4,10 @@ import 'package:simple_ui/models/field_configs.dart';
 import 'package:simple_ui/models/file_upload.dart';
 import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/file_upload/index.dart';
-import 'base_field_widget.dart';
+import '../base_field_widget.dart';
 
-class UploadFieldWidget extends BaseFieldWidget {
-  const UploadFieldWidget({super.key, required super.config, required super.controller, required super.onChanged});
+class UploadForFile extends BaseFieldWidget {
+  const UploadForFile({super.key, required super.config, required super.controller, required super.onChanged});
 
   @override
   Widget buildField(BuildContext context) {

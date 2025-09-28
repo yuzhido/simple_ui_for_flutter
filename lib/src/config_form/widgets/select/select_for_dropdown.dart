@@ -6,10 +6,10 @@ import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/config_form/utils/data_conversion_utils.dart';
 import 'package:simple_ui/src/dropdown_choose/index.dart';
 import 'package:simple_ui/models/form_type.dart';
-import 'base_field_widget.dart';
+import '../base_field_widget.dart';
 
-class DropdownFieldWidget<T> extends BaseFieldWidget {
-  const DropdownFieldWidget({super.key, required super.config, required super.controller, required super.onChanged});
+class SelectForDropdown<T> extends BaseFieldWidget {
+  const SelectForDropdown({super.key, required super.config, required super.controller, required super.onChanged});
 
   @override
   Widget buildField(BuildContext context) {

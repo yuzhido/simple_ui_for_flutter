@@ -19,6 +19,7 @@ abstract class BaseFieldConfig<T> {
 class TextFieldConfig extends BaseFieldConfig {
   final int? minLength;
   final int? maxLength;
+  final void Function(String val)? onChanged;
   const TextFieldConfig({
     required super.name,
     required super.label,
@@ -28,6 +29,7 @@ class TextFieldConfig extends BaseFieldConfig {
     super.isShow = true,
     this.minLength,
     this.maxLength,
+    this.onChanged,
   });
 }
 
@@ -36,6 +38,7 @@ class TextareaFieldConfig extends BaseFieldConfig {
   final int? minLength;
   final int? maxLength;
   final int? rows;
+  final void Function(String val)? onChanged;
 
   const TextareaFieldConfig({
     required super.name,
@@ -47,6 +50,7 @@ class TextareaFieldConfig extends BaseFieldConfig {
     this.minLength,
     this.maxLength,
     this.rows = 4,
+    this.onChanged,
   });
 }
 
@@ -55,6 +59,7 @@ class NumberFieldConfig extends BaseFieldConfig {
   final double? minValue;
   final double? maxValue;
   final int? decimalPlaces;
+  final void Function(String val)? onChanged;
 
   const NumberFieldConfig({
     required super.name,
@@ -66,6 +71,7 @@ class NumberFieldConfig extends BaseFieldConfig {
     this.minValue,
     this.maxValue,
     this.decimalPlaces,
+    this.onChanged,
   });
 }
 
@@ -73,6 +79,7 @@ class NumberFieldConfig extends BaseFieldConfig {
 class IntegerFieldConfig extends BaseFieldConfig {
   final int? minValue;
   final int? maxValue;
+  final void Function(String val)? onChanged;
 
   const IntegerFieldConfig({
     required super.name,
@@ -83,6 +90,7 @@ class IntegerFieldConfig extends BaseFieldConfig {
     super.isShow = true,
     this.minValue,
     this.maxValue,
+    this.onChanged,
   });
 }
 
@@ -91,6 +99,7 @@ class DateFieldConfig extends BaseFieldConfig {
   final DateTime? minDate;
   final DateTime? maxDate;
   final String? format;
+  final void Function(String val)? onChanged;
 
   const DateFieldConfig({
     required super.name,
@@ -102,14 +111,25 @@ class DateFieldConfig extends BaseFieldConfig {
     this.minDate,
     this.maxDate,
     this.format = 'YYYY-MM-DD',
+    this.onChanged,
   });
 }
 
 /// 时间字段配置
 class TimeFieldConfig extends BaseFieldConfig {
   final String? format;
+  final void Function(String val)? onChanged;
 
-  const TimeFieldConfig({required super.name, required super.label, super.required = false, super.defaultValue, super.validator, super.isShow = true, this.format = 'HH:mm'});
+  const TimeFieldConfig({
+    required super.name,
+    required super.label,
+    super.required = false,
+    super.defaultValue,
+    super.validator,
+    super.isShow = true,
+    this.format = 'HH:mm',
+    this.onChanged,
+  });
 }
 
 /// 日期时间字段配置
@@ -117,6 +137,7 @@ class DateTimeFieldConfig extends BaseFieldConfig {
   final DateTime? minDate;
   final DateTime? maxDate;
   final String? format;
+  final void Function(String val)? onChanged;
 
   const DateTimeFieldConfig({
     required super.name,
@@ -128,6 +149,7 @@ class DateTimeFieldConfig extends BaseFieldConfig {
     this.minDate,
     this.maxDate,
     this.format = 'YYYY-MM-DD HH:mm',
+    this.onChanged,
   });
 }
 

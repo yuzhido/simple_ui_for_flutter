@@ -4,10 +4,10 @@ import 'package:simple_ui/src/config_form/utils/basic_style.dart';
 import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/config_form/utils/data_conversion_utils.dart';
 import 'package:simple_ui/models/form_type.dart';
-import 'base_field_widget.dart';
+import '../base_field_widget.dart';
 
-class RadioFieldWidget<T> extends BaseFieldWidget {
-  const RadioFieldWidget({super.key, required super.config, required super.controller, required super.onChanged});
+class SelectForRadio<T> extends BaseFieldWidget {
+  const SelectForRadio({super.key, required super.config, required super.controller, required super.onChanged});
 
   @override
   Widget buildField(BuildContext context) {

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:simple_ui/src/config_form/utils/basic_style.dart';
-import 'base_field_widget.dart';
+import '../base_field_widget.dart';
 import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 
-class TextFieldWidget extends BaseFieldWidget {
-  const TextFieldWidget({super.key, required super.config, required super.controller, required super.onChanged});
+class InputForText extends BaseFieldWidget {
+  const InputForText({super.key, required super.config, required super.controller, required super.onChanged});
 
   @override
   Widget buildField(BuildContext context) {

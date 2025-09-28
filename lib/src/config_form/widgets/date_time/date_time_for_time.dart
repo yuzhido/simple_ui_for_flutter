@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/src/config_form/utils/basic_style.dart';
 import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
-import 'base_field_widget.dart';
+import '../base_field_widget.dart';
 
-class TimeFieldWidget extends BaseFieldWidget {
-  const TimeFieldWidget({super.key, required super.config, required super.controller, required super.onChanged});
+class DateTimeForTime extends BaseFieldWidget {
+  const DateTimeForTime({super.key, required super.config, required super.controller, required super.onChanged});
 
   @override
   Widget buildField(BuildContext context) {
