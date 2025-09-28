@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:simple_ui/models/form_config.dart';
-import 'package:simple_ui/src/config_form/config_form_controller.dart';
 import 'package:simple_ui/src/config_form/utils/basic_style.dart';
-import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/config_form/widgets/index.dart';
 
 class InputForText extends StatefulWidget {
@@ -18,43 +16,46 @@ class InputForText extends StatefulWidget {
 }
 
 class _InputForTextState extends State<InputForText> {
+  late ValueNotifier<Map<String, String>> countNotifier;
+  @override
+  void initState() {
+    countNotifier = ValueNotifier(widget.controller.errors);
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final textConfig = widget.config;
+    final config = widget.config;
+    final errorsInfo = widget.controller.errors;
 
     // 优先使用配置中指定的键盘类型和输入格式化器
-    TextInputType keyboardType = textConfig.props.keyboardType ?? TextInputType.text;
-    List<TextInputFormatter>? inputFormatters = textConfig.props.inputFormatters;
+    TextInputType keyboardType = config.props.keyboardType ?? TextInputType.text;
+    List<TextInputFormatter>? inputFormatters = config.props.inputFormatters;
 
-    return FormField<String>(
-      initialValue: widget.controller.getValue(widget.config.name) ?? '',
-      validator: (v) {
-        final fn = ValidationUtils.getValidator(widget.config);
-        return fn?.call(v ?? '');
-      },
-      builder: (state) {
+    return ValueListenableBuilder(
+      valueListenable: countNotifier,
+      builder: (context, _, __) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            LabelInfo(widget.config.label, widget.config.required),
+            LabelInfo(config.label, config.required),
             Stack(
               children: [
                 Container(
                   padding: EdgeInsets.only(bottom: 18),
                   child: TextFormField(
-                    initialValue: widget.controller.getValue(widget.config.name) ?? '',
+                    initialValue: widget.controller.getValue<String?>(config.name) ?? '',
                     keyboardType: keyboardType,
                     inputFormatters: inputFormatters,
-                    decoration: BasicStyle.inputStyle(widget.config.label),
+                    decoration: BasicStyle.inputStyle(config.label),
                     onChanged: (val) {
-                      widget.controller.setFieldValue(widget.config.name, val);
-                      state.didChange(val);
+                      widget.controller.setFieldValue(config.name, val);
                       widget.onChanged?.call(widget.controller.getFormData());
                     },
                   ),
                 ),
-                if (state.errorText != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(state.errorText)),
+                if (errorsInfo[config.name] != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(errorsInfo[config.name]!)),
               ],
             ),
           ],

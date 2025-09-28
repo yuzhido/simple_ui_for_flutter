@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/form_config.dart';
-import 'package:simple_ui/src/config_form/config_form_controller.dart';
 import 'package:simple_ui/src/config_form/utils/basic_style.dart';
-import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/config_form/widgets/index.dart';
 
 class InputForTextarea extends StatefulWidget {
@@ -17,15 +15,20 @@ class InputForTextarea extends StatefulWidget {
 }
 
 class _InputForTextareaState extends State<InputForTextarea> {
+  late ValueNotifier<Map<String, String>> countNotifier;
+  @override
+  void initState() {
+    countNotifier = ValueNotifier(widget.controller.errors);
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FormField<String>(
-      initialValue: widget.controller.getValue(widget.config.name) ?? '',
-      validator: (v) {
-        final fn = ValidationUtils.getValidator(widget.config);
-        return fn?.call(v ?? '');
-      },
-      builder: (state) {
+    final config = widget.config;
+    final errorsInfo = widget.controller.errors;
+    return ValueListenableBuilder(
+      valueListenable: countNotifier,
+      builder: (context, _, __) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -36,18 +39,17 @@ class _InputForTextareaState extends State<InputForTextarea> {
                 Container(
                   padding: EdgeInsets.only(bottom: 18),
                   child: TextFormField(
-                    initialValue: widget.controller.getValue(widget.config.name) ?? '',
+                    initialValue: widget.controller.getValue<String?>(widget.config.name) ?? '',
                     keyboardType: TextInputType.multiline,
                     maxLines: 4,
                     decoration: BasicStyle.inputStyle(widget.config.label),
                     onChanged: (val) {
                       widget.controller.setFieldValue(widget.config.name, val);
-                      state.didChange(val);
                       widget.onChanged?.call(widget.controller.getFormData());
                     },
                   ),
                 ),
-                if (state.errorText != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(state.errorText)),
+                if (errorsInfo[config.name] != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(errorsInfo[config.name]!)),
               ],
             ),
           ],

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/form_config.dart';
-import 'package:simple_ui/src/config_form/config_form_controller.dart';
-import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/config_form/widgets/index.dart';
 
 class CustomForAny extends StatefulWidget {
@@ -15,22 +13,25 @@ class CustomForAny extends StatefulWidget {
 }
 
 class _CustomForAnyState extends State<CustomForAny> {
+  late ValueNotifier<Map<String, String>> countNotifier;
+  @override
+  void initState() {
+    countNotifier = ValueNotifier(widget.controller.errors);
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final FormConfig customCfg = widget.config;
-    return FormField<String>(
-      initialValue: widget.controller.getValue(customCfg.name),
-      validator: (value) {
-        // 使用FormField的当前值而不是controller.text
-        final fn = ValidationUtils.getValidator(customCfg);
-        return fn?.call(value ?? widget.controller.getValue(customCfg.name));
-      },
-      builder: (state) {
+    final config = widget.config;
+    final errorsInfo = widget.controller.errors;
+    return ValueListenableBuilder(
+      valueListenable: countNotifier,
+      builder: (context, _, __) {
         final child = customCfg.props.contentBuilder(customCfg, widget.controller, (val) {
           // 避免在build期间调用 setState，延后
           WidgetsBinding.instance.addPostFrameCallback((_) {
             widget.controller.setFieldValue(customCfg.name, val);
-            state.didChange(val);
           });
         });
         return Column(
@@ -41,7 +42,7 @@ class _CustomForAnyState extends State<CustomForAny> {
             Stack(
               children: [
                 Container(padding: EdgeInsets.only(bottom: 18), child: child),
-                if (state.errorText != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(state.errorText)),
+                if (errorsInfo[config.name] != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(errorsInfo[config.name]!)),
               ],
             ),
           ],

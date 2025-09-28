@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/form_config.dart';
-import 'package:simple_ui/src/config_form/config_form_controller.dart';
 import 'package:simple_ui/src/config_form/widgets/index.dart';
 import 'package:simple_ui/src/dropdown_choose/index.dart';
 
@@ -21,16 +20,21 @@ class _DropdownFieldContentState<T> extends State<SelectForDropdown<T>> {
   void initState() {
     super.initState();
     defaultValue = widget.config.defaultValue;
+    countNotifier = ValueNotifier(widget.controller.errors);
   }
+
+  late ValueNotifier<Map<String, String>> countNotifier;
 
   @override
   Widget build(BuildContext context) {
     final dropdownConfig = widget.config;
-
-    return FormField<dynamic>(
-      initialValue: widget.controller.getValue(widget.config.name),
-      builder: (state) {
-        final dynamic currentValue = widget.controller.getValue(widget.config.name) ?? '';
+    final dropdownProps = dropdownConfig.props as DropdownProps<T>;
+    final config = widget.config;
+    final errorsInfo = widget.controller.errors;
+    return ValueListenableBuilder(
+      valueListenable: countNotifier,
+      builder: (context, _, __) {
+        final dynamic currentValue = widget.controller.getValue<dynamic>(widget.config.name) ?? '';
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -42,33 +46,29 @@ class _DropdownFieldContentState<T> extends State<SelectForDropdown<T>> {
                   padding: EdgeInsets.only(bottom: 18),
                   child: DropdownChoose<T>(
                     key: ValueKey('dropdown_${widget.config.name}_$currentValue'), // 使用key强制重新创建组件
-                    options: dropdownConfig.props.options,
-                    multiple: dropdownConfig.props.multiple,
-                    filterable: dropdownConfig.props.filterable,
-                    remote: dropdownConfig.props.remote,
-                    remoteSearch: dropdownConfig.props.remoteSearch,
-                    showAdd: dropdownConfig.props.showAdd,
-                    onAdd: dropdownConfig.props.onAdd,
-                    alwaysRefresh: dropdownConfig.props.alwaysRefresh,
-                    tips: (dropdownConfig.props.tips == '') ? '请选择${widget.config.label}' : dropdownConfig.props.tips,
+                    options: dropdownProps.options,
+                    multiple: dropdownProps.multiple,
+                    filterable: dropdownProps.filterable,
+                    remote: dropdownProps.remote,
+                    remoteSearch: dropdownProps.remoteSearch,
+                    showAdd: dropdownProps.showAdd,
+                    onAdd: dropdownProps.onAdd,
+                    alwaysRefresh: dropdownProps.alwaysRefresh,
+                    tips: (dropdownProps.tips == '') ? '请选择${widget.config.label}' : dropdownProps.tips,
                     defaultValue: defaultValue,
                     onSingleChanged: (dynamic value, T data, selected) {
                       defaultValue = selected;
-                      final valueStr = value?.toString() ?? '';
-                      widget.controller.setFieldValue(widget.config.name, valueStr);
-                      state.didChange(valueStr);
-                      dropdownConfig.props.onSingleChanged?.call(value, data, selected);
+                      widget.controller.setFieldValue(widget.config.name, value);
+                      dropdownProps.onSingleChanged?.call(value, data, selected);
                     },
                     onMultipleChanged: (values, datas, selectedList) {
                       defaultValue = selectedList;
-                      final valueStr = values.map((v) => v?.toString() ?? '').where((s) => s.isNotEmpty).join(',');
-                      widget.controller.setFieldValue(widget.config.name, valueStr);
-                      state.didChange(valueStr);
-                      dropdownConfig.props.onMultipleChanged?.call(values, datas, selectedList);
+                      widget.controller.setFieldValue(widget.config.name, values);
+                      dropdownProps.onMultipleChanged?.call(values, datas, selectedList);
                     },
                   ),
                 ),
-                if (state.errorText != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(state.errorText)),
+                if (errorsInfo[config.name] != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(errorsInfo[config.name]!)),
               ],
             ),
           ],

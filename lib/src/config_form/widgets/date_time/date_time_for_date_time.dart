@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/form_config.dart';
-import 'package:simple_ui/src/config_form/config_form_controller.dart';
 import 'package:simple_ui/src/config_form/utils/basic_style.dart';
-import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/config_form/widgets/index.dart';
 
 class DateTimeForDateTime extends StatefulWidget {
@@ -16,15 +14,20 @@ class DateTimeForDateTime extends StatefulWidget {
 }
 
 class _DateTimeForDateTimeState extends State<DateTimeForDateTime> {
+  late ValueNotifier<Map<String, String>> countNotifier;
+  @override
+  void initState() {
+    countNotifier = ValueNotifier(widget.controller.errors);
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FormField<String>(
-      initialValue: widget.controller.getValue(widget.config.name),
-      validator: (v) {
-        final fn = ValidationUtils.getValidator(widget.config);
-        return fn?.call('controller.text');
-      },
-      builder: (state) {
+    final config = widget.config;
+    final errorsInfo = widget.controller.errors;
+    return ValueListenableBuilder(
+      valueListenable: countNotifier,
+      builder: (context, _, __) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -48,11 +51,10 @@ class _DateTimeForDateTimeState extends State<DateTimeForDateTime> {
                       final timeStr = '${two(pickedTime.hour)}:${two(pickedTime.minute)}';
                       final dateTimeStr = '$dateStr $timeStr';
                       widget.controller.setFieldValue(widget.config.name, dateTimeStr);
-                      state.didChange(dateTimeStr);
                     },
                   ),
                 ),
-                if (state.errorText != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(state.errorText)),
+                if (errorsInfo[config.name] != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(errorsInfo[config.name]!)),
               ],
             ),
           ],

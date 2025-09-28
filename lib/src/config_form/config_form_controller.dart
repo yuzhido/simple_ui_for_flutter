@@ -7,12 +7,20 @@ class ConfigFormController extends ChangeNotifier {
   Map<String, dynamic> _formData = {};
   final Map<String, String> _errors = {};
   Function(Map<String, dynamic>)? _onChanged;
+  List<FormConfig> _configs = []; // 存储表单配置
+
+  ConfigFormController() {
+    _formKey = GlobalKey<FormState>();
+  }
 
   /// 获取表单数据
   Map<String, dynamic> get formData => Map.unmodifiable(_formData);
 
   /// 获取错误信息
   Map<String, String> get errors => Map.unmodifiable(_errors);
+
+  /// 获取表单键
+  GlobalKey<FormState>? get formKey => _formKey;
 
   /// 内部方法，由ConfigForm组件调用
   void setFormKey(GlobalKey<FormState> formKey) {
@@ -23,6 +31,11 @@ class ConfigFormController extends ChangeNotifier {
     _onChanged = onChanged;
   }
 
+  /// 设置表单配置
+  void setConfigs(List<FormConfig> configs) {
+    _configs = configs;
+  }
+
   /// 初始化表单数据
   void initializeData(Map<String, dynamic> initialData) {
     _formData = Map<String, dynamic>.from(initialData);
@@ -30,22 +43,25 @@ class ConfigFormController extends ChangeNotifier {
   }
 
   /// 验证表单
-  bool validate(List<FormConfig> configs) {
+  bool validate([List<FormConfig>? configs]) {
     _errors.clear();
     bool isValid = true;
 
-    for (var config in configs) {
-      final validator = ValidationUtils.getValidator(config);
-      if (validator != null) {
-        final value = _formData[config.name]?.toString() ?? '';
-        final error = validator(value);
-        if (error != null) {
-          _errors[config.name] = error;
-          isValid = false;
-        }
+    // 使用传入的配置或内部存储的配置
+    final configsToValidate = configs ?? _configs;
+
+    for (var config in configsToValidate) {
+      // 只验证显示的字段
+      if (!config.isShow) continue;
+      if (!config.required) continue;
+      if (_formData[config.name] == null || _formData[config.name] == '') {
+        isValid = false;
+        _errors[config.name] = ValidationUtils.getDefaultErrorMessage(config);
       }
     }
 
+    // 触发表单重新验证以显示错误
+    _formKey?.currentState?.validate();
     notifyListeners();
     return isValid;
   }
@@ -64,7 +80,7 @@ class ConfigFormController extends ChangeNotifier {
   }
 
   /// 保存表单（验证并获取数据）
-  Map<String, dynamic>? save(List<FormConfig> configs) {
+  Map<String, dynamic>? save([List<FormConfig>? configs]) {
     if (validate(configs)) {
       return getFormData();
     }
@@ -81,7 +97,19 @@ class ConfigFormController extends ChangeNotifier {
 
   /// 获取字段值
   T? getValue<T>(String fieldName) {
-    return _formData[fieldName] as T?;
+    final value = _formData[fieldName];
+    if (value == null) return null;
+
+    // 处理类型转换，避免强制转换错误
+    if (T == String && value is List) {
+      // 如果是 List 但期望 String，返回空字符串
+      return '' as T;
+    } else if (T == String && value is! String) {
+      // 如果不是 String 但期望 String，转换为字符串
+      return value.toString() as T;
+    }
+
+    return value as T?;
   }
 
   /// 设置字段值

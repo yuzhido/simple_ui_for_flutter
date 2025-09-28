@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/form_config.dart';
-import 'package:simple_ui/src/config_form/config_form_controller.dart';
 import 'package:simple_ui/src/config_form/utils/basic_style.dart';
-import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/config_form/widgets/index.dart';
 
 class SelectForCheckbox extends StatefulWidget {
@@ -16,15 +14,21 @@ class SelectForCheckbox extends StatefulWidget {
 }
 
 class _SelectForCheckboxState extends State<SelectForCheckbox> {
+  late ValueNotifier<Map<String, String>> countNotifier;
+  @override
+  void initState() {
+    countNotifier = ValueNotifier(widget.controller.errors);
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final checkboxConfig = widget.config;
-    return FormField<List<String>>(
-      validator: (v) {
-        final fn = ValidationUtils.getValidator(checkboxConfig);
-        return fn?.call('controller.text');
-      },
-      builder: (state) {
+    final config = widget.config;
+    final errorsInfo = widget.controller.errors;
+    return ValueListenableBuilder(
+      valueListenable: countNotifier,
+      builder: (context, _, __) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -54,7 +58,7 @@ class _SelectForCheckboxState extends State<SelectForCheckbox> {
                     ),
                   ),
                 ),
-                if (state.errorText != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(state.errorText)),
+                if (errorsInfo[config.name] != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(errorsInfo[config.name]!)),
               ],
             ),
           ],

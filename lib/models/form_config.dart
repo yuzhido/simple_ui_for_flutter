@@ -97,7 +97,6 @@ class RadioProps<T> {
   final List<SelectData<T>> options;
   // 单选回调 - 参数: (选中的value值, 选中的data值, 选中的完整数据)
   final void Function(dynamic, T, SelectData<T>)? onChanged;
-
   const RadioProps({required this.options, this.onChanged});
 }
 
@@ -106,7 +105,6 @@ class CheckboxProps<T> {
   final List<SelectData<T>> options;
   // 多选回调 - 参数: (选中的value值列表, 选中的data值列表, 选中的完整数据列表)
   final void Function(List<dynamic>, List<T>, List<SelectData<T>>)? onChanged;
-
   const CheckboxProps({required this.options, this.onChanged});
 }
 
@@ -119,7 +117,6 @@ class SelectProps<T> {
   final void Function(dynamic, T, SelectData<T>)? onSingleChanged;
   // 多选回调 - 参数: (选中的value值列表, 选中的data值列表, 选中的完整数据列表)
   final void Function(List<dynamic>, List<T>, List<SelectData<T>>)? onMultipleChanged;
-
   const SelectProps({required this.options, this.multiple = false, this.searchable = false, this.onSingleChanged, this.onMultipleChanged});
 }
 

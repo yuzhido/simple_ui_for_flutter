@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/form_config.dart';
-import 'package:simple_ui/src/config_form/config_form_controller.dart';
 import 'package:simple_ui/src/config_form/utils/basic_style.dart';
-import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/config_form/widgets/index.dart';
 
 class DateTimeForDate extends StatefulWidget {
@@ -16,15 +14,20 @@ class DateTimeForDate extends StatefulWidget {
 }
 
 class _DateTimeForDateState extends State<DateTimeForDate> {
+  late ValueNotifier<Map<String, String>> countNotifier;
+  @override
+  void initState() {
+    countNotifier = ValueNotifier(widget.controller.errors);
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FormField<String>(
-      initialValue: widget.controller.getValue(widget.config.name),
-      validator: (v) {
-        final fn = ValidationUtils.getValidator(widget.config);
-        return fn?.call('controller.text');
-      },
-      builder: (state) {
+    final config = widget.config;
+    final errorsInfo = widget.controller.errors;
+    return ValueListenableBuilder(
+      valueListenable: countNotifier,
+      builder: (context, _, __) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -42,12 +45,11 @@ class _DateTimeForDateState extends State<DateTimeForDate> {
                       if (picked != null) {
                         final dateStr = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
                         widget.controller.setFieldValue(widget.config.name, dateStr);
-                        state.didChange(dateStr);
                       }
                     },
                   ),
                 ),
-                if (state.errorText != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(state.errorText)),
+                if (errorsInfo[config.name] != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(errorsInfo[config.name]!)),
               ],
             ),
           ],
