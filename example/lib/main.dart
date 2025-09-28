@@ -1,9 +1,9 @@
-import 'package:example/pages/cate_page/dropdown_choose.dart';
+import 'package:example/pages/cate_page/config_form_examples.dart';
+import 'package:example/pages/cate_page/dropdown_choose_example.dart';
 import 'package:example/pages/cate_page/file_upload_example.dart';
 import 'package:example/pages/cate_page/form_builder_example.dart';
 import 'package:example/pages/cate_page/table_show_example.dart';
 import 'package:example/pages/cate_page/tree_select_example.dart';
-import 'package:example/pages/form_builder_demo/alwaysfresh_test.dart';
 import 'package:example/pages/notice_info/index.dart';
 import 'package:example/pages/permission_request/index.dart';
 import 'package:example/pages/scan_qrcode/index.dart';
@@ -49,7 +49,13 @@ class HomePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             ElevatedButton(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DropdownChoosePage())),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ConfigFormExamplesPage())),
+              child: const Text('配置表单（ConfigForm）示例'),
+            ),
+            const SizedBox(height: 12),
+
+            ElevatedButton(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DropdownChooseExamplePage())),
               child: const Text('下拉选择（DropdownChoose）示例'),
             ),
             const SizedBox(height: 12),
@@ -110,12 +116,6 @@ class HomePage extends StatelessWidget {
 
             const SizedBox(height: 12),
 
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const AlwaysFreshTestPage()));
-              },
-              child: Text('跳转查看AlwaysFreshData功能测试'),
-            ),
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: () {

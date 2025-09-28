@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:simple_ui/models/config_form_model.dart';
+import 'package:simple_ui/models/form_config.dart';
+import 'package:simple_ui/models/form_type.dart';
 import 'text_field_widget.dart';
 import 'textarea_field_widget.dart';
 import 'number_field_widget.dart';

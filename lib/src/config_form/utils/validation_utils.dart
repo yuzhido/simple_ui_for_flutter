@@ -1,5 +1,7 @@
-import 'package:simple_ui/models/config_form_model.dart';
+import 'package:simple_ui/models/form_config.dart';
 import 'package:simple_ui/models/field_configs.dart';
+import 'package:simple_ui/models/form_type.dart';
+import 'package:simple_ui/models/validator.dart';
 
 class ValidationUtils {
   /// 获取字段的验证器

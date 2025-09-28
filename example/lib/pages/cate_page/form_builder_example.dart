@@ -1,4 +1,3 @@
-import 'package:example/pages/form_builder_demo/default_value.dart';
 import 'package:example/pages/form_builder_demo/index.dart';
 import 'package:example/pages/loading_data/index.dart';
 import 'package:example/pages/user_list/index.dart';
@@ -19,7 +18,7 @@ class _FormBuilderExamplePageState extends State<FormBuilderExamplePage> {
         children: [
           ElevatedButton(
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const FormBuilderDemo()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const FormBuilderDemoPage()));
             },
             child: Text('跳转查看数据驱动表单（FormBuilder）示例'),
           ),
@@ -31,13 +30,7 @@ class _FormBuilderExamplePageState extends State<FormBuilderExamplePage> {
             child: Text('跳转查看数据驱动表单（UserListPage）用户管理页面示例'),
           ),
           const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const DefaultValuePage()));
-            },
-            child: Text('跳转查看数据驱动表单（DefaultValuePage）自定义显示表单默认值示例'),
-          ),
-          const SizedBox(height: 12),
+
           ElevatedButton(
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const LoadingDataPage()));

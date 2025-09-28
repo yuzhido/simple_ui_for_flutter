@@ -32,11 +32,29 @@ class _AllTypeAddIsRequiredPageState extends State<AllTypeAddIsRequiredPage> {
     'bio': '热爱生活，积极向上，喜欢学习新技术。', // 个人简介
   };
 
+  bool _showWorkFields = false;
+
   @override
   void initState() {
     super.initState();
     // 初始化表单数据
     _formController.setFieldValues(_personInfo);
+    _updateConditionalFields(_personInfo);
+  }
+
+  void _updateConditionalFields(Map<String, dynamic> data) {
+    final age = data['age'];
+    final shouldShow = age != null && age is num && age > 30;
+    if (shouldShow != _showWorkFields) {
+      setState(() {
+        _showWorkFields = shouldShow;
+      });
+      if (!shouldShow) {
+        // 如果不显示工作时间字段，则清除其值
+        _formController.setFieldValue('workTime', null);
+        _formController.setFieldValue('joinDate', null);
+      }
+    }
   }
 
   // 自定义上传函数
@@ -58,23 +76,33 @@ class _AllTypeAddIsRequiredPageState extends State<AllTypeAddIsRequiredPage> {
           if (total > 0) {
             final progress = sent / total;
             onProgress(progress);
-            print('📊 头像上传进度: ${(progress * 100).toInt()}%');
           }
         },
       );
 
       if (response.statusCode == 200 && response.data['code'] == 200) {
-        final fileUrl = response.data['data'];
-        print('✅ 头像上传成功: $fileUrl');
-
-        return FileUploadModel(name: file.path.split('/').last, url: "fileUrl", path: filePath);
+        final fileRes = response.data['data'];
+        FileInfo fileInfo = FileInfo(id: fileRes['id'], fileName: fileRes['fileName'], requestPath: fileRes['requestPath']);
+        return FileUploadModel(name: file.path.split('/').last, fileInfo: fileInfo, url: "fileUrl", path: file.path);
       } else {
         throw Exception('上传失败: ${response.data['message'] ?? '未知错误'}');
       }
     } catch (e) {
-      print('❌ 头像上传失败: $e');
       throw Exception('上传失败: $e');
     }
+  }
+
+  Map<String, dynamic> _formData = {};
+  void _onFormChanged(Map<String, dynamic> data) {
+    setState(() {
+      _formData = data;
+    });
+    _updateConditionalFields(data);
+  }
+
+  void _clearForm() {
+    _formController.setFieldValues({});
+    _formController.clearAllFields();
   }
 
   @override
@@ -86,6 +114,7 @@ class _AllTypeAddIsRequiredPageState extends State<AllTypeAddIsRequiredPage> {
         child: ConfigForm(
           controller: _formController,
           initialValues: _personInfo,
+          onChanged: _onFormChanged,
           configs: [
             // 1. 头像上传
             FormConfig.upload(
@@ -98,8 +127,11 @@ class _AllTypeAddIsRequiredPageState extends State<AllTypeAddIsRequiredPage> {
                 maxFileSize: 5 * 1024 * 1024, // 5MB
                 customUpload: _customUploadFunction,
                 onFileChange: (currentFile, selectedFiles, action) {
-                  print('头像上传 - 操作: $action, 文件: ${currentFile.toMap()} 文件列表${selectedFiles.length}');
-                  _formController.setFieldValue('avatar', currentFile.path);
+                  if (action == 'success') {
+                    _formController.setFieldValue('avatar', currentFile.fileInfo);
+                  } else if (action == 'remove') {
+                    _formController.setFieldValue('avatar', '');
+                  }
                 },
               ),
             ),
@@ -120,10 +152,10 @@ class _AllTypeAddIsRequiredPageState extends State<AllTypeAddIsRequiredPage> {
             FormConfig.date(DateFieldConfig(name: 'birthday', label: '生日', required: true)),
 
             // 7. 工作时间
-            FormConfig.time(TimeFieldConfig(name: 'workTime', label: '工作时间', required: false)),
+            FormConfig.time(TimeFieldConfig(name: 'workTime', label: '工作时间', required: false, isShow: _showWorkFields)),
 
             // 8. 入职时间
-            FormConfig.datetime(DateTimeFieldConfig(name: 'joinDate', label: '入职时间', required: true)),
+            FormConfig.datetime(DateTimeFieldConfig(name: 'joinDate', label: '入职时间', required: true, isShow: _showWorkFields)),
 
             // 9. 性别
             FormConfig.radio<String>(
@@ -136,9 +168,7 @@ class _AllTypeAddIsRequiredPageState extends State<AllTypeAddIsRequiredPage> {
                   SelectData(label: '女', value: 'female', data: 'female'),
                   SelectData(label: '其他', value: 'other', data: 'other'),
                 ],
-                onChanged: (value, data, selectData) {
-                  print('性别选择: $value');
-                },
+                onChanged: (value, data, selectData) {},
               ),
             ),
 
@@ -156,9 +186,7 @@ class _AllTypeAddIsRequiredPageState extends State<AllTypeAddIsRequiredPage> {
                   SelectData(label: '摄影', value: 'photography', data: 'photography'),
                   SelectData(label: '游戏', value: 'gaming', data: 'gaming'),
                 ],
-                onChanged: (values, dataList, selectDataList) {
-                  print('爱好选择: $values');
-                },
+                onChanged: (values, dataList, selectDataList) {},
               ),
             ),
 
@@ -175,9 +203,7 @@ class _AllTypeAddIsRequiredPageState extends State<AllTypeAddIsRequiredPage> {
                   SelectData(label: '硕士', value: 'master', data: 'master'),
                   SelectData(label: '博士', value: 'phd', data: 'phd'),
                 ],
-                onSingleChanged: (value, data, selectData) {
-                  print('学历选择: $value');
-                },
+                onSingleChanged: (value, data, selectData) {},
               ),
             ),
 
@@ -196,9 +222,7 @@ class _AllTypeAddIsRequiredPageState extends State<AllTypeAddIsRequiredPage> {
                   SelectData(label: '杭州', value: 'hangzhou', data: 'hangzhou'),
                   SelectData(label: '南京', value: 'nanjing', data: 'nanjing'),
                 ],
-                onMultipleChanged: (values, datas, selectedList) {
-                  print('城市选择: $values');
-                },
+                onMultipleChanged: (values, datas, selectedList) {},
               ),
             ),
 
@@ -240,9 +264,7 @@ class _AllTypeAddIsRequiredPageState extends State<AllTypeAddIsRequiredPage> {
                     ],
                   ),
                 ],
-                onMultipleChanged: (values, datas, selectedList) {
-                  print('部门选择: $values');
-                },
+                onMultipleChanged: (values, datas, selectedList) {},
               ),
             ),
 
@@ -250,29 +272,6 @@ class _AllTypeAddIsRequiredPageState extends State<AllTypeAddIsRequiredPage> {
             FormConfig.textarea(TextareaFieldConfig(name: 'bio', label: '个人简介', required: false, rows: 4, maxLength: 200)),
           ],
           submitBuilder: (formData) => const SizedBox.shrink(),
-        ),
-      ),
-
-      bottomNavigationBar: Container(
-        color: Colors.white,
-        height: 300,
-        child: SingleChildScrollView(
-          child: Column(
-            children:
-                _formController.getFormData()?.entries.map((e) {
-                  return Container(
-                    padding: const EdgeInsets.all(8.0),
-                    color: Colors.black26,
-                    child: Row(
-                      children: [
-                        Text(e.key),
-                        Expanded(child: Text(e.value.toString())),
-                      ],
-                    ),
-                  );
-                }).toList() ??
-                [],
-          ),
         ),
       ),
       floatingActionButton: Column(
@@ -315,7 +314,6 @@ class _AllTypeAddIsRequiredPageState extends State<AllTypeAddIsRequiredPage> {
           FloatingActionButton.extended(
             heroTag: 'viewData',
             onPressed: () {
-              final data = _formController.getFormData() ?? {};
               showDialog(
                 context: context,
                 builder: (_) {
@@ -324,7 +322,9 @@ class _AllTypeAddIsRequiredPageState extends State<AllTypeAddIsRequiredPage> {
                     content: SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [...data.entries.map((e) => Padding(padding: const EdgeInsets.only(bottom: 6), child: Text('${e.key}: ${e.value} : ${e.value.runtimeType}')))],
+                        children: [
+                          ..._formData.entries.map((e) => Padding(padding: const EdgeInsets.only(bottom: 6), child: Text('${e.key}: ${e.value} : ${e.value.runtimeType}'))),
+                        ],
                       ),
                     ),
                     actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('关闭'))],
@@ -335,6 +335,8 @@ class _AllTypeAddIsRequiredPageState extends State<AllTypeAddIsRequiredPage> {
             icon: const Icon(Icons.visibility),
             label: const Text('查看数据'),
           ),
+          const SizedBox(height: 12),
+          FloatingActionButton.extended(heroTag: 'clearData', onPressed: _clearForm, icon: const Icon(Icons.clear), label: const Text('清除数据')),
         ],
       ),
     );

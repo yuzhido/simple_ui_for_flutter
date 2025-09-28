@@ -105,7 +105,6 @@ class _FileUploadState extends State<FileUpload> {
     if (widget.autoUpload) {
       final hasValidUploadConfig = widget.uploadConfig != null && widget.uploadConfig!.isValid;
       final hasCustomUpload = widget.customUpload != null;
-
       if (!hasValidUploadConfig && !hasCustomUpload) {
         throw ArgumentError('自动上传需要提供有效的上传配置，请确保提供 uploadConfig.uploadUrl 或 customUpload 函数');
       }
@@ -236,7 +235,7 @@ class _FileUploadState extends State<FileUpload> {
         fileSize: originalFile.fileSize,
         fileSizeInfo: originalFile.fileSizeInfo,
         url: updatedModel.url,
-        createTime: updatedModel.createTime,
+        createTime: originalFile.createTime,
         updateTime: DateTime.now(),
       );
       selectedFiles.add(successFile);

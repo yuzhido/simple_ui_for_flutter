@@ -1,42 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:simple_ui/models/validator.dart';
 import 'package:simple_ui/src/config_form/widgets/tree_select_field_widget.dart';
 import 'package:simple_ui/src/config_form/widgets/radio_field_widget.dart';
 import 'package:simple_ui/src/config_form/widgets/checkbox_field_widget.dart';
 import 'package:simple_ui/src/config_form/widgets/select_field_widget.dart';
+import 'package:simple_ui/models/form_type.dart';
 import 'field_configs.dart';
 import 'package:simple_ui/src/config_form/widgets/dropdown_field_widget.dart';
-
-/// 表单字段类型枚举
-enum FormType {
-  // 文本1
-  text,
-  // 数字2
-  number,
-  // 整数3
-  integer,
-  // 多行文本4
-  textarea,
-  // 单选5
-  radio,
-  // 多选6
-  checkbox,
-  // 下拉7
-  select,
-  // 自定义下拉8
-  dropdown,
-  // 日期9
-  date,
-  // 时间10
-  time,
-  // 日期时间11
-  datetime,
-  // 上传12
-  upload,
-  // 树选择13
-  treeSelect,
-  // 自定义14
-  custom,
-}
 
 typedef FieldBuilder = Widget Function(FormConfig config, TextEditingController controller, Function(String) onChanged);
 

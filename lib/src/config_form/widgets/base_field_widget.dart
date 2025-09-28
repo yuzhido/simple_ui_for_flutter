@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../models/config_form_model.dart';
+import 'package:simple_ui/models/form_config.dart';
 // 移除实时校验依赖，统一提交时校验
 
 abstract class BaseFieldWidget extends StatefulWidget {

@@ -102,6 +102,7 @@ class FilePickerUtils {
       width: width,
       height: width,
       decoration: BoxDecoration(
+        color: Colors.white,
         border: Border.all(color: Colors.grey.shade300),
         borderRadius: BorderRadius.circular(6),
       ),

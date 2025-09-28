@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/field_configs.dart';
 import 'package:simple_ui/models/select_data.dart';
-import 'package:simple_ui/models/config_form_model.dart';
+import 'package:simple_ui/models/form_config.dart';
 import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/config_form/utils/data_conversion_utils.dart';
 import 'package:simple_ui/src/dropdown_choose/index.dart';
+import 'package:simple_ui/models/form_type.dart';
 import 'base_field_widget.dart';
 
 class DropdownFieldWidget<T> extends BaseFieldWidget {
@@ -12,10 +13,66 @@ class DropdownFieldWidget<T> extends BaseFieldWidget {
 
   @override
   Widget buildField(BuildContext context) {
-    final dropdownConfig = config.config as DropdownFieldConfig<T>;
+    return _DropdownFieldContent<T>(config: config, controller: controller, onChanged: onChanged);
+  }
+}
+
+class _DropdownFieldContent<T> extends StatefulWidget {
+  final FormConfig config;
+  final TextEditingController controller;
+  final Function(String) onChanged;
+
+  const _DropdownFieldContent({required this.config, required this.controller, required this.onChanged});
+
+  @override
+  State<_DropdownFieldContent<T>> createState() => _DropdownFieldContentState<T>();
+}
+
+class _DropdownFieldContentState<T> extends State<_DropdownFieldContent<T>> {
+  // 维护自己的options列表状态，包含初始options和缓存的远程数据
+  List<SelectData<T>> _optionsList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeOptions();
+  }
+
+  @override
+  void didUpdateWidget(_DropdownFieldContent<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 当父组件传入的options发生变化时，更新本地optionsList
+    final dropdownConfig = widget.config.config as DropdownFieldConfig<T>;
+    final oldDropdownConfig = oldWidget.config.config as DropdownFieldConfig<T>;
+    if (dropdownConfig.options != oldDropdownConfig.options) {
+      _initializeOptions();
+    }
+  }
+
+  // 初始化options列表
+  void _initializeOptions() {
+    final dropdownConfig = widget.config.config as DropdownFieldConfig<T>;
+    setState(() {
+      _optionsList = List.from(dropdownConfig.options);
+    });
+  }
+
+  // 缓存数据更新回调
+  void _onCacheUpdate(List<SelectData<T>> cachedData) {
+    setState(() {
+      // 合并现有options和缓存数据，避免重复
+      final existingValues = _optionsList.map((e) => e.value).toSet();
+      final newOptions = cachedData.where((item) => !existingValues.contains(item.value)).toList();
+      _optionsList = [..._optionsList, ...newOptions];
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final dropdownConfig = widget.config.config as DropdownFieldConfig<T>;
 
     return ValueListenableBuilder<TextEditingValue>(
-      valueListenable: controller,
+      valueListenable: widget.controller,
       builder: (context, value, child) {
         // 使用统一的数据处理工具，智能处理controller文本
         String currentValue = DataConversionUtils.smartProcessControllerText(value.text, FormType.dropdown);
@@ -25,7 +82,7 @@ class DropdownFieldWidget<T> extends BaseFieldWidget {
 
         return FormField<String>(
           initialValue: currentValue,
-          validator: ValidationUtils.getValidator(config),
+          validator: ValidationUtils.getValidator(widget.config),
           builder: (state) {
             // 手动同步状态，确保FormField的状态与controller.text一致
             if (state.value != currentValue) {
@@ -39,27 +96,29 @@ class DropdownFieldWidget<T> extends BaseFieldWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 DropdownChoose<T>(
-                  key: ValueKey('dropdown_${config.name}_$currentValue'), // 使用key强制重新创建组件
-                  options: dropdownConfig.options,
+                  key: ValueKey('dropdown_${widget.config.name}_$currentValue'), // 使用key强制重新创建组件
+                  options: _optionsList,
                   multiple: dropdownConfig.multiple,
                   filterable: dropdownConfig.filterable,
                   remote: dropdownConfig.remote,
                   remoteSearch: dropdownConfig.remoteSearch,
                   showAdd: dropdownConfig.showAdd,
                   onAdd: dropdownConfig.onAdd,
-                  tips: dropdownConfig.tips == '' ? '请选择${config.label}' : dropdownConfig.tips,
+                  alwaysRefresh: dropdownConfig.alwaysRefresh,
+                  tips: dropdownConfig.tips == '' ? '请选择${widget.config.label}' : dropdownConfig.tips,
                   defaultValue: structuredDefault,
+                  onCacheUpdate: _onCacheUpdate,
                   onSingleChanged: (dynamic value, T data, selected) {
                     final valueStr = value?.toString() ?? '';
-                    controller.text = valueStr;
-                    onChanged(valueStr);
+                    widget.controller.text = valueStr;
+                    widget.onChanged(valueStr);
                     state.didChange(valueStr);
                     dropdownConfig.onSingleChanged?.call(value, data, selected);
                   },
                   onMultipleChanged: (values, datas, selectedList) {
                     final valueStr = values.map((v) => v?.toString() ?? '').where((s) => s.isNotEmpty).join(',');
-                    controller.text = valueStr;
-                    onChanged(valueStr);
+                    widget.controller.text = valueStr;
+                    widget.onChanged(valueStr);
                     state.didChange(valueStr);
                     dropdownConfig.onMultipleChanged?.call(values, datas, selectedList);
                   },
@@ -74,34 +133,63 @@ class DropdownFieldWidget<T> extends BaseFieldWidget {
   }
 
   dynamic _getDefaultValue(DropdownFieldConfig<T> dropdownConfig, String currentValue) {
-    // 如果controller有值，根据当前值计算结构化默认值
-    if (currentValue.isNotEmpty) {
-      if (dropdownConfig.multiple) {
-        // 多选：将逗号分隔的字符串转换为SelectData列表
-        final values = currentValue.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-        return dropdownConfig.options.where((opt) => values.contains(opt.value.toString())).toList();
-      } else {
-        // 单选：找到对应的SelectData
-        return dropdownConfig.options.firstWhere((opt) => opt.value.toString() == currentValue, orElse: () => dropdownConfig.options.first);
-      }
-    }
+    if (currentValue.isEmpty) return null;
 
-    // 如果controller为空，使用config.defaultValue
-    if (config.defaultValue == null) return null;
     if (dropdownConfig.multiple) {
-      // Ensure typed as List<SelectData<T>> to satisfy DropdownChoose's assertion
-      if (config.defaultValue is List<SelectData<T>>) {
-        return List<SelectData<T>>.from(config.defaultValue as List<SelectData<T>>);
+      // 多选模式
+      final values = currentValue.split(',').where((v) => v.isNotEmpty).toList();
+      if (values.isEmpty) return null;
+
+      final matchedOptions = values
+          .map((value) {
+            try {
+              return _optionsList.where((option) => option.value.toString() == value).toList();
+            } catch (e) {
+              return <SelectData<T>>[];
+            }
+          })
+          .expand((list) => list)
+          .toList();
+
+      if (matchedOptions.isNotEmpty) {
+        return matchedOptions;
       }
-      if (config.defaultValue is List) {
-        return (config.defaultValue as List).cast<SelectData<T>>();
+
+      // 远程搜索场景：当_optionsList为空但currentValue有值时，创建临时SelectData
+      if (dropdownConfig.remote && _optionsList.isEmpty) {
+        return values
+            .map(
+              (value) => SelectData<T>(
+                label: value, // 暂时使用value作为label，DropdownChoose会在搜索后更新
+                value: value as T,
+                data: value as T,
+              ),
+            )
+            .toList();
       }
+
+      return null;
     } else {
-      // Ensure single value is SelectData<T>
-      if (config.defaultValue is SelectData<T>) {
-        return config.defaultValue as SelectData<T>;
+      // 单选模式
+      try {
+        final matchedOptions = _optionsList.where((option) => option.value.toString() == currentValue).toList();
+        if (matchedOptions.isNotEmpty) {
+          return matchedOptions.first;
+        }
+
+        // 远程搜索场景：当_optionsList为空但currentValue有值时，创建临时SelectData
+        if (dropdownConfig.remote && _optionsList.isEmpty) {
+          return SelectData<T>(
+            label: currentValue, // 暂时使用value作为label，DropdownChoose会在搜索后更新
+            value: currentValue as T,
+            data: currentValue as T,
+          );
+        }
+
+        return null;
+      } catch (e) {
+        return null;
       }
     }
-    return null;
   }
 }

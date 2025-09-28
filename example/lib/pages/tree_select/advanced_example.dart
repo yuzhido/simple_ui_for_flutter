@@ -74,10 +74,7 @@ class _TreeSelectAdvancedExampleState extends State<TreeSelectAdvancedExample> {
               options: MockDataService.getLazyLoadCities(),
               lazyLoad: true,
               lazyLoadFetch: MockDataService.loadCityDistricts,
-              onSingleSelected: (value, item) {
-                setState(() => lazyLoadResult = item);
-                _showSnackBar('懒加载选中: ${item?.label}');
-              },
+              onSingleChanged: (value, item, data) {},
             ),
             const SizedBox(height: 12),
             _buildResultCard('懒加载结果', lazyLoadResult, Colors.green),
@@ -95,10 +92,8 @@ class _TreeSelectAdvancedExampleState extends State<TreeSelectAdvancedExample> {
               remote: true,
               isCacheData: true, // 启用缓存
               remoteFetch: MockDataService.searchEmployees,
-              onSingleSelected: (value, item) {
-                setState(() {
-                  remoteSearchResult = item;
-                });
+              onSingleChanged: (value, item, data) {
+                setState(() {});
               },
             ),
             const SizedBox(height: 20),
@@ -112,9 +107,7 @@ class _TreeSelectAdvancedExampleState extends State<TreeSelectAdvancedExample> {
               remote: true,
               isCacheData: false, // 禁用缓存
               remoteFetch: MockDataService.searchEmployees,
-              onSingleSelected: (value, item) {
-                _showSnackBar('禁用缓存模式选中: ${item?.label}');
-              },
+              onSingleChanged: (value, item, data) {},
             ),
             const SizedBox(height: 12),
             _buildResultCard('远程搜索结果', remoteSearchResult, Colors.orange),
@@ -136,10 +129,7 @@ class _TreeSelectAdvancedExampleState extends State<TreeSelectAdvancedExample> {
               remoteFetch: MockDataService.searchProducts,
               filterable: true, // 同时支持本地过滤
               hintText: '搜索产品或分类',
-              onSingleSelected: (value, item) {
-                setState(() => hybridResult = item);
-                _showSnackBar('混合模式选中: ${item?.label}');
-              },
+              onSingleChanged: (value, item, data) {},
             ),
             const SizedBox(height: 12),
             _buildResultCard('混合模式结果', hybridResult, Colors.purple),
@@ -157,8 +147,7 @@ class _TreeSelectAdvancedExampleState extends State<TreeSelectAdvancedExample> {
               multiple: true,
               lazyLoad: true,
               lazyLoadFetch: MockDataService.loadSkillItems,
-              onMultipleSelected: (values, items) {
-                setState(() => multiSelectResult = items);
+              onMultipleChanged: (values, items, a) {
                 _showSnackBar('多选选中 ${items.length} 项');
               },
             ),

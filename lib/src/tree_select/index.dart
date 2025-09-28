@@ -12,10 +12,11 @@ class TreeSelect<T> extends StatefulWidget {
   final List<SelectData<T>>? defaultValue;
   // 备选数据
   final List<SelectData<T>> options;
-  // 单选回调 - 第一个参数是实际值，第二个参数是选中的项
-  final void Function(dynamic, SelectData<T>?)? onSingleSelected;
-  // 多选回调 - 第一个参数是实际值列表，第二个参数是选中的项列表
-  final void Function(List<dynamic>, List<SelectData<T>>)? onMultipleSelected;
+
+  // 单选模式回调 - 参数: (选中的value值, 选中的data值, 选中的完整数据)
+  final void Function(dynamic, T, SelectData<T>)? onSingleChanged;
+  // 多选模式回调 - 参数: (选中的value值列表, 选中的data值列表, 选中的完整数据列表)
+  final void Function(List<dynamic>, List<T>, List<SelectData<T>>)? onMultipleChanged;
   // 选择模式
   final bool multiple;
   // 顶部title
@@ -39,8 +40,8 @@ class TreeSelect<T> extends StatefulWidget {
     super.key,
     this.defaultValue,
     this.options = const [],
-    this.onSingleSelected,
-    this.onMultipleSelected,
+    this.onSingleChanged,
+    this.onMultipleChanged,
     this.multiple = false,
     this.title = '树形选择器',
     this.hintText = '请输入关键字搜索',
@@ -309,7 +310,14 @@ class _TreeSelectState<T> extends State<TreeSelect<T>> {
     return GestureDetector(
       // 点击显示弹窗
       onTap: _showBottomSheet,
-      child: DropdownContainer<T>(isChoosing: isChoosing, multiple: widget.multiple, item: selectedItem, items: selectedItems, tipsInfo: widget.multiple ? '请选择选项' : '请选择选项'),
+      child: DropdownContainer<T>(
+        // 是否正在选择
+        isChoosing: isChoosing,
+        multiple: widget.multiple,
+        item: selectedItem,
+        items: selectedItems,
+        tips: widget.multiple ? '请选择选项(可多选)' : '请选择选项',
+      ),
     );
   }
 
@@ -320,9 +328,10 @@ class _TreeSelectState<T> extends State<TreeSelect<T>> {
       selectedItem = item;
     });
     // 触发单选回调 - 传递实际值和选中项
-    if (widget.onSingleSelected != null) {
-      widget.onSingleSelected!(item.value, item);
+    if (widget.onSingleChanged != null) {
+      widget.onSingleChanged!(item.value, item.data, item);
     }
+
     // 单选模式下选中后关闭弹窗
     Navigator.of(context).pop();
   }
@@ -355,9 +364,14 @@ class _TreeSelectState<T> extends State<TreeSelect<T>> {
   // 确认多选结果
   void _confirmMultipleSelection() {
     // 触发多选回调 - 传递实际值列表和选中项列表
-    if (widget.onMultipleSelected != null) {
-      List<dynamic> values = selectedItems.map((item) => item.value).toList();
-      widget.onMultipleSelected!(values, selectedItems);
+    if (widget.onMultipleChanged != null) {
+      List<dynamic> values = [];
+      List<T> datas = [];
+      for (var item in selectedItems) {
+        datas.add(item.data);
+        values.add(item.value);
+      }
+      widget.onMultipleChanged!(values, datas, selectedItems);
     }
     Navigator.of(context).pop();
   }

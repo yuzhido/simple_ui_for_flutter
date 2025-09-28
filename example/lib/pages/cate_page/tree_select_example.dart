@@ -1,4 +1,3 @@
-import 'package:example/pages/tree_select/form_builder_example.dart';
 import 'package:example/pages/tree_select/index.dart';
 import 'package:example/pages/tree_select/new_tree_example.dart';
 import 'package:flutter/material.dart';
@@ -28,11 +27,6 @@ class _TreeSelectExamplePageState extends State<TreeSelectExamplePage> {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const TreeSelectPage()));
             },
             child: Text('跳转查看树形选择（TreeSelect）示例'),
-          ),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FormBuilderTreeSelectExample())),
-            child: const Text('FormBuilder TreeSelect 真实API示例'),
           ),
         ],
       ),

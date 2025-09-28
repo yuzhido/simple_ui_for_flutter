@@ -75,24 +75,9 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
       data: 'beijing',
       hasChildren: true, // 标记有子节点，但不提供children数据
     ),
-    SelectData(
-      label: '上海市',
-      value: 'shanghai',
-      data: 'shanghai',
-      hasChildren: true,
-    ),
-    SelectData(
-      label: '广州市',
-      value: 'guangzhou',
-      data: 'guangzhou',
-      hasChildren: true,
-    ),
-    SelectData(
-      label: '深圳市',
-      value: 'shenzhen',
-      data: 'shenzhen',
-      hasChildren: true,
-    ),
+    SelectData(label: '上海市', value: 'shanghai', data: 'shanghai', hasChildren: true),
+    SelectData(label: '广州市', value: 'guangzhou', data: 'guangzhou', hasChildren: true),
+    SelectData(label: '深圳市', value: 'shenzhen', data: 'shenzhen', hasChildren: true),
     SelectData(
       label: '杭州市',
       value: 'hangzhou',
@@ -186,19 +171,7 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
             // 单选示例
             const Text('单选模式示例', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            TreeSelect<String>(
-              title: '选择城市（单选）',
-              options: treeData,
-              multiple: false,
-              onSingleSelected: (value, selectedItem) {
-                setState(() {
-                  singleSelectedItem = selectedItem;
-                });
-                print(value);
-                print('单选选中: ${selectedItem?.label} - ${selectedItem?.value}');
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('单选选中: ${selectedItem?.label}'), duration: const Duration(seconds: 2)));
-              },
-            ),
+            TreeSelect<String>(title: '选择城市（单选）', options: treeData, multiple: false, onSingleChanged: (value, selectedItem, data) {}),
             const SizedBox(height: 16),
 
             // 显示单选结果
@@ -226,14 +199,7 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
               options: treeData,
               multiple: true,
               defaultValue: [treeData[0]], // 设置默认选中第一项
-              onMultipleSelected: (values, selectedItems) {
-                print(values);
-                setState(() {
-                  multipleSelectedItems = selectedItems;
-                });
-                print('多选选中: ${selectedItems.map((e) => e.label).join(', ')}');
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('多选选中 ${selectedItems.length} 项'), duration: const Duration(seconds: 2)));
-              },
+              onSingleChanged: (value, selectedItem, data) {},
             ),
             const SizedBox(height: 16),
 
@@ -265,13 +231,7 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
               options: treeData,
               multiple: false,
               filterable: true, // 启用本地过滤
-              onSingleSelected: (value, selectedItem) {
-                setState(() {
-                  localFilterSelectedItem = selectedItem;
-                });
-                print('本地过滤选中: ${selectedItem?.label} - ${selectedItem?.value}');
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('本地过滤选中: ${selectedItem?.label}'), duration: const Duration(seconds: 2)));
-              },
+              onSingleChanged: (value, selectedItem, data) {},
             ),
             const SizedBox(height: 16),
 
@@ -301,13 +261,7 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
               multiple: false,
               remote: true, // 启用远程搜索
               remoteFetch: _mockRemoteSearch, // 远程搜索函数
-              onSingleSelected: (value, selectedItem) {
-                setState(() {
-                  remoteSearchSelectedItem = selectedItem;
-                });
-                print('远程搜索选中: ${selectedItem?.label} - ${selectedItem?.value}');
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('远程搜索选中: ${selectedItem?.label}'), duration: const Duration(seconds: 2)));
-              },
+              onSingleChanged: (value, selectedItem, data) {},
             ),
             const SizedBox(height: 16),
 
@@ -337,18 +291,7 @@ class _TreeSelectPageState extends State<TreeSelectPage> {
               multiple: false,
               lazyLoad: true, // 启用懒加载
               lazyLoadFetch: _mockLazyLoad, // 懒加载函数
-              onSingleSelected: (value, selectedItem) {
-                setState(() {
-                  lazyLoadSelectedItem = selectedItem;
-                });
-                print('懒加载选中: ${selectedItem?.label} - ${selectedItem?.value}');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('懒加载选中: ${selectedItem?.label}'), 
-                    duration: const Duration(seconds: 2)
-                  )
-                );
-              },
+              onSingleChanged: (value, selectedItem, data) {},
             ),
             const SizedBox(height: 16),
 

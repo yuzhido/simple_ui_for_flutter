@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../api/user_api.dart';
 import '../../api/models/user.dart';
-import 'add_user.dart';
 
 class UserListPage extends StatefulWidget {
   const UserListPage({super.key});
@@ -100,15 +99,6 @@ class _UserListPageState extends State<UserListPage> {
     }
   }
 
-  void _navigateToAddUser() async {
-    final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => const AddUserPage()));
-
-    // 如果新增成功，刷新用户列表
-    if (result == true) {
-      _loadUsers();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,10 +107,7 @@ class _UserListPageState extends State<UserListPage> {
         backgroundColor: Colors.blue[600],
         foregroundColor: Colors.white,
         elevation: 0,
-        actions: [
-          IconButton(icon: const Icon(Icons.add), onPressed: _navigateToAddUser, tooltip: '新增用户'),
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadUsers, tooltip: '刷新'),
-        ],
+        actions: [IconButton(icon: const Icon(Icons.refresh), onPressed: _loadUsers, tooltip: '刷新')],
       ),
       body: Container(
         decoration: BoxDecoration(

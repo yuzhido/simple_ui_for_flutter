@@ -1,6 +1,7 @@
 import 'package:simple_ui/models/select_data.dart';
 import 'package:simple_ui/models/file_upload.dart';
 import 'package:flutter/widgets.dart';
+import 'package:simple_ui/models/validator.dart';
 
 /// 基础字段配置
 abstract class BaseFieldConfig<T> {
@@ -201,6 +202,8 @@ class DropdownFieldConfig<T> extends BaseFieldConfig {
   final bool filterable;
   // 是否远程搜索
   final bool remote;
+  // 是否总是刷新数据（仅在remote为true时有效）
+  final bool alwaysRefresh;
   // 远程搜索函数
   final Future<List<SelectData<T>>> Function(String)? remoteSearch;
   // 是否显示新增按钮
@@ -223,6 +226,7 @@ class DropdownFieldConfig<T> extends BaseFieldConfig {
     super.isShow = true,
     this.options = const [],
     this.multiple = false,
+    this.alwaysRefresh = false,
     this.filterable = false,
     this.remote = false,
     this.remoteSearch,
@@ -260,7 +264,7 @@ class UploadFieldConfig extends BaseFieldConfig {
     super.isShow = true,
     this.allowedTypes,
     this.maxFileSize,
-    this.maxFiles = 1,
+    this.maxFiles = -1,
     this.uploadUrl,
     this.fileListType = FileListType.card,
     this.fileSource = FileSource.all,
@@ -319,9 +323,6 @@ class TreeSelectFieldConfig<T> extends BaseFieldConfig {
     this.isCacheData = true,
   });
 }
-
-/// 自定义验证器函数类型
-typedef FormValidator = String? Function(String? value);
 
 /// 第一个参数将会在运行时传入 FormConfig（或兼容对象），以便在回调中可获取验证器等能力
 typedef ContentBuilder = Widget Function(dynamic config, TextEditingController controller, Function(String) onChanged);
