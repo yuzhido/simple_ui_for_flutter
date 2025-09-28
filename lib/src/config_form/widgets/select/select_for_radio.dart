@@ -40,7 +40,7 @@ class _SelectForRadioState extends State<SelectForRadio> {
                     decoration: BasicStyle.inputStyle(radioConfig.label),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: (radioConfig.props as RadioFieldConfig?)?.options.map<Widget>((opt) {
+                      children: (radioConfig.props as RadioProps?)?.options.map<Widget>((opt) {
                         final String valueStr = opt.value.toString();
                         return InkWell(
                           onTap: () {

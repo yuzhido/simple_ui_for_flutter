@@ -26,7 +26,7 @@ class _UploadForFileState extends State<UploadForFile> {
         return validator?.call(value);
       },
       builder: (state) {
-        final props = widget.config.props as UploadFieldConfig;
+        final props = widget.config.props as UploadProps;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,

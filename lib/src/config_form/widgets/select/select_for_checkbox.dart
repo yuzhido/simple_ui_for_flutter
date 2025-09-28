@@ -39,7 +39,7 @@ class _SelectForCheckboxState extends State<SelectForCheckbox> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children:
-                          (checkboxConfig.props as CheckboxFieldConfig?)?.options.map<Widget>((opt) {
+                          (checkboxConfig.props as CheckboxProps?)?.options.map<Widget>((opt) {
                             return CheckboxListTile(
                               contentPadding: EdgeInsets.zero,
                               dense: true,

@@ -5,6 +5,7 @@ import 'package:simple_ui/models/select_data.dart';
 import 'package:simple_ui/models/validator.dart';
 import 'package:simple_ui/models/form_type.dart';
 import 'package:simple_ui/src/config_form/config_form_controller.dart';
+export 'package:simple_ui/src/config_form/config_form_controller.dart';
 
 abstract class BaseFieldConfig {
   final String name;
@@ -36,81 +37,81 @@ class TextFieldProps {
 }
 
 /// 多行文本字段配置
-class TextareaFieldConfig {
+class TextareaProps {
   final int? minLength;
   final int? maxLength;
   final int? rows;
   final void Function(String val)? onChanged;
-  const TextareaFieldConfig({this.minLength, this.maxLength, this.rows = 4, this.onChanged});
+  const TextareaProps({this.minLength, this.maxLength, this.rows = 4, this.onChanged});
 }
 
 /// 数字字段配置
-class NumberFieldConfig {
+class NumberProps {
   final double? minValue;
   final double? maxValue;
   final int? decimalPlaces;
   final void Function(String val)? onChanged;
 
-  const NumberFieldConfig({this.minValue, this.maxValue, this.decimalPlaces, this.onChanged});
+  const NumberProps({this.minValue, this.maxValue, this.decimalPlaces, this.onChanged});
 }
 
 /// 整数字段配置
-class IntegerFieldConfig {
+class IntegerProps {
   final int? minValue;
   final int? maxValue;
   final void Function(String val)? onChanged;
 
-  const IntegerFieldConfig({this.minValue, this.maxValue, this.onChanged});
+  const IntegerProps({this.minValue, this.maxValue, this.onChanged});
 }
 
 /// 日期字段配置
-class DateFieldConfig {
+class DateProps {
   final DateTime? minDate;
   final DateTime? maxDate;
   final String? format;
   final void Function(String val)? onChanged;
 
-  const DateFieldConfig({this.minDate, this.maxDate, this.format = 'YYYY-MM-DD', this.onChanged});
+  const DateProps({this.minDate, this.maxDate, this.format = 'YYYY-MM-DD', this.onChanged});
 }
 
 /// 时间字段配置
-class TimeFieldConfig {
+class TimeProps {
   final String? format;
   final void Function(String val)? onChanged;
 
-  const TimeFieldConfig({this.format = 'HH:mm', this.onChanged});
+  const TimeProps({this.format = 'HH:mm', this.onChanged});
 }
 
 /// 日期时间字段配置
-class DateTimeFieldConfig {
+class DateTimeProps {
   final DateTime? minDate;
   final DateTime? maxDate;
   final String? format;
   final void Function(String val)? onChanged;
 
-  const DateTimeFieldConfig({this.minDate, this.maxDate, this.format = 'YYYY-MM-DD HH:mm', this.onChanged});
+  const DateTimeProps({this.minDate, this.maxDate, this.format = 'YYYY-MM-DD HH:mm', this.onChanged});
 }
 
 /// 单选字段配置
-class RadioFieldConfig<T> {
+class RadioProps<T> {
   final List<SelectData<T>> options;
   // 单选回调 - 参数: (选中的value值, 选中的data值, 选中的完整数据)
   final void Function(dynamic, T, SelectData<T>)? onChanged;
 
-  const RadioFieldConfig({required this.options, this.onChanged});
+  const RadioProps({required this.options, this.onChanged});
 }
 
 /// 多选字段配置
-class CheckboxFieldConfig<T> {
+class CheckboxProps<T> {
   final List<SelectData<T>> options;
   // 多选回调 - 参数: (选中的value值列表, 选中的data值列表, 选中的完整数据列表)
   final void Function(List<dynamic>, List<T>, List<SelectData<T>>)? onChanged;
 
-  const CheckboxFieldConfig({required this.options, this.onChanged});
+  const CheckboxProps({required this.options, this.onChanged});
 }
 
 /// 下拉选择字段配置
-class SelectFieldConfig<T> {
+class SelectProps<T> {
   final List<SelectData<T>> options;
   final bool multiple;
   final bool searchable;
@@ -119,11 +120,11 @@ class SelectFieldConfig<T> {
   // 多选回调 - 参数: (选中的value值列表, 选中的data值列表, 选中的完整数据列表)
   final void Function(List<dynamic>, List<T>, List<SelectData<T>>)? onMultipleChanged;
 
-  const SelectFieldConfig({required this.options, this.multiple = false, this.searchable = false, this.onSingleChanged, this.onMultipleChanged});
+  const SelectProps({required this.options, this.multiple = false, this.searchable = false, this.onSingleChanged, this.onMultipleChanged});
 }
 
 /// 自定义下拉选择字段配置（基于 DropdownChoose）
-class DropdownFieldConfig<T> {
+class DropdownProps<T> {
   // 选项（本地）
   final List<SelectData<T>> options;
   // 是否多选
@@ -147,7 +148,7 @@ class DropdownFieldConfig<T> {
   // 多选回调
   final void Function(List<dynamic>, List<T>, List<SelectData<T>>)? onMultipleChanged;
 
-  const DropdownFieldConfig({
+  const DropdownProps({
     this.options = const [],
     this.multiple = false,
     this.alwaysRefresh = false,
@@ -163,7 +164,7 @@ class DropdownFieldConfig<T> {
 }
 
 /// 文件上传字段配置
-class UploadFieldConfig {
+class UploadProps {
   final List<String>? allowedTypes;
   final int? maxFileSize;
   final int? maxFiles;
@@ -179,7 +180,7 @@ class UploadFieldConfig {
   /// 参数3: 操作类型 ('add' 或 'remove')
   final Function(FileUploadModel currentFile, List<FileUploadModel> selectedFiles, String action)? onFileChange;
 
-  const UploadFieldConfig({
+  const UploadProps({
     this.allowedTypes,
     this.maxFileSize,
     this.maxFiles = -1,
@@ -194,7 +195,7 @@ class UploadFieldConfig {
 }
 
 /// 树选择字段配置
-class TreeSelectFieldConfig<T> {
+class TreeSelectProps<T> {
   final List<SelectData<T>> options;
   final bool multiple;
   final bool checkable;
@@ -219,7 +220,7 @@ class TreeSelectFieldConfig<T> {
   // 是否缓存数据
   final bool isCacheData;
 
-  const TreeSelectFieldConfig({
+  const TreeSelectProps({
     required this.options,
     this.multiple = false,
     this.checkable = false,
@@ -240,7 +241,7 @@ class TreeSelectFieldConfig<T> {
 typedef ContentBuilder = Widget Function(dynamic config, ConfigFormController controller, Function(String) onChanged);
 
 /// 自定义字段配置：要求提供 contentBuilder
-class CustomFieldConfig {
+class CustomProps {
   final ContentBuilder contentBuilder;
-  const CustomFieldConfig({required this.contentBuilder});
+  const CustomProps({required this.contentBuilder});
 }

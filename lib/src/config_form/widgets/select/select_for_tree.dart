@@ -30,25 +30,25 @@ class _SelectForTreeState<T> extends State<SelectForTree> {
               child: TreeSelect<T>(
                 key: ValueKey('treeSelect_${widget.config.name}_'), // 使用key强制重新创建组件
                 defaultValue: [],
-                options: (treeConfig.props as TreeSelectFieldConfig<T>?)?.options ?? [],
-                multiple: (treeConfig.props as TreeSelectFieldConfig<T>?)?.multiple ?? false,
-                title: (treeConfig.props as TreeSelectFieldConfig<T>?)?.title ?? '树形选择器',
-                hintText: (treeConfig.props as TreeSelectFieldConfig<T>?)?.hintText ?? '请输入关键字搜索',
-                remoteFetch: (treeConfig.props as TreeSelectFieldConfig<T>?)?.remoteFetch,
-                remote: (treeConfig.props as TreeSelectFieldConfig<T>?)?.remote ?? false,
-                filterable: (treeConfig.props as TreeSelectFieldConfig<T>?)?.filterable ?? false,
-                lazyLoad: (treeConfig.props as TreeSelectFieldConfig<T>?)?.lazyLoad ?? false,
-                lazyLoadFetch: (treeConfig.props as TreeSelectFieldConfig<T>?)?.lazyLoadFetch,
-                isCacheData: (treeConfig.props as TreeSelectFieldConfig<T>?)?.isCacheData ?? true,
+                options: (treeConfig.props as TreeSelectProps<T>?)?.options ?? [],
+                multiple: (treeConfig.props as TreeSelectProps<T>?)?.multiple ?? false,
+                title: (treeConfig.props as TreeSelectProps<T>?)?.title ?? '树形选择器',
+                hintText: (treeConfig.props as TreeSelectProps<T>?)?.hintText ?? '请输入关键字搜索',
+                remoteFetch: (treeConfig.props as TreeSelectProps<T>?)?.remoteFetch,
+                remote: (treeConfig.props as TreeSelectProps<T>?)?.remote ?? false,
+                filterable: (treeConfig.props as TreeSelectProps<T>?)?.filterable ?? false,
+                lazyLoad: (treeConfig.props as TreeSelectProps<T>?)?.lazyLoad ?? false,
+                lazyLoadFetch: (treeConfig.props as TreeSelectProps<T>?)?.lazyLoadFetch,
+                isCacheData: (treeConfig.props as TreeSelectProps<T>?)?.isCacheData ?? true,
                 onSingleChanged: (dynamic value, T data, SelectData<T> selectedData) {
                   final valueStr = value?.toString() ?? '';
                   widget.controller.setFieldValue(widget.config.name, valueStr);
-                  (treeConfig.props as TreeSelectFieldConfig<T>?)?.onSingleChanged?.call(value, data, selectedData);
+                  (treeConfig.props as TreeSelectProps<T>?)?.onSingleChanged?.call(value, data, selectedData);
                 },
                 onMultipleChanged: (List<dynamic> values, List<T> datas, List<SelectData<T>> selectedDataList) {
                   final valueStr = values.map((v) => v?.toString() ?? '').where((s) => s.isNotEmpty).join(',');
                   widget.controller.setFieldValue(widget.config.name, valueStr);
-                  (treeConfig.props as TreeSelectFieldConfig<T>?)?.onMultipleChanged?.call(values, datas, selectedDataList);
+                  (treeConfig.props as TreeSelectProps<T>?)?.onMultipleChanged?.call(values, datas, selectedDataList);
                 },
               ),
             ),
