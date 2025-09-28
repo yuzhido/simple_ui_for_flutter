@@ -5,6 +5,7 @@ import 'package:simple_ui/src/config_form/utils/basic_style.dart';
 import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/config_form/utils/data_conversion_utils.dart';
 import 'package:simple_ui/models/form_type.dart';
+import 'package:simple_ui/src/config_form/widgets/index.dart';
 import '../base_field_widget.dart';
 
 class SelectForCheckbox<T> extends BaseFieldWidget {
@@ -38,44 +39,52 @@ class SelectForCheckbox<T> extends BaseFieldWidget {
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                InputDecorator(
-                  decoration: BasicStyle.inputStyle(config.label ?? config.name),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: checkboxConfig.options.map((opt) {
-                      final isChecked = selected.contains(opt.value.toString());
-                      return CheckboxListTile(
-                        contentPadding: EdgeInsets.zero,
-                        dense: true,
-                        value: isChecked,
-                        title: Text(opt.label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                        onChanged: (bool? v) {
-                          if (v == null) return;
-                          if (v) {
-                            selected.add(opt.value.toString());
-                          } else {
-                            selected.remove(opt.value.toString());
-                          }
-                          final valueStr = selected.join(',');
-                          controller.text = valueStr;
-                          onChanged(valueStr);
+                Stack(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.only(bottom: 18),
+                      child: InputDecorator(
+                        decoration: BasicStyle.inputStyle(config.label ?? config.name),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: checkboxConfig.options.map((opt) {
+                            final isChecked = selected.contains(opt.value.toString());
+                            return CheckboxListTile(
+                              contentPadding: EdgeInsets.zero,
+                              dense: true,
+                              value: isChecked,
+                              title: Text(opt.label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                              onChanged: (bool? v) {
+                                if (v == null) return;
+                                if (v) {
+                                  selected.add(opt.value.toString());
+                                } else {
+                                  selected.remove(opt.value.toString());
+                                }
+                                final valueStr = selected.join(',');
+                                controller.text = valueStr;
+                                onChanged(valueStr);
 
-                          // 更新选中的数据列表
-                          final List<SelectData<T>> updatedSelectedData = checkboxConfig.options.where((option) => selected.contains(option.value.toString())).toList();
+                                // 更新选中的数据列表
+                                final List<SelectData<T>> updatedSelectedData = checkboxConfig.options.where((option) => selected.contains(option.value.toString())).toList();
 
-                          // 调用回调函数，传递三个参数: (List<value>, List<data>, List<SelectData>)
-                          if (checkboxConfig.onChanged != null) {
-                            checkboxConfig.onChanged!(updatedSelectedData.map((e) => e.value).toList(), updatedSelectedData.map((e) => e.data).toList(), updatedSelectedData);
-                          }
+                                // 调用回调函数，传递三个参数: (List<value>, List<data>, List<SelectData>)
+                                if (checkboxConfig.onChanged != null) {
+                                  checkboxConfig.onChanged!(updatedSelectedData.map((e) => e.value).toList(), updatedSelectedData.map((e) => e.data).toList(), updatedSelectedData);
+                                }
 
-                          state.didChange(valueStr);
-                        },
-                      );
-                    }).toList(),
-                  ),
+                                state.didChange(valueStr);
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                    if (state.errorText != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(state.errorText)),
+                  ],
                 ),
-                if (state.errorText != null) ...[const SizedBox(height: 4), Text(state.errorText!, style: const TextStyle(color: Colors.red, fontSize: 12))],
               ],
             );
           },

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:simple_ui/models/field_configs.dart';
 import 'package:simple_ui/models/file_upload.dart';
 import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
+import 'package:simple_ui/src/config_form/widgets/index.dart';
 import 'package:simple_ui/src/file_upload/index.dart';
 import '../base_field_widget.dart';
 
@@ -35,32 +36,39 @@ class UploadForFile extends BaseFieldWidget {
       },
       builder: (state) {
         return Column(
-          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            FileUpload(
-              // 数量限制
-              limit: uploadField.maxFiles ?? -1,
-              fileListType: uploadField.fileListType,
-              fileSource: uploadField.fileSource,
-              // 自动上传：仅当提供了uploadUrl或customUpload时生效
-              autoUpload: uploadField.autoUpload && (uploadConfig != null || uploadField.customUpload != null),
-              // 上传配置与行为
-              uploadConfig: uploadConfig,
-              isRemoveFailFile: uploadField.isRemoveFailFile,
-              customUpload: uploadField.customUpload,
-              // 默认文件（显示已上传）
-              defaultValue: defaultFiles.isEmpty ? null : defaultFiles,
-              // 回调：统一维护 controller 文本为 JSON 字符串
-              onFileChange: (current, selected, action) {
-                final serialized = _serializeFiles(selected);
-                controller.text = serialized;
-                onChanged(serialized);
-                state.didChange(serialized);
-                uploadField.onFileChange?.call(current, selected, action);
-              },
+            Stack(
+              children: [
+                Container(
+                  padding: EdgeInsets.only(bottom: 18),
+                  child: FileUpload(
+                    // 数量限制
+                    limit: uploadField.maxFiles ?? -1,
+                    fileListType: uploadField.fileListType,
+                    fileSource: uploadField.fileSource,
+                    // 自动上传：仅当提供了uploadUrl或customUpload时生效
+                    autoUpload: uploadField.autoUpload && (uploadConfig != null || uploadField.customUpload != null),
+                    // 上传配置与行为
+                    uploadConfig: uploadConfig,
+                    isRemoveFailFile: uploadField.isRemoveFailFile,
+                    customUpload: uploadField.customUpload,
+                    // 默认文件（显示已上传）
+                    defaultValue: defaultFiles.isEmpty ? null : defaultFiles,
+                    // 回调：统一维护 controller 文本为 JSON 字符串
+                    onFileChange: (current, selected, action) {
+                      final serialized = _serializeFiles(selected);
+                      controller.text = serialized;
+                      onChanged(serialized);
+                      state.didChange(serialized);
+                      uploadField.onFileChange?.call(current, selected, action);
+                    },
+                  ),
+                ),
+                if (state.errorText != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(state.errorText)),
+              ],
             ),
-            if (state.errorText != null) ...[const SizedBox(height: 4), Text(state.errorText!, style: const TextStyle(color: Colors.red, fontSize: 12))],
           ],
         );
       },

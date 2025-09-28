@@ -13,6 +13,7 @@ import 'package:example/pages/config_form_example/all_form_type_demo.dart';
 import 'package:example/pages/config_form_example/all_form_type_required_demo.dart';
 import 'package:example/pages/config_form_example/all_type_set_default_value_demo.dart';
 import 'package:example/pages/config_form_example/all_type_add_is_required.dart';
+import 'package:example/pages/config_form_example/input_type_demo.dart';
 
 class ConfigFormExamplesPage extends StatefulWidget {
   const ConfigFormExamplesPage({super.key});
@@ -142,6 +143,14 @@ class _ConfigFormExamplesPageState extends State<ConfigFormExamplesPage> {
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.brown, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12)),
               child: const Text('TreeSelect 示例'),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const InputTypeDemoPage()));
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.cyan, foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12)),
+              child: const Text('⌨️ 输入类型配置演示'),
             ),
             const SizedBox(height: 20),
             const Text('新配置系统特点：', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),

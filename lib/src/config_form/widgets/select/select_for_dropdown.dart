@@ -4,6 +4,7 @@ import 'package:simple_ui/models/select_data.dart';
 import 'package:simple_ui/models/form_config.dart';
 import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/config_form/utils/data_conversion_utils.dart';
+import 'package:simple_ui/src/config_form/widgets/index.dart';
 import 'package:simple_ui/src/dropdown_choose/index.dart';
 import 'package:simple_ui/models/form_type.dart';
 import '../base_field_widget.dart';
@@ -92,38 +93,45 @@ class _DropdownFieldContentState<T> extends State<_DropdownFieldContent<T>> {
             }
 
             return Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                DropdownChoose<T>(
-                  key: ValueKey('dropdown_${widget.config.name}_$currentValue'), // 使用key强制重新创建组件
-                  options: _optionsList,
-                  multiple: dropdownConfig.multiple,
-                  filterable: dropdownConfig.filterable,
-                  remote: dropdownConfig.remote,
-                  remoteSearch: dropdownConfig.remoteSearch,
-                  showAdd: dropdownConfig.showAdd,
-                  onAdd: dropdownConfig.onAdd,
-                  alwaysRefresh: dropdownConfig.alwaysRefresh,
-                  tips: dropdownConfig.tips == '' ? '请选择${widget.config.label}' : dropdownConfig.tips,
-                  defaultValue: structuredDefault,
-                  onCacheUpdate: _onCacheUpdate,
-                  onSingleChanged: (dynamic value, T data, selected) {
-                    final valueStr = value?.toString() ?? '';
-                    widget.controller.text = valueStr;
-                    widget.onChanged(valueStr);
-                    state.didChange(valueStr);
-                    dropdownConfig.onSingleChanged?.call(value, data, selected);
-                  },
-                  onMultipleChanged: (values, datas, selectedList) {
-                    final valueStr = values.map((v) => v?.toString() ?? '').where((s) => s.isNotEmpty).join(',');
-                    widget.controller.text = valueStr;
-                    widget.onChanged(valueStr);
-                    state.didChange(valueStr);
-                    dropdownConfig.onMultipleChanged?.call(values, datas, selectedList);
-                  },
+                Stack(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.only(bottom: 18),
+                      child: DropdownChoose<T>(
+                        key: ValueKey('dropdown_${widget.config.name}_$currentValue'), // 使用key强制重新创建组件
+                        options: _optionsList,
+                        multiple: dropdownConfig.multiple,
+                        filterable: dropdownConfig.filterable,
+                        remote: dropdownConfig.remote,
+                        remoteSearch: dropdownConfig.remoteSearch,
+                        showAdd: dropdownConfig.showAdd,
+                        onAdd: dropdownConfig.onAdd,
+                        alwaysRefresh: dropdownConfig.alwaysRefresh,
+                        tips: dropdownConfig.tips == '' ? '请选择${widget.config.label}' : dropdownConfig.tips,
+                        defaultValue: structuredDefault,
+                        onCacheUpdate: _onCacheUpdate,
+                        onSingleChanged: (dynamic value, T data, selected) {
+                          final valueStr = value?.toString() ?? '';
+                          widget.controller.text = valueStr;
+                          widget.onChanged(valueStr);
+                          state.didChange(valueStr);
+                          dropdownConfig.onSingleChanged?.call(value, data, selected);
+                        },
+                        onMultipleChanged: (values, datas, selectedList) {
+                          final valueStr = values.map((v) => v?.toString() ?? '').where((s) => s.isNotEmpty).join(',');
+                          widget.controller.text = valueStr;
+                          widget.onChanged(valueStr);
+                          state.didChange(valueStr);
+                          dropdownConfig.onMultipleChanged?.call(values, datas, selectedList);
+                        },
+                      ),
+                    ),
+                    if (state.errorText != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(state.errorText)),
+                  ],
                 ),
-                if (state.errorText != null) ...[const SizedBox(height: 4), Text(state.errorText!, style: const TextStyle(color: Colors.red, fontSize: 12))],
               ],
             );
           },

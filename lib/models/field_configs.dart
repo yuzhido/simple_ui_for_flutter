@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:simple_ui/models/select_data.dart';
 import 'package:simple_ui/models/file_upload.dart';
 import 'package:flutter/widgets.dart';
@@ -19,7 +20,10 @@ abstract class BaseFieldConfig<T> {
 class TextFieldConfig extends BaseFieldConfig {
   final int? minLength;
   final int? maxLength;
+  final TextInputType? keyboardType; // 键盘类型
+  final List<TextInputFormatter>? inputFormatters; // 输入格式化器
   final void Function(String val)? onChanged;
+
   const TextFieldConfig({
     required super.name,
     required super.label,
@@ -29,6 +33,8 @@ class TextFieldConfig extends BaseFieldConfig {
     super.isShow = true,
     this.minLength,
     this.maxLength,
+    this.keyboardType,
+    this.inputFormatters,
     this.onChanged,
   });
 }

@@ -3,6 +3,7 @@ import 'package:simple_ui/models/field_configs.dart';
 import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/config_form/utils/data_conversion_utils.dart';
 import 'package:simple_ui/models/form_type.dart';
+import 'package:simple_ui/src/config_form/widgets/index.dart';
 import 'package:simple_ui/src/widgets/dropdown_container.dart';
 import '../base_field_widget.dart';
 
@@ -35,9 +36,17 @@ class SelectForSelect<T> extends BaseFieldWidget {
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                InkWell(onTap: () => _handleTap(context, selectConfig, state), child: _buildDropdownContainer(selectConfig, currentValue)),
-                if (state.errorText != null) ...[const SizedBox(height: 4), Text(state.errorText!, style: const TextStyle(color: Colors.red, fontSize: 12))],
+                Stack(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.only(bottom: 18),
+                      child: InkWell(onTap: () => _handleTap(context, selectConfig, state), child: _buildDropdownContainer(selectConfig, currentValue)),
+                    ),
+                    if (state.errorText != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(state.errorText)),
+                  ],
+                ),
               ],
             );
           },

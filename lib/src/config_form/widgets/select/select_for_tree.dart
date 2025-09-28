@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:simple_ui/models/select_data.dart';
 import 'package:simple_ui/models/field_configs.dart';
 import 'package:simple_ui/models/form_type.dart';
+import 'package:simple_ui/src/config_form/widgets/index.dart';
 import 'package:simple_ui/src/tree_select/index.dart';
 import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/config_form/utils/data_conversion_utils.dart';
@@ -38,38 +39,45 @@ class SelectForTree<T> extends BaseFieldWidget {
             }
 
             return Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                TreeSelect<T>(
-                  key: ValueKey('treeSelect_${config.name}_$currentValue'), // 使用key强制重新创建组件
-                  defaultValue: structuredDefault,
-                  options: treeConfig.options,
-                  multiple: treeConfig.multiple,
-                  title: treeConfig.title,
-                  hintText: treeConfig.hintText,
-                  remoteFetch: treeConfig.remoteFetch,
-                  remote: treeConfig.remote,
-                  filterable: treeConfig.filterable,
-                  lazyLoad: treeConfig.lazyLoad,
-                  lazyLoadFetch: treeConfig.lazyLoadFetch,
-                  isCacheData: treeConfig.isCacheData,
-                  onSingleChanged: (dynamic value, T data, SelectData<T> selectedData) {
-                    final valueStr = value?.toString() ?? '';
-                    controller.text = valueStr;
-                    onChanged(valueStr);
-                    state.didChange(valueStr);
-                    treeConfig.onSingleChanged?.call(value, data, selectedData);
-                  },
-                  onMultipleChanged: (List<dynamic> values, List<T> datas, List<SelectData<T>> selectedDataList) {
-                    final valueStr = values.map((v) => v?.toString() ?? '').where((s) => s.isNotEmpty).join(',');
-                    controller.text = valueStr;
-                    onChanged(valueStr);
-                    state.didChange(valueStr);
-                    treeConfig.onMultipleChanged?.call(values, datas, selectedDataList);
-                  },
+                Stack(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.only(bottom: 18),
+                      child: TreeSelect<T>(
+                        key: ValueKey('treeSelect_${config.name}_$currentValue'), // 使用key强制重新创建组件
+                        defaultValue: structuredDefault,
+                        options: treeConfig.options,
+                        multiple: treeConfig.multiple,
+                        title: treeConfig.title,
+                        hintText: treeConfig.hintText,
+                        remoteFetch: treeConfig.remoteFetch,
+                        remote: treeConfig.remote,
+                        filterable: treeConfig.filterable,
+                        lazyLoad: treeConfig.lazyLoad,
+                        lazyLoadFetch: treeConfig.lazyLoadFetch,
+                        isCacheData: treeConfig.isCacheData,
+                        onSingleChanged: (dynamic value, T data, SelectData<T> selectedData) {
+                          final valueStr = value?.toString() ?? '';
+                          controller.text = valueStr;
+                          onChanged(valueStr);
+                          state.didChange(valueStr);
+                          treeConfig.onSingleChanged?.call(value, data, selectedData);
+                        },
+                        onMultipleChanged: (List<dynamic> values, List<T> datas, List<SelectData<T>> selectedDataList) {
+                          final valueStr = values.map((v) => v?.toString() ?? '').where((s) => s.isNotEmpty).join(',');
+                          controller.text = valueStr;
+                          onChanged(valueStr);
+                          state.didChange(valueStr);
+                          treeConfig.onMultipleChanged?.call(values, datas, selectedDataList);
+                        },
+                      ),
+                    ),
+                    if (state.errorText != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(state.errorText)),
+                  ],
                 ),
-                if (state.errorText != null) ...[const SizedBox(height: 4), Text(state.errorText!, style: const TextStyle(color: Colors.red, fontSize: 12))],
               ],
             );
           },

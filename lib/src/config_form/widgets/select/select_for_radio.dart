@@ -4,6 +4,7 @@ import 'package:simple_ui/src/config_form/utils/basic_style.dart';
 import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
 import 'package:simple_ui/src/config_form/utils/data_conversion_utils.dart';
 import 'package:simple_ui/models/form_type.dart';
+import 'package:simple_ui/src/config_form/widgets/index.dart';
 import '../base_field_widget.dart';
 
 class SelectForRadio<T> extends BaseFieldWidget {
@@ -37,49 +38,57 @@ class SelectForRadio<T> extends BaseFieldWidget {
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                InputDecorator(
-                  decoration: BasicStyle.inputStyle(config.label ?? config.name),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: radioConfig.options.map((opt) {
-                      final String valueStr = opt.value.toString();
-                      return InkWell(
-                        onTap: () {
-                          controller.text = valueStr;
-                          onChanged(valueStr);
-                          // 调用回调函数，传递三个参数: (value, data, SelectData)
-                          if (radioConfig.onChanged != null) {
-                            radioConfig.onChanged!(opt.value, opt.data, opt);
-                          }
-                          state.didChange(valueStr);
-                        },
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(opt.label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                            ),
-                            Radio<String>(
-                              value: valueStr,
-                              groupValue: groupValue,
-                              onChanged: (val) {
-                                if (val == null) return;
-                                controller.text = val;
-                                onChanged(val);
+                Stack(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.only(bottom: 18),
+                      child: InputDecorator(
+                        decoration: BasicStyle.inputStyle(config.label ?? config.name),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: radioConfig.options.map((opt) {
+                            final String valueStr = opt.value.toString();
+                            return InkWell(
+                              onTap: () {
+                                controller.text = valueStr;
+                                onChanged(valueStr);
                                 // 调用回调函数，传递三个参数: (value, data, SelectData)
                                 if (radioConfig.onChanged != null) {
                                   radioConfig.onChanged!(opt.value, opt.data, opt);
                                 }
-                                state.didChange(val);
+                                state.didChange(valueStr);
                               },
-                            ),
-                          ],
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(opt.label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                                  ),
+                                  Radio<String>(
+                                    value: valueStr,
+                                    groupValue: groupValue,
+                                    onChanged: (val) {
+                                      if (val == null) return;
+                                      controller.text = val;
+                                      onChanged(val);
+                                      // 调用回调函数，传递三个参数: (value, data, SelectData)
+                                      if (radioConfig.onChanged != null) {
+                                        radioConfig.onChanged!(opt.value, opt.data, opt);
+                                      }
+                                      state.didChange(val);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
                         ),
-                      );
-                    }).toList(),
-                  ),
+                      ),
+                    ),
+                    if (state.errorText != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(state.errorText)),
+                  ],
                 ),
-                if (state.errorText != null) ...[const SizedBox(height: 4), Text(state.errorText!, style: const TextStyle(color: Colors.red, fontSize: 12))],
               ],
             );
           },

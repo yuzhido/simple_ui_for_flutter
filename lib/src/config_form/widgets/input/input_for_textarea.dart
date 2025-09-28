@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/src/config_form/utils/basic_style.dart';
 import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
+import 'package:simple_ui/src/config_form/widgets/index.dart';
 import '../base_field_widget.dart';
 
 class InputForTextarea extends BaseFieldWidget {
@@ -17,18 +18,26 @@ class InputForTextarea extends BaseFieldWidget {
       builder: (state) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            TextFormField(
-              controller: controller,
-              keyboardType: TextInputType.multiline,
-              maxLines: 4,
-              decoration: BasicStyle.inputStyle(config.label ?? config.name),
-              onChanged: (val) {
-                onChanged(val);
-                state.didChange(val);
-              },
+            Stack(
+              children: [
+                Container(
+                  padding: EdgeInsets.only(bottom: 18),
+                  child: TextFormField(
+                    controller: controller,
+                    keyboardType: TextInputType.multiline,
+                    maxLines: 4,
+                    decoration: BasicStyle.inputStyle(config.label ?? config.name),
+                    onChanged: (val) {
+                      onChanged(val);
+                      state.didChange(val);
+                    },
+                  ),
+                ),
+                if (state.errorText != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(state.errorText)),
+              ],
             ),
-            if (state.errorText != null) ...[const SizedBox(height: 4), Text(state.errorText!, style: const TextStyle(color: Colors.red, fontSize: 12))],
           ],
         );
       },

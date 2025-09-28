@@ -4,6 +4,7 @@ import 'package:simple_ui/models/form_type.dart';
 import 'package:simple_ui/src/config_form/widgets/index.dart';
 import 'config_form_controller.dart';
 import 'utils/data_conversion_utils.dart';
+import 'utils/form_data_parser.dart';
 export 'config_form_controller.dart';
 
 class ConfigForm extends StatefulWidget {
@@ -92,158 +93,12 @@ class _ConfigFormState extends State<ConfigForm> {
 
   void _updateFormData(String fieldName, dynamic value) {
     // 根据字段类型将字符串转换为期望的实际类型
-    dynamic parsedValue = value;
     final matched = widget.configs.where((c) => c.name == fieldName);
+    dynamic parsedValue = value;
+
     if (matched.isNotEmpty) {
-      final fieldType = matched.first.type;
-      final fieldConfig = matched.first.config;
-      switch (fieldType) {
-        case FormType.number:
-          if (value == null) {
-            parsedValue = null;
-          } else {
-            final str = value.toString().trim();
-            parsedValue = str.isEmpty ? null : double.tryParse(str);
-          }
-          break;
-        case FormType.integer:
-          if (value == null) {
-            parsedValue = null;
-          } else {
-            final str = value.toString().trim();
-            parsedValue = str.isEmpty ? null : int.tryParse(str);
-          }
-          break;
-        case FormType.radio:
-          // 单选：将字符串反查为原始 option.value 的类型
-          try {
-            // ignore: unnecessary_cast
-            final options = (fieldConfig as dynamic).options as List<dynamic>;
-            dynamic opt;
-            try {
-              opt = options.firstWhere((o) => (o.value?.toString() ?? '') == (value?.toString() ?? ''));
-            } catch (_) {
-              opt = null;
-            }
-            parsedValue = opt?.value;
-          } catch (_) {
-            parsedValue = value;
-          }
-          break;
-        case FormType.select:
-          // 下拉：支持单选/多选。控件以字符串/逗号分隔回传，这里反查成原始类型或列表
-          try {
-            // ignore: unnecessary_cast
-            final cfg = fieldConfig as dynamic; // SelectFieldConfig
-            final options = cfg.options as List<dynamic>;
-            toOriginal(String s) {
-              final found = options.where((o) => (o.value?.toString() ?? '') == s).toList();
-              return found.isEmpty ? s : found.first.value;
-            }
-
-            final str = value?.toString() ?? '';
-            if (cfg.multiple == true) {
-              if (str.isEmpty) {
-                parsedValue = <dynamic>[];
-              } else {
-                final parts = str.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-                parsedValue = parts.map(toOriginal).toList();
-              }
-            } else {
-              parsedValue = str.isEmpty ? null : toOriginal(str);
-            }
-          } catch (_) {
-            parsedValue = value;
-          }
-          break;
-        case FormType.checkbox:
-          // 多选复选：以逗号分隔字符串回传，这里反查为原始类型列表
-          try {
-            // ignore: unnecessary_cast
-            final options = (fieldConfig as dynamic).options as List<dynamic>;
-            mapOne(String s) {
-              final found = options.where((o) => (o.value?.toString() ?? '') == s).toList();
-              return found.isEmpty ? s : found.first.value;
-            }
-
-            final str = value?.toString() ?? '';
-            if (str.isEmpty) {
-              parsedValue = <dynamic>[];
-            } else {
-              parsedValue = str.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).map(mapOne).toList();
-            }
-          } catch (_) {
-            parsedValue = value;
-          }
-          break;
-        case FormType.dropdown:
-          // DropdownChoose：与 select 相同规则，支持单/多选，字符串(或逗号串)反查为原始类型
-          try {
-            final cfg = fieldConfig as dynamic; // DropdownFieldConfig
-            final options = cfg.options as List<dynamic>;
-            toOriginal(String s) {
-              final found = options.where((o) => (o.value?.toString() ?? '') == s).toList();
-              return found.isEmpty ? s : found.first.value;
-            }
-
-            final str = value?.toString() ?? '';
-            if (cfg.multiple == true) {
-              if (str.isEmpty) {
-                parsedValue = <dynamic>[];
-              } else {
-                final parts = str.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-                parsedValue = parts.map(toOriginal).toList();
-              }
-            } else {
-              parsedValue = str.isEmpty ? null : toOriginal(str);
-            }
-          } catch (_) {
-            parsedValue = value;
-          }
-          break;
-        case FormType.treeSelect:
-          // TreeSelect：同下拉规则，字符串(或逗号串)反查为原始类型或列表
-          try {
-            final cfg = fieldConfig as dynamic; // TreeSelectFieldConfig
-            final options = cfg.options as List<dynamic>;
-            // 深度搜索树节点
-            List<dynamic> flatten(List<dynamic> nodes) {
-              final result = <dynamic>[];
-              for (final n in nodes) {
-                result.add(n);
-                final children = (n.children as List<dynamic>?) ?? const [];
-                if (children.isNotEmpty) {
-                  result.addAll(flatten(children));
-                }
-              }
-              return result;
-            }
-
-            final flatOptions = flatten(options);
-            toOriginal(String s) {
-              final found = flatOptions.where((o) => (o.value?.toString() ?? '') == s).toList();
-              return found.isEmpty ? s : found.first.value;
-            }
-
-            final str = value?.toString() ?? '';
-            if (cfg.multiple == true) {
-              if (str.isEmpty) {
-                parsedValue = <dynamic>[];
-              } else {
-                final parts = str.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-                parsedValue = parts.map(toOriginal).toList();
-              }
-            } else {
-              parsedValue = str.isEmpty ? null : toOriginal(str);
-            }
-          } catch (_) {
-            parsedValue = value;
-          }
-          break;
-        default:
-          // 其它类型保持原值
-          parsedValue = value;
-      }
+      final config = matched.first;
+      parsedValue = FormDataParser.parseFormValue(value, config);
     }
 
     setState(() {
