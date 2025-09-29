@@ -56,8 +56,15 @@ class _UploadForFileState extends State<UploadForFile> {
                       // 调用外部回调
                       props.onFileChange?.call(current, selected, action);
                     },
+                    // 上传进度回调
+                    onUploadProgress: (file, progress) {
+                      // 调用外部进度回调
+                      props.onUploadProgress?.call(file, progress);
+                    },
                     // 上传成功回调
                     onUploadSuccess: (file) {
+                      // 调用外部成功回调
+                      props.onUploadSuccess?.call(file);
                       // 触发表单变化回调
                       widget.onChanged?.call(widget.controller.getFormData());
                       // 更新控制器中的表单数据
@@ -65,6 +72,8 @@ class _UploadForFileState extends State<UploadForFile> {
                     },
                     // 上传失败回调
                     onUploadFailed: (file, error) {
+                      // 调用外部失败回调
+                      props.onUploadFailed?.call(file, error);
                       print('文件上传失败: ${file.name}, 错误: $error');
                     },
                   ),

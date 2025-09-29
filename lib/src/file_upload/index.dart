@@ -266,6 +266,7 @@ class _FileUploadState extends State<FileUpload> {
         widget.onFileChange?.call(_tempFiles[index], selectedFiles, 'progress');
       }
     }
+    setState(() {});
   }
 
   /// 进行真实的HTTP上传方法

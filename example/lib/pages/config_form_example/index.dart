@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/form_type.dart';
 import 'package:simple_ui/simple_ui.dart';
+import 'package:dio/dio.dart';
+import '../../../utils/config.dart';
 
 class ConfigFormExamplePage extends StatefulWidget {
   const ConfigFormExamplePage({super.key});
@@ -11,6 +13,7 @@ class ConfigFormExamplePage extends StatefulWidget {
 class _ConfigFormExamplePageState extends State<ConfigFormExamplePage> {
   late ConfigFormController _controller;
   Map<String, dynamic> _formData = {};
+  String _uploadStatus = '等待上传...';
 
   @override
   void initState() {
@@ -24,6 +27,59 @@ class _ConfigFormExamplePageState extends State<ConfigFormExamplePage> {
     super.dispose();
   }
 
+  // 真实接口上传函数
+  Future<FileUploadModel?> _realUploadFunction(String filePath, Function(double) onProgress) async {
+    try {
+      final dio = Dio();
+
+      // 准备FormData
+      final formData = FormData.fromMap({'file': await MultipartFile.fromFile(filePath, filename: filePath.split('/').last)});
+
+      // 发送请求
+      final response = await dio.request(
+        '${Config.baseUrl}/upload/api/upload-file',
+        data: formData,
+        options: Options(method: 'POST', headers: {'Authorization': 'Bearer your-token-here'}),
+        onSendProgress: (sent, total) {
+          if (total > 0) {
+            final progress = sent / total;
+            onProgress(progress);
+          }
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = response.data;
+        return FileUploadModel(
+          name: filePath.split('/').last,
+          path: filePath,
+          source: FileSource.file,
+          status: UploadStatus.success,
+          progress: 1.0,
+          fileSize: responseData['size'] ?? 0,
+          fileSizeInfo: _formatFileSize(responseData['size'] ?? 0),
+          url: responseData['url'] ?? '',
+          fileInfo: FileInfo(
+            id: responseData['id'] ?? DateTime.now().millisecondsSinceEpoch,
+            fileName: responseData['filename'] ?? filePath.split('/').last,
+            requestPath: responseData['path'] ?? '',
+          ),
+        );
+      }
+      return null;
+    } catch (e) {
+      print('上传失败: $e');
+      return null;
+    }
+  }
+
+  // 格式化文件大小
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '${bytes}B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)}KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)}MB';
+  }
+
   // 表单配置
   List<FormConfig> get _formConfigs {
     // 检查性别字段的值，决定是否显示爱好字段
@@ -31,12 +87,35 @@ class _ConfigFormExamplePageState extends State<ConfigFormExamplePage> {
     final shouldShowHobbies = genderValue == 'male';
 
     return [
-      // 文本输入
+      // 真实接口文件上传示例
+      FormConfig(
+        type: FormType.upload,
+        name: 'realUploadFile',
+        label: '真实接口文件上传',
+        required: true,
+        validator: (value) {
+          if (value == null || (value is List && value.isEmpty)) {
+            return '请上传文件';
+          }
+          return null;
+        },
+        props: UploadProps(
+          maxFiles: 2,
+          fileListType: FileListType.card,
+          fileSource: FileSource.all,
+          autoUpload: true,
+          isRemoveFailFile: false,
+          // 使用真实接口上传
+          customUpload: _realUploadFunction,
+
+          // 上传进度回调
+        ),
+      ),
       // 文件上传
       FormConfig(
         type: FormType.upload,
         name: 'fileInfo',
-        label: '文件上传',
+        label: '模拟文件上传',
         required: true,
         validator: (value) {
           // 自定义验证器：检查是否上传了文件
@@ -100,7 +179,7 @@ class _ConfigFormExamplePageState extends State<ConfigFormExamplePage> {
         },
         props: const TextFieldProps(minLength: 3, maxLength: 20, keyboardType: TextInputType.text),
       ),
-      FormConfig<DropdownProps>(
+      FormConfig(
         type: FormType.dropdown,
         name: 'gender',
         label: '性别',
@@ -113,7 +192,7 @@ class _ConfigFormExamplePageState extends State<ConfigFormExamplePage> {
           ],
         ),
       ),
-      FormConfig<DropdownProps>(
+      FormConfig(
         type: FormType.dropdown,
         name: 'hobbies',
         label: '爱好',
@@ -350,6 +429,31 @@ class _ConfigFormExamplePageState extends State<ConfigFormExamplePage> {
 
             // 表单组件
             ConfigForm(configs: _formConfigs, controller: _controller, onChanged: _onFormChanged),
+
+            const SizedBox(height: 16),
+
+            // 上传状态显示
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue[200]!),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue[600]),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '上传状态: $_uploadStatus',
+                      style: TextStyle(color: Colors.blue[800], fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
             const SizedBox(height: 24),
 

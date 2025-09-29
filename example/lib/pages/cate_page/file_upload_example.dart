@@ -1,5 +1,4 @@
-import 'package:example/pages/compress_demo/index.dart';
-import 'package:example/pages/new_file_upload/index.dart';
+import 'package:example/pages/file_upload/index.dart';
 import 'package:flutter/material.dart';
 
 class FileUploadExamplePage extends StatefulWidget {
@@ -17,16 +16,9 @@ class _FileUploadExamplePageState extends State<FileUploadExamplePage> {
         children: [
           ElevatedButton(
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const NewFileUploadPage()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const FileUploadPage()));
             },
-            child: Text('跳转查看最新文件上传组件（NewFileUpload）示例'),
-          ),
-
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const CompressDemoPage()));
-            },
-            child: Text('跳转查看图片压缩演示（CompressDemo）示例'),
+            child: Text('跳转查看文件上传组件（FileUpload）示例'),
           ),
         ],
       ),

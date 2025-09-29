@@ -171,6 +171,15 @@ class UploadProps {
 
   /// 参数3: 操作类型 ('add' 或 'remove')
   final Function(FileUploadModel currentFile, List<FileUploadModel> selectedFiles, String action)? onFileChange;
+  
+  /// 上传进度回调
+  final Function(FileUploadModel file, double progress)? onUploadProgress;
+  
+  /// 上传成功回调
+  final Function(FileUploadModel file)? onUploadSuccess;
+  
+  /// 上传失败回调
+  final Function(FileUploadModel file, String error)? onUploadFailed;
 
   const UploadProps({
     this.allowedTypes,
@@ -183,6 +192,9 @@ class UploadProps {
     this.isRemoveFailFile = false,
     this.customUpload,
     this.onFileChange,
+    this.onUploadProgress,
+    this.onUploadSuccess,
+    this.onUploadFailed,
   });
 }
 
