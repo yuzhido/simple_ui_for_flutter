@@ -1,11 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:simple_ui/models/file_upload.dart';
-import 'package:simple_ui/models/select_data.dart';
+import 'package:simple_ui/models/index.dart';
 import 'package:simple_ui/models/validator.dart';
-import 'package:simple_ui/models/form_type.dart';
-import 'package:simple_ui/src/config_form/config_form_controller.dart';
-export 'package:simple_ui/src/config_form/config_form_controller.dart';
 
 abstract class BaseFieldConfig {
   final String name;
@@ -233,9 +228,6 @@ class TreeSelectProps<T> {
     this.isCacheData = true,
   });
 }
-
-/// 第一个参数将会在运行时传入 FormConfig（或兼容对象），以便在回调中可获取验证器等能力
-typedef ContentBuilder = Widget Function(dynamic config, ConfigFormController controller, Function(String) onChanged);
 
 /// 自定义字段配置：要求提供 contentBuilder
 class CustomProps {

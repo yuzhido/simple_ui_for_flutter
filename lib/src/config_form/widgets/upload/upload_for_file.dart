@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:simple_ui/models/file_upload.dart';
-import 'package:simple_ui/models/form_config.dart';
-import 'package:simple_ui/src/config_form/config_form_controller.dart';
-import 'package:simple_ui/src/config_form/utils/validation_utils.dart';
+import 'package:simple_ui/models/index.dart';
 import 'package:simple_ui/src/config_form/widgets/index.dart';
 import 'package:simple_ui/src/file_upload/index.dart';
 
@@ -17,16 +14,21 @@ class UploadForFile extends StatefulWidget {
 }
 
 class _UploadForFileState extends State<UploadForFile> {
+  late ValueNotifier<Map<String, String>> countNotifier;
+  @override
+  void initState() {
+    countNotifier = ValueNotifier(widget.controller.errors);
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FormField<String>(
-      validator: (value) {
-        // 复用通用校验：对 required 生效
-        final validator = ValidationUtils.getValidator(widget.config);
-        return validator?.call(value);
-      },
-      builder: (state) {
-        final props = widget.config.props as UploadProps;
+    final props = widget.config.props as UploadProps;
+    final errorsInfo = widget.controller.errors;
+
+    return ValueListenableBuilder(
+      valueListenable: countNotifier,
+      builder: (context, _, __) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -49,13 +51,25 @@ class _UploadForFileState extends State<UploadForFile> {
                     customUpload: props.customUpload,
                     // 默认文件（显示已上传）
                     defaultValue: null,
-                    // 回调：统一维护 controller 文本为 JSON 字符串
+                    // 回调：统一维护 controller 数据
                     onFileChange: (current, selected, action) {
+                      // 调用外部回调
                       props.onFileChange?.call(current, selected, action);
+                    },
+                    // 上传成功回调
+                    onUploadSuccess: (file) {
+                      // 触发表单变化回调
+                      widget.onChanged?.call(widget.controller.getFormData());
+                      // 更新控制器中的表单数据
+                      widget.controller.setFieldValue(widget.config.name, file.fileInfo);
+                    },
+                    // 上传失败回调
+                    onUploadFailed: (file, error) {
+                      print('文件上传失败: ${file.name}, 错误: $error');
                     },
                   ),
                 ),
-                if (state.errorText != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(state.errorText)),
+                if (errorsInfo[widget.config.name] != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(errorsInfo[widget.config.name]!)),
               ],
             ),
           ],

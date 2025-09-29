@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:simple_ui/models/form_config.dart';
-import 'package:simple_ui/models/form_type.dart';
+import 'package:simple_ui/models/index.dart';
 import 'package:simple_ui/src/config_form/widgets/index.dart';
-export 'config_form_controller.dart';
 
 class ConfigForm extends StatefulWidget {
   // 表单配置

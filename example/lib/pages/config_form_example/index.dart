@@ -32,6 +32,55 @@ class _ConfigFormExamplePageState extends State<ConfigFormExamplePage> {
 
     return [
       // 文本输入
+      // 文件上传
+      FormConfig(
+        type: FormType.upload,
+        name: 'fileInfo',
+        label: '文件上传',
+        required: true,
+        validator: (value) {
+          // 自定义验证器：检查是否上传了文件
+          if (value == null || (value is List && value.isEmpty)) {
+            return '请上传文件';
+          }
+          return null; // 验证通过
+        },
+        props: UploadProps(
+          maxFiles: 3, // 最多上传3个文件
+          fileListType: FileListType.card, // 卡片样式
+          fileSource: FileSource.all, // 允许所有类型文件
+          autoUpload: true, // 自动上传
+          isRemoveFailFile: false, // 上传失败时不自动移除
+          // 自定义上传函数
+          customUpload: (filePath, onProgress) async {
+            // 模拟上传过程
+            print('开始上传文件: $filePath');
+
+            // 模拟上传进度
+            for (int i = 0; i <= 100; i += 10) {
+              await Future.delayed(Duration(milliseconds: 100));
+              onProgress(i / 100.0);
+            }
+
+            // 模拟上传成功，返回文件信息
+            return FileUploadModel(
+              name: filePath.split('/').last,
+              path: filePath,
+              source: FileSource.file,
+              status: UploadStatus.success,
+              progress: 1.0,
+              fileSize: 1024 * 1024, // 1MB
+              fileSizeInfo: '1.0MB',
+              url: 'https://example.com/uploads/${filePath.split('/').last}',
+              fileInfo: FileInfo(id: DateTime.now().millisecondsSinceEpoch, fileName: filePath.split('/').last, requestPath: '/uploads/${filePath.split('/').last}'),
+            );
+          },
+          // 文件变化回调
+          onFileChange: (current, selected, action) {
+            print('文件变化: $action, 当前文件: ${current.name}, 总文件数: ${selected.length}');
+          },
+        ),
+      ),
       FormConfig(
         type: FormType.text,
         name: 'username',

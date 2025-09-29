@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:simple_ui/models/form_config.dart';
+import 'package:simple_ui/models/index.dart';
 import 'package:simple_ui/src/config_form/utils/basic_style.dart';
 import 'package:simple_ui/src/config_form/widgets/index.dart';
 
