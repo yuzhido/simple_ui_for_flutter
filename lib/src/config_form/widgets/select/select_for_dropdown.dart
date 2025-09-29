@@ -32,18 +32,18 @@ class _DropdownFieldContentState<T> extends State<SelectForDropdown<T>> {
     return ValueListenableBuilder(
       valueListenable: countNotifier,
       builder: (context, _, __) {
-        final dynamic currentValue = widget.controller.getValue<dynamic>(widget.config.name) ?? '';
+        final dynamic currentValue = widget.controller.getValue<dynamic>(config.name) ?? '';
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            LabelInfo(widget.config.label, widget.config.required),
+            LabelInfo(config.label, config.required),
             Stack(
               children: [
                 Container(
                   padding: EdgeInsets.only(bottom: 18),
                   child: DropdownChoose<dynamic>(
-                    key: ValueKey('dropdown_${widget.config.name}_$currentValue'), // 使用key强制重新创建组件
+                    key: ValueKey('dropdown_${config.name}_$currentValue'), // 使用key强制重新创建组件
                     options: config.props?.options,
                     multiple: config.props?.multiple,
                     filterable: config.props?.filterable,
@@ -52,16 +52,16 @@ class _DropdownFieldContentState<T> extends State<SelectForDropdown<T>> {
                     showAdd: config.props?.showAdd,
                     onAdd: config.props?.onAdd,
                     alwaysRefresh: config.props?.alwaysRefresh,
-                    tips: (config.props?.tips == '') ? '请选择${widget.config.label}' : config.props?.tips,
+                    tips: (config.props?.tips == '') ? '请选择${config.label}' : config.props?.tips,
                     defaultValue: defaultValue,
                     onSingleChanged: (value, data, selected) {
                       defaultValue = selected;
-                      widget.controller.setFieldValue(widget.config.name, value);
+                      widget.controller.setFieldValue(config.name, value);
                       config.props?.onSingleChanged?.call(value, data, selected);
                     },
                     onMultipleChanged: (values, datas, selectedList) {
                       defaultValue = selectedList;
-                      widget.controller.setFieldValue(widget.config.name, values);
+                      widget.controller.setFieldValue(config.name, values);
                       config.props?.onMultipleChanged?.call(values, datas, selectedList);
                     },
                   ),

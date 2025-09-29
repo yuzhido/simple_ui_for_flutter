@@ -19,7 +19,7 @@ class _DateTimeForDateState extends State<DateTimeForDate> {
   @override
   void initState() {
     countNotifier = ValueNotifier(widget.controller.errors);
-    controller.text = widget.config.defaultValue ?? widget.controller.getValue(widget.config.name);
+    controller.text = widget.config.defaultValue ?? widget.controller.getValue(widget.config.name) ?? '';
     super.initState();
   }
 
