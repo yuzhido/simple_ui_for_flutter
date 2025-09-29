@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/form_config.dart';
-import 'package:simple_ui/models/select_data.dart';
 import 'package:simple_ui/src/config_form/config_form_controller.dart';
 import 'package:simple_ui/src/config_form/widgets/index.dart';
 import 'package:simple_ui/src/tree_select/index.dart';
@@ -24,7 +23,8 @@ class _SelectForTreeState<T> extends State<SelectForTree> {
 
   @override
   Widget build(BuildContext context) {
-    final treeConfig = widget.config;
+    final config = widget.config;
+    final errorsInfo = widget.controller.errors;
     return ValueListenableBuilder(
       valueListenable: countNotifier,
       builder: (context, _, __) {
@@ -37,32 +37,32 @@ class _SelectForTreeState<T> extends State<SelectForTree> {
               children: [
                 Container(
                   padding: EdgeInsets.only(bottom: 18),
-                  child: TreeSelect<T>(
+                  child: TreeSelect<dynamic>(
                     key: ValueKey('treeSelect_${widget.config.name}_'), // 使用key强制重新创建组件
                     defaultValue: [],
-                    options: (treeConfig.props as TreeSelectProps<T>?)?.options ?? [],
-                    multiple: (treeConfig.props as TreeSelectProps<T>?)?.multiple ?? false,
-                    title: (treeConfig.props as TreeSelectProps<T>?)?.title ?? '树形选择器',
-                    hintText: (treeConfig.props as TreeSelectProps<T>?)?.hintText ?? '请输入关键字搜索',
-                    remoteFetch: (treeConfig.props as TreeSelectProps<T>?)?.remoteFetch,
-                    remote: (treeConfig.props as TreeSelectProps<T>?)?.remote ?? false,
-                    filterable: (treeConfig.props as TreeSelectProps<T>?)?.filterable ?? false,
-                    lazyLoad: (treeConfig.props as TreeSelectProps<T>?)?.lazyLoad ?? false,
-                    lazyLoadFetch: (treeConfig.props as TreeSelectProps<T>?)?.lazyLoadFetch,
-                    isCacheData: (treeConfig.props as TreeSelectProps<T>?)?.isCacheData ?? true,
-                    onSingleChanged: (dynamic value, T data, SelectData<T> selectedData) {
+                    options: (config.props)?.options ?? [],
+                    multiple: (config.props)?.multiple ?? false,
+                    title: (config.props)?.title ?? '树形选择器',
+                    hintText: (config.props)?.hintText ?? '请输入关键字搜索',
+                    remoteFetch: (config.props)?.remoteFetch,
+                    remote: (config.props)?.remote ?? false,
+                    filterable: (config.props)?.filterable ?? false,
+                    lazyLoad: (config.props)?.lazyLoad ?? false,
+                    lazyLoadFetch: (config.props)?.lazyLoadFetch,
+                    isCacheData: (config.props)?.isCacheData ?? true,
+                    onSingleChanged: (value, data, selectedData) {
                       final valueStr = value?.toString() ?? '';
                       widget.controller.setFieldValue(widget.config.name, valueStr);
-                      (treeConfig.props as TreeSelectProps<T>?)?.onSingleChanged?.call(value, data, selectedData);
+                      (config.props)?.onSingleChanged?.call(value, data, selectedData);
                     },
-                    onMultipleChanged: (List<dynamic> values, List<T> datas, List<SelectData<T>> selectedDataList) {
+                    onMultipleChanged: (values, datas, selectedDataList) {
                       final valueStr = values.map((v) => v?.toString() ?? '').where((s) => s.isNotEmpty).join(',');
                       widget.controller.setFieldValue(widget.config.name, valueStr);
-                      (treeConfig.props as TreeSelectProps<T>?)?.onMultipleChanged?.call(values, datas, selectedDataList);
+                      (config.props)?.onMultipleChanged?.call(values, datas, selectedDataList);
                     },
                   ),
                 ),
-                Positioned(bottom: 0, left: 0, child: ErrorInfo('state.errorText')),
+                if (errorsInfo[config.name] != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(errorsInfo[config.name]!)),
               ],
             ),
           ],

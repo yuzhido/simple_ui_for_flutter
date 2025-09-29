@@ -68,8 +68,8 @@ class FilePickerUtils {
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(source: ImageSource.camera, imageQuality: 100);
-      if (image != null) return debugPrint('⚠️ 用户取消了拍照');
-      if (onFileSelected == null || image!.path.isEmpty) return;
+      if (image == null) return debugPrint('⚠️ 用户取消了拍照');
+      if (onFileSelected == null || image.path.isEmpty) return;
       File imageFile = File(image.path);
       int fileSize = await imageFile.length();
 
