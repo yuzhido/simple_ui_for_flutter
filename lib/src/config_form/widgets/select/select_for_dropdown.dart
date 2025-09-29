@@ -27,8 +27,6 @@ class _DropdownFieldContentState<T> extends State<SelectForDropdown<T>> {
 
   @override
   Widget build(BuildContext context) {
-    final dropdownConfig = widget.config;
-    final dropdownProps = dropdownConfig.props as DropdownProps<T>;
     final config = widget.config;
     final errorsInfo = widget.controller.errors;
     return ValueListenableBuilder(
@@ -44,27 +42,27 @@ class _DropdownFieldContentState<T> extends State<SelectForDropdown<T>> {
               children: [
                 Container(
                   padding: EdgeInsets.only(bottom: 18),
-                  child: DropdownChoose<T>(
+                  child: DropdownChoose<dynamic>(
                     key: ValueKey('dropdown_${widget.config.name}_$currentValue'), // 使用key强制重新创建组件
-                    options: dropdownProps.options,
-                    multiple: dropdownProps.multiple,
-                    filterable: dropdownProps.filterable,
-                    remote: dropdownProps.remote,
-                    remoteSearch: dropdownProps.remoteSearch,
-                    showAdd: dropdownProps.showAdd,
-                    onAdd: dropdownProps.onAdd,
-                    alwaysRefresh: dropdownProps.alwaysRefresh,
-                    tips: (dropdownProps.tips == '') ? '请选择${widget.config.label}' : dropdownProps.tips,
+                    options: config.props?.options,
+                    multiple: config.props?.multiple,
+                    filterable: config.props?.filterable,
+                    remote: config.props?.remote,
+                    remoteSearch: config.props?.remoteSearch,
+                    showAdd: config.props?.showAdd,
+                    onAdd: config.props?.onAdd,
+                    alwaysRefresh: config.props?.alwaysRefresh,
+                    tips: (config.props?.tips == '') ? '请选择${widget.config.label}' : config.props?.tips,
                     defaultValue: defaultValue,
-                    onSingleChanged: (dynamic value, T data, selected) {
+                    onSingleChanged: (value, data, selected) {
                       defaultValue = selected;
                       widget.controller.setFieldValue(widget.config.name, value);
-                      dropdownProps.onSingleChanged?.call(value, data, selected);
+                      config.props?.onSingleChanged?.call(value, data, selected);
                     },
                     onMultipleChanged: (values, datas, selectedList) {
                       defaultValue = selectedList;
                       widget.controller.setFieldValue(widget.config.name, values);
-                      dropdownProps.onMultipleChanged?.call(values, datas, selectedList);
+                      config.props?.onMultipleChanged?.call(values, datas, selectedList);
                     },
                   ),
                 ),

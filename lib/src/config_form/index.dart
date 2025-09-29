@@ -81,7 +81,7 @@ class _ConfigFormState extends State<ConfigForm> {
             } else if (config.type == FormType.select) {
               return SelectForSelect(config: config, controller: _controller, onChanged: widget.onChanged);
             } else if (config.type == FormType.dropdown) {
-              return SelectForDropdown(config: config, controller: _controller, onChanged: widget.onChanged);
+              return SelectForDropdown(config: config as FormConfig<DropdownProps>, controller: _controller, onChanged: widget.onChanged);
             } else if (config.type == FormType.treeSelect) {
               return SelectForTree(config: config, controller: _controller, onChanged: widget.onChanged);
             } else if (config.type == FormType.date) {

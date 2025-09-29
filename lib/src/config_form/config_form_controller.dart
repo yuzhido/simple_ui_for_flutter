@@ -54,7 +54,7 @@ class ConfigFormController extends ChangeNotifier {
       // 只验证显示的字段
       if (!config.isShow) continue;
       if (!config.required) continue;
-      if (_formData[config.name] == null || _formData[config.name] == '') {
+      if (_formData[config.name] == null || _formData[config.name] == '' || (_formData[config.name] is List && _formData[config.name].isEmpty)) {
         isValid = false;
         _errors[config.name] = ValidationUtils.getDefaultErrorMessage(config);
       }

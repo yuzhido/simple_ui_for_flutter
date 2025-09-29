@@ -46,6 +46,7 @@ class _InputForTextareaState extends State<InputForTextarea> {
                     onChanged: (val) {
                       widget.controller.setFieldValue(widget.config.name, val);
                       widget.onChanged?.call(widget.controller.getFormData());
+                      widget.config.props?.onChanged?.call(val);
                     },
                   ),
                 ),
