@@ -15,9 +15,11 @@ class DateTimeForDate extends StatefulWidget {
 
 class _DateTimeForDateState extends State<DateTimeForDate> {
   late ValueNotifier<Map<String, String>> countNotifier;
+  TextEditingController controller = TextEditingController();
   @override
   void initState() {
     countNotifier = ValueNotifier(widget.controller.errors);
+    controller.text = widget.config.defaultValue ?? widget.controller.getValue(widget.config.name);
     super.initState();
   }
 
@@ -39,12 +41,16 @@ class _DateTimeForDateState extends State<DateTimeForDate> {
                   padding: EdgeInsets.only(bottom: 18),
                   child: TextFormField(
                     readOnly: true,
+                    controller: controller,
                     decoration: BasicStyle.inputStyle(widget.config.label, suffixIcon: const Icon(Icons.calendar_today)),
                     onTap: () async {
                       final DateTime? picked = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
                       if (picked != null) {
                         final dateStr = '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+                        controller.text = dateStr;
                         widget.controller.setFieldValue(widget.config.name, dateStr);
+                        widget.onChanged?.call(widget.controller.getFormData());
+                        widget.config.props?.onChanged?.call(dateStr);
                       }
                     },
                   ),
