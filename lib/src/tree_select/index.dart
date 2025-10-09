@@ -20,7 +20,9 @@ class TreeSelect<T> extends StatefulWidget {
   // 选择模式
   final bool multiple;
   // 顶部title
-  final String title;
+  final String? title;
+  // 顶部tips
+  final String? tips;
   // 顶部提示
   final String hintText;
   // 远程搜索
@@ -43,8 +45,10 @@ class TreeSelect<T> extends StatefulWidget {
     this.onSingleChanged,
     this.onMultipleChanged,
     this.multiple = false,
-    this.title = '树形选择器',
+    this.title,
+    this.tips,
     this.hintText = '请输入关键字搜索',
+
     this.remoteFetch,
     this.remote = false,
     this.filterable = false,
@@ -316,7 +320,7 @@ class _TreeSelectState<T> extends State<TreeSelect<T>> {
         multiple: widget.multiple,
         item: selectedItem,
         items: selectedItems,
-        tips: widget.multiple ? '请选择选项(可多选)' : '请选择选项',
+        tips: widget.tips ?? '请选择',
       ),
     );
   }
@@ -503,7 +507,7 @@ class _TreeSelectState<T> extends State<TreeSelect<T>> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // 顶部title区域
-                  HeaderTitle(title: widget.title),
+                  HeaderTitle(title: widget.title ?? (widget.multiple ? '请选择选项(可多选)' : '请选择选项')),
 
                   // 搜索区域 - 根据条件显示
                   if (widget.remote || widget.filterable)

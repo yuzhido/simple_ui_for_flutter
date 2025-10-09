@@ -45,7 +45,7 @@ class NumberProps {
   final double? minValue;
   final double? maxValue;
   final int? decimalPlaces;
-  final void Function(String val)? onChanged;
+  final void Function(double val)? onChanged;
 
   const NumberProps({this.minValue, this.maxValue, this.decimalPlaces, this.onChanged});
 }
@@ -54,7 +54,7 @@ class NumberProps {
 class IntegerProps {
   final int? minValue;
   final int? maxValue;
-  final void Function(String val)? onChanged;
+  final void Function(int val)? onChanged;
 
   const IntegerProps({this.minValue, this.maxValue, this.onChanged});
 }
@@ -171,13 +171,13 @@ class UploadProps {
 
   /// 参数3: 操作类型 ('add' 或 'remove')
   final Function(FileUploadModel currentFile, List<FileUploadModel> selectedFiles, String action)? onFileChange;
-  
+
   /// 上传进度回调
   final Function(FileUploadModel file, double progress)? onUploadProgress;
-  
+
   /// 上传成功回调
   final Function(FileUploadModel file)? onUploadSuccess;
-  
+
   /// 上传失败回调
   final Function(FileUploadModel file, String error)? onUploadFailed;
 

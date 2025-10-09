@@ -22,38 +22,38 @@ class _SelectForRadioState extends State<SelectForRadio> {
 
   @override
   Widget build(BuildContext context) {
-    final radioConfig = widget.config;
-
     final config = widget.config;
     final errorsInfo = widget.controller.errors;
     return ValueListenableBuilder(
       valueListenable: countNotifier,
       builder: (context, _, __) {
-        final String groupValue = widget.controller.getValue<String?>(radioConfig.name) ?? '';
+        final String groupValue = widget.controller.getValue<String?>(config.name) ?? '';
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            LabelInfo(widget.config.label, widget.config.required),
+            LabelInfo(config.label, config.required),
             Stack(
               children: [
                 Container(
                   padding: EdgeInsets.only(bottom: 18),
                   child: InputDecorator(
-                    decoration: BasicStyle.inputStyle(radioConfig.label),
+                    decoration: BasicStyle.inputStyle(config.label),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children:
-                          (radioConfig.props as RadioProps?)?.options.map<Widget>((opt) {
+                          (config.props as RadioProps?)?.options.map<Widget>((opt) {
                             final String valueStr = opt.value.toString();
                             return InkWell(
                               onTap: () {
-                                widget.controller.setFieldValue(radioConfig.name, valueStr);
+                                widget.controller.setFieldValue(config.name, valueStr);
                                 // 调用回调函数，传递三个参数: (value, data, SelectData)
                                 if (widget.onChanged != null) {
                                   // widget.onChanged!(opt.value, opt.data, opt);
                                 }
+
+                                config.props.onChanged?.call(opt.value);
                               },
                               child: Row(
                                 children: [
@@ -65,7 +65,7 @@ class _SelectForRadioState extends State<SelectForRadio> {
                                     groupValue: groupValue,
                                     onChanged: (val) {
                                       if (val == null) return;
-                                      widget.controller.setFieldValue(radioConfig.name, val);
+                                      widget.controller.setFieldValue(config.name, val);
                                       // 调用回调函数，传递三个参数: (value, data, SelectData)
                                       if (widget.onChanged != null) {
                                         // widget.onChanged!(opt.value, opt.data, opt);

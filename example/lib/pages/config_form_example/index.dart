@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:simple_ui/models/form_type.dart';
 import 'package:simple_ui/simple_ui.dart';
 import 'package:dio/dio.dart';
 import '../../../utils/config.dart';
+import '../../api/index.dart';
 
 class ConfigFormExamplePage extends StatefulWidget {
   const ConfigFormExamplePage({super.key});
@@ -13,7 +13,8 @@ class ConfigFormExamplePage extends StatefulWidget {
 class _ConfigFormExamplePageState extends State<ConfigFormExamplePage> {
   late ConfigFormController _controller;
   Map<String, dynamic> _formData = {};
-  String _uploadStatus = '等待上传...';
+  final String _uploadStatus = '等待上传...';
+  final AddressApi _addressApi = AddressApi();
 
   @override
   void initState() {
@@ -87,6 +88,85 @@ class _ConfigFormExamplePageState extends State<ConfigFormExamplePage> {
     final shouldShowHobbies = genderValue == 'male';
 
     return [
+      // 真实API地址选择示例 - 省份选择（懒加载模式）
+      FormConfig(
+        type: FormType.treeSelect,
+        name: 'province',
+        label: '省份选择（真实API - 懒加载）',
+        required: false,
+        props: TreeSelectProps<String>(
+          options: const [],
+          title: '选择省份',
+          hintText: '点击展开加载省份数据',
+          remote: true,
+          remoteFetch: _fetchProvincesForSearch,
+          lazyLoad: true,
+          lazyLoadFetch: _fetchProvincesLazyLoad,
+          isCacheData: true,
+          onSingleChanged: (value, data, selectedData) {
+            print('省份选择: $value -> ${selectedData.label}');
+            // 省份改变时，清空城市和区县选择
+            _controller.setFieldValue('city_real', null);
+            _controller.setFieldValue('district_real', null);
+          },
+        ),
+      ),
+      // 真实API地址选择示例 - 城市选择
+      FormConfig(
+        type: FormType.treeSelect,
+        name: 'city_real',
+        label: '城市选择（真实API）',
+        required: false,
+        props: TreeSelectProps<String>(
+          options: const [],
+          title: '选择城市',
+          hintText: '请先选择省份，然后搜索城市',
+          remote: true,
+          remoteFetch: _fetchCities,
+          isCacheData: true,
+          onSingleChanged: (value, data, selectedData) {
+            print('城市选择: $value -> ${selectedData.label}');
+            // 城市改变时，清空区县选择
+            _controller.setFieldValue('district_real', null);
+          },
+        ),
+      ),
+      // 真实API地址选择示例 - 区县选择
+      FormConfig(
+        type: FormType.treeSelect,
+        name: 'district_real',
+        label: '区县选择（真实API）',
+        required: false,
+        props: TreeSelectProps<String>(
+          options: const [],
+          title: '选择区县',
+          hintText: '请先选择城市，然后搜索区县',
+          remote: true,
+          remoteFetch: _fetchDistricts,
+          isCacheData: true,
+          onSingleChanged: (value, data, selectedData) {
+            print('区县选择: $value -> ${selectedData.label}');
+          },
+        ),
+      ),
+      // 真实API地址搜索示例
+      FormConfig(
+        type: FormType.treeSelect,
+        name: 'address_search',
+        label: '地址搜索（真实API）',
+        required: false,
+        props: TreeSelectProps<String>(
+          options: const [],
+          title: '搜索地址',
+          hintText: '输入关键字搜索全国地址',
+          remote: true,
+          remoteFetch: _searchAddresses,
+          isCacheData: false, // 搜索结果不缓存
+          onSingleChanged: (value, data, selectedData) {
+            print('地址搜索选择: $value -> ${selectedData.label}');
+          },
+        ),
+      ),
       // 真实接口文件上传示例
       FormConfig(
         type: FormType.upload,
@@ -412,6 +492,144 @@ class _ConfigFormExamplePageState extends State<ConfigFormExamplePage> {
         actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('确定'))],
       ),
     );
+  }
+
+  // 真实API方法：获取省份列表（用于搜索）
+  Future<List<SelectData<String>>> _fetchProvincesForSearch(String keyword) async {
+    await Future.delayed(Duration(seconds: 2));
+    try {
+      print('搜索省份，关键字: $keyword');
+
+      if (keyword.isEmpty) {
+        // 如果没有关键字，返回顶级省份数据
+        final provinces = await _addressApi.getProvinces();
+        return provinces.map((province) => SelectData<String>(label: province.name, value: province.id ?? '', data: province.id ?? '', hasChildren: province.hasChildren)).toList();
+      } else {
+        // 使用搜索接口
+        final searchResponse = await _addressApi.searchAddresses(keyword: keyword);
+        return searchResponse.list
+            .map((address) => SelectData<String>(label: address.name, value: address.id ?? '', data: address.id ?? '', hasChildren: address.hasChildren))
+            .toList();
+      }
+    } catch (e) {
+      print('搜索省份失败: $e');
+      // 返回模拟数据作为备选
+      return [
+        SelectData<String>(label: '北京市', value: 'beijing', data: 'beijing', hasChildren: true),
+        SelectData<String>(label: '上海市', value: 'shanghai', data: 'shanghai', hasChildren: true),
+        SelectData<String>(label: '广东省', value: 'guangdong', data: 'guangdong', hasChildren: true),
+      ];
+    }
+  }
+
+  // 真实API方法：懒加载省份数据
+  Future<List<SelectData<String>>> _fetchProvincesLazyLoad(SelectData<dynamic> parentNode) async {
+    await Future.delayed(Duration(seconds: 2));
+    try {
+      print('懒加载地址数据，父节点: ${parentNode.label} (${parentNode.value})');
+
+      // 根据父节点ID获取子级数据，确保类型转换正确
+      final parentId = parentNode.value?.toString();
+      final response = await _addressApi.queryAddresses(parentId: parentId);
+
+      return response.map((address) => SelectData<String>(label: address.name, value: address.id ?? '', data: address.id ?? '', hasChildren: address.hasChildren)).toList();
+    } catch (e) {
+      print('懒加载失败: $e');
+      // 失败时返回空列表或模拟数据
+      return [];
+    }
+  }
+
+  // 真实API方法：获取城市列表
+  Future<List<SelectData<String>>> _fetchCities(String keyword) async {
+    try {
+      // 获取当前选中的省份
+      final selectedProvince = _controller.getValue<String?>('province');
+      if (selectedProvince == null || selectedProvince.isEmpty) {
+        print('未选择省份，无法获取城市');
+        return [];
+      }
+
+      print('获取城市列表，省份ID: $selectedProvince，关键字: $keyword');
+
+      // 根据省份ID获取城市数据
+      final cities = await _addressApi.getCities(selectedProvince);
+
+      // 转换为SelectData格式
+      List<SelectData<String>> result = cities
+          .map((city) => SelectData<String>(label: city.name, value: city.id ?? '', data: city.id ?? '', hasChildren: city.hasChildren))
+          .toList();
+
+      // 如果有关键字，进行过滤
+      if (keyword.isNotEmpty) {
+        result = result.where((item) => item.label.contains(keyword)).toList();
+      }
+
+      print('获取到 ${result.length} 个城市');
+      return result;
+    } catch (e) {
+      print('获取城市失败: $e');
+      return [];
+    }
+  }
+
+  // 真实API方法：获取区县列表
+  Future<List<SelectData<String>>> _fetchDistricts(String keyword) async {
+    try {
+      // 获取当前选中的城市
+      final selectedCity = _controller.getValue<String?>('city_real');
+      if (selectedCity == null || selectedCity.isEmpty) {
+        print('未选择城市，无法获取区县');
+        return [];
+      }
+
+      print('获取区县列表，城市ID: $selectedCity，关键字: $keyword');
+
+      // 根据城市ID获取区县数据
+      final districts = await _addressApi.getDistricts(selectedCity);
+
+      // 转换为SelectData格式
+      List<SelectData<String>> result = districts
+          .map((district) => SelectData<String>(label: district.name, value: district.id ?? '', data: district.id ?? '', hasChildren: district.hasChildren))
+          .toList();
+
+      // 如果有关键字，进行过滤
+      if (keyword.isNotEmpty) {
+        result = result.where((item) => item.label.contains(keyword)).toList();
+      }
+
+      print('获取到 ${result.length} 个区县');
+      return result;
+    } catch (e) {
+      print('获取区县失败: $e');
+      return [];
+    }
+  }
+
+  // 真实API方法：搜索地址
+  Future<List<SelectData<String>>> _searchAddresses(String keyword) async {
+    try {
+      if (keyword.isEmpty) {
+        print('搜索关键字为空');
+        return [];
+      }
+
+      print('搜索地址，关键字: $keyword');
+
+      // 使用搜索API
+      final addresses = await _addressApi.searchAddressesByKeyword(keyword);
+
+      // 转换为SelectData格式
+      final result = addresses
+          .map((address) => SelectData<String>(label: '${address.name} (${address.path})', value: address.id ?? '', data: address.id ?? '', hasChildren: address.hasChildren))
+          .toList();
+
+      print('搜索到 ${result.length} 个地址');
+      return result;
+    } catch (e) {
+      print('搜索地址失败: $e');
+      return [];
+    }
   }
 
   @override

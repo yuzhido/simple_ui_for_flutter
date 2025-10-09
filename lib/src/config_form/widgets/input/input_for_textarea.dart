@@ -33,20 +33,21 @@ class _InputForTextareaState extends State<InputForTextarea> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            LabelInfo(widget.config.label, widget.config.required),
+            LabelInfo(config.label, config.required),
             Stack(
               children: [
                 Container(
                   padding: EdgeInsets.only(bottom: 18),
                   child: TextFormField(
-                    initialValue: widget.controller.getValue<String?>(widget.config.name) ?? '',
+                    initialValue: widget.controller.getValue<String?>(config.name) ?? '',
                     keyboardType: TextInputType.multiline,
                     maxLines: 4,
-                    decoration: BasicStyle.inputStyle(widget.config.label),
+                    decoration: BasicStyle.inputStyle(config.label),
                     onChanged: (val) {
-                      widget.controller.setFieldValue(widget.config.name, val);
+                      widget.controller.setFieldValue(config.name, val);
                       widget.onChanged?.call(widget.controller.getFormData());
-                      widget.config.props?.onChanged?.call(val);
+                      config.props?.onChanged?.call(val);
+                      config.props.onChanged?.call(val);
                     },
                   ),
                 ),

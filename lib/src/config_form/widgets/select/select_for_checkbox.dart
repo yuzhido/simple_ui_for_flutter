@@ -23,7 +23,6 @@ class _SelectForCheckboxState extends State<SelectForCheckbox> {
 
   @override
   Widget build(BuildContext context) {
-    final checkboxConfig = widget.config;
     final config = widget.config;
     final errorsInfo = widget.controller.errors;
     return ValueListenableBuilder(
@@ -33,17 +32,17 @@ class _SelectForCheckboxState extends State<SelectForCheckbox> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            LabelInfo(widget.config.label, widget.config.required),
+            LabelInfo(config.label, config.required),
             Stack(
               children: [
                 Container(
                   padding: EdgeInsets.only(bottom: 18),
                   child: InputDecorator(
-                    decoration: BasicStyle.inputStyle(checkboxConfig.label),
+                    decoration: BasicStyle.inputStyle(config.label),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children:
-                          (checkboxConfig.props as CheckboxProps?)?.options.map<Widget>((opt) {
+                          (config.props as CheckboxProps?)?.options.map<Widget>((opt) {
                             return CheckboxListTile(
                               contentPadding: EdgeInsets.zero,
                               dense: true,
@@ -51,6 +50,7 @@ class _SelectForCheckboxState extends State<SelectForCheckbox> {
                               title: Text(opt.label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                               onChanged: (bool? v) {
                                 if (v == null) return;
+                                config.props.onChanged?.call(v);
                               },
                             );
                           }).toList() ??

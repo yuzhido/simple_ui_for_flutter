@@ -52,6 +52,7 @@ class _InputForTextState extends State<InputForText> {
                     onChanged: (val) {
                       widget.controller.setFieldValue(config.name, val);
                       widget.onChanged?.call(widget.controller.getFormData());
+                      config.props.onChanged?.call(val);
                     },
                   ),
                 ),
