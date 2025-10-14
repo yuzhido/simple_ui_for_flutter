@@ -14,76 +14,69 @@ class UploadForFile extends StatefulWidget {
 }
 
 class _UploadForFileState extends State<UploadForFile> {
-  late ValueNotifier<Map<String, String>> countNotifier;
   @override
   void initState() {
-    countNotifier = ValueNotifier(widget.controller.errors);
     super.initState();
+    widget.controller.addListener(_onControllerUpdate);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onControllerUpdate);
+    super.dispose();
+  }
+
+  void _onControllerUpdate() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final props = widget.config.props as UploadProps;
     final errorsInfo = widget.controller.errors;
+    final List<FileUploadModel> files = widget.controller.getValue<List<dynamic>>(widget.config.name)?.whereType<FileUploadModel>().toList() ?? [];
 
-    return ValueListenableBuilder(
-      valueListenable: countNotifier,
-      builder: (context, _, __) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        LabelInfo(widget.config.label, widget.config.required),
+        Stack(
           children: [
-            LabelInfo(widget.config.label, widget.config.required),
-            Stack(
-              children: [
-                Container(
-                  padding: EdgeInsets.only(bottom: 18),
-                  child: FileUpload(
-                    // 数量限制
-                    limit: props.maxFiles ?? -1,
-                    fileListType: props.fileListType,
-                    fileSource: props.fileSource,
-                    // 自动上传：仅当提供了uploadUrl或customUpload时生效
-                    autoUpload: props.autoUpload,
-                    // 上传配置与行为
-                    uploadConfig: UploadConfig(uploadUrl: props.uploadUrl, headers: null),
-                    isRemoveFailFile: props.isRemoveFailFile,
-                    customUpload: props.customUpload,
-                    // 默认文件（显示已上传）
-                    defaultValue: null,
-                    // 回调：统一维护 controller 数据
-                    onFileChange: (current, selected, action) {
-                      // 调用外部回调
-                      props.onFileChange?.call(current, selected, action);
-                    },
-                    // 上传进度回调
-                    onUploadProgress: (file, progress) {
-                      // 调用外部进度回调
-                      props.onUploadProgress?.call(file, progress);
-                    },
-                    // 上传成功回调
-                    onUploadSuccess: (file) {
-                      // 调用外部成功回调
-                      props.onUploadSuccess?.call(file);
-                      // 触发表单变化回调
-                      widget.onChanged?.call(widget.controller.getFormData());
-                      // 更新控制器中的表单数据
-                      widget.controller.setFieldValue(widget.config.name, file.fileInfo);
-                    },
-                    // 上传失败回调
-                    onUploadFailed: (file, error) {
-                      // 调用外部失败回调
-                      props.onUploadFailed?.call(file, error);
-                      print('文件上传失败: ${file.name}, 错误: $error');
-                    },
-                  ),
-                ),
-                if (errorsInfo[widget.config.name] != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(errorsInfo[widget.config.name]!)),
-              ],
+            Container(
+              padding: const EdgeInsets.only(bottom: 18),
+              child: FileUpload(
+                limit: props.maxFiles ?? -1,
+                fileListType: props.fileListType,
+                fileSource: props.fileSource,
+                autoUpload: props.autoUpload,
+                uploadConfig: UploadConfig(uploadUrl: props.uploadUrl, headers: null),
+                isRemoveFailFile: props.isRemoveFailFile,
+                customUpload: props.customUpload,
+                defaultValue: files,
+                onFileChange: (current, selected, action) {
+                  widget.controller.setFieldValue(widget.config.name, selected);
+                  props.onFileChange?.call(current, selected, action);
+                  widget.onChanged?.call(widget.controller.getFormData());
+                },
+                onUploadProgress: (file, progress) {
+                  props.onUploadProgress?.call(file, progress);
+                },
+                onUploadSuccess: (file) {
+                  props.onUploadSuccess?.call(file);
+                },
+                onUploadFailed: (file, error) {
+                  props.onUploadFailed?.call(file, error);
+                  print('文件上传失败: ${file.name}, 错误: $error');
+                },
+              ),
             ),
+            if (errorsInfo[widget.config.name] != null) Positioned(bottom: 0, left: 0, child: ErrorInfo(errorsInfo[widget.config.name]!)),
           ],
-        );
-      },
+        ),
+      ],
     );
   }
 }
