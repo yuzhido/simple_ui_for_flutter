@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:simple_ui/models/index.dart';
 import 'package:simple_ui/models/validator.dart';
@@ -9,15 +10,16 @@ abstract class BaseFieldConfig {
   final dynamic defaultValue;
   final FormValidator? validator;
   final bool isShow;
+  final Key? key;
 
-  const BaseFieldConfig({required this.name, required this.label, this.required = false, this.defaultValue, this.validator, this.isShow = true});
+  const BaseFieldConfig({required this.name, required this.label, this.required = false, this.defaultValue, this.validator, this.isShow = true, this.key});
 }
 
 /// 统一的表单字段配置
 class FormConfig<T> extends BaseFieldConfig {
   final FormType type;
   final T? props;
-  const FormConfig({required this.type, required super.name, required super.label, super.required = false, super.defaultValue, super.validator, super.isShow = true, this.props});
+  const FormConfig({required this.type, required super.name, required super.label, super.required = false, super.defaultValue, super.validator, super.isShow = true, this.props, super.key});
 }
 
 /// 文本字段配置属性

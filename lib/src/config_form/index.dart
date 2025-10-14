@@ -79,35 +79,35 @@ class _ConfigFormState extends State<ConfigForm> {
         children: [
           ...widget.configs.where((config) => config.isShow).map((config) {
             if (config.type == FormType.text) {
-              return InputForText(config: config, controller: _controller, onChanged: widget.onChanged);
+              return InputForText(key: config.key, config: config, controller: _controller, onChanged: widget.onChanged);
             } else if (config.type == FormType.number) {
-              return InputForNumber(config: config, controller: _controller, onChanged: widget.onChanged);
+              return InputForNumber(key: config.key, config: config, controller: _controller, onChanged: widget.onChanged);
             } else if (config.type == FormType.integer) {
-              return InputForInteger(config: config, controller: _controller, onChanged: widget.onChanged);
+              return InputForInteger(key: config.key, config: config, controller: _controller, onChanged: widget.onChanged);
             } else if (config.type == FormType.textarea) {
-              return InputForTextarea(config: config, controller: _controller, onChanged: widget.onChanged);
+              return InputForTextarea(key: config.key, config: config, controller: _controller, onChanged: widget.onChanged);
             } else if (config.type == FormType.radio) {
-              return SelectForRadio(config: config, controller: _controller, onChanged: widget.onChanged);
+              return SelectForRadio(key: config.key, config: config, controller: _controller, onChanged: widget.onChanged);
             } else if (config.type == FormType.checkbox) {
-              return SelectForCheckbox(config: config, controller: _controller, onChanged: widget.onChanged);
+              return SelectForCheckbox(key: config.key, config: config, controller: _controller, onChanged: widget.onChanged);
             } else if (config.type == FormType.select) {
-              return SelectForSelect(config: config, controller: _controller, onChanged: widget.onChanged);
+              return SelectForSelect(key: config.key, config: config, controller: _controller, onChanged: widget.onChanged);
             } else if (config.type == FormType.dropdown) {
-              return SelectForDropdown(config: config, controller: _controller, onChanged: widget.onChanged);
+              return SelectForDropdown(key: config.key, config: config, controller: _controller, onChanged: widget.onChanged);
             } else if (config.type == FormType.treeSelect) {
-              return SelectForTree(config: config, controller: _controller, onChanged: widget.onChanged);
+              return SelectForTree(key: config.key, config: config, controller: _controller, onChanged: widget.onChanged);
             } else if (config.type == FormType.date) {
-              return DateTimeForDate(config: config, controller: _controller, onChanged: widget.onChanged);
+              return DateTimeForDate(key: config.key, config: config, controller: _controller, onChanged: widget.onChanged);
             } else if (config.type == FormType.time) {
-              return DateTimeForTime(config: config, controller: _controller, onChanged: widget.onChanged);
+              return DateTimeForTime(key: config.key, config: config, controller: _controller, onChanged: widget.onChanged);
             } else if (config.type == FormType.datetime) {
-              return DateTimeForDateTime(config: config, controller: _controller, onChanged: widget.onChanged);
+              return DateTimeForDateTime(key: config.key, config: config, controller: _controller, onChanged: widget.onChanged);
             } else if (config.type == FormType.upload) {
-              return UploadForFile(config: config, controller: _controller, onChanged: widget.onChanged);
+              return UploadForFile(key: config.key, config: config, controller: _controller, onChanged: widget.onChanged);
             } else if (config.type == FormType.custom) {
-              return CustomForAny(config: config, controller: _controller, onChanged: widget.onChanged);
+              return CustomForAny(key: config.key, config: config, controller: _controller, onChanged: widget.onChanged);
             } else {
-              return InputForText(config: config, controller: _controller, onChanged: widget.onChanged);
+              return InputForText(key: config.key, config: config, controller: _controller, onChanged: widget.onChanged);
             }
             // return Padding(
             //   padding: const EdgeInsets.only(bottom: 16),
