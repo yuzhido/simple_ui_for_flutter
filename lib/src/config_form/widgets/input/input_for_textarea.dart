@@ -22,6 +22,14 @@ class _InputForTextareaState extends State<InputForTextarea> {
     super.initState();
   }
 
+  FocusNode focusNode = FocusNode();
+  //页面销毁
+  @override
+  void dispose() {
+    super.dispose();
+    focusNode.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final config = widget.config;
@@ -39,6 +47,8 @@ class _InputForTextareaState extends State<InputForTextarea> {
                 Container(
                   padding: EdgeInsets.only(bottom: 18),
                   child: TextFormField(
+                    focusNode: focusNode,
+                    onTapOutside: (e) => {focusNode.unfocus()},
                     initialValue: widget.controller.getValue<String?>(config.name) ?? '',
                     keyboardType: TextInputType.multiline,
                     maxLines: 4,

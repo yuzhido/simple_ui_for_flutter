@@ -23,6 +23,14 @@ class _DateTimeForTimeState extends State<DateTimeForTime> {
     super.initState();
   }
 
+  FocusNode focusNode = FocusNode();
+  //页面销毁
+  @override
+  void dispose() {
+    super.dispose();
+    focusNode.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final config = widget.config;
@@ -40,6 +48,8 @@ class _DateTimeForTimeState extends State<DateTimeForTime> {
                 Container(
                   padding: EdgeInsets.only(bottom: 18),
                   child: TextFormField(
+                    focusNode: focusNode,
+                    onTapOutside: (e) => {focusNode.unfocus()},
                     readOnly: true,
                     controller: controller,
                     decoration: BasicStyle.inputStyle(widget.config.label, suffixIcon: const Icon(Icons.access_time)),

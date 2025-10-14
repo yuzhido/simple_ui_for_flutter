@@ -23,6 +23,14 @@ class _InputForNumberState extends State<InputForNumber> {
     super.initState();
   }
 
+  FocusNode focusNode = FocusNode();
+  //页面销毁
+  @override
+  void dispose() {
+    super.dispose();
+    focusNode.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final config = widget.config;
@@ -40,6 +48,8 @@ class _InputForNumberState extends State<InputForNumber> {
                 Container(
                   padding: EdgeInsets.only(bottom: 18),
                   child: TextFormField(
+                    focusNode: focusNode,
+                    onTapOutside: (e) => {focusNode.unfocus()},
                     initialValue: widget.controller.getValue<dynamic>(config.name)?.toString() ?? '',
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],

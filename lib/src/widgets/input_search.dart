@@ -38,12 +38,14 @@ class _InputSearchState extends State<InputSearch> {
     _searchController = widget.controller ?? TextEditingController();
   }
 
+  FocusNode focusNode = FocusNode();
   @override
   void dispose() {
     // 只有当controller是内部创建的时候才dispose
     if (widget.controller == null) {
       _searchController.dispose();
     }
+    focusNode.dispose();
     super.dispose();
   }
 
@@ -67,6 +69,8 @@ class _InputSearchState extends State<InputSearch> {
                 border: Border.all(color: Colors.grey[200]!),
               ),
               child: TextField(
+                focusNode: focusNode,
+                onTapOutside: (e) => {focusNode.unfocus()},
                 controller: _searchController,
                 decoration: InputDecoration(
                   hintText: widget.hintText ?? (widget.remote ? '请输入关键字搜索' : '请输入关键字筛选'),
