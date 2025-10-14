@@ -46,6 +46,7 @@ class ConfigFormController extends ChangeNotifier {
   bool validate([List<FormConfig>? configs]) {
     _errors.clear();
     bool isValid = true;
+    final List<String> invalidFields = [];
 
     // 使用传入的配置或内部存储的配置
     final configsToValidate = configs ?? _configs;
@@ -60,11 +61,17 @@ class ConfigFormController extends ChangeNotifier {
         if (valid != null) {
           isValid = false;
           _errors[config.name] = valid;
+          invalidFields.add(config.name);
         }
-      } else if (_formData[config.name] == null || _formData[config.name] == '' || (_formData[config.name] is List && _formData[config.name].isEmpty)) {
+      } else if (_formData[config.name] == null || _formData[config.name] == '' || (_formData[config.name] is List && (_formData[config.name] as List).isEmpty)) {
         isValid = false;
         _errors[config.name] = ValidationUtils.getDefaultErrorMessage(config);
+        invalidFields.add(config.name);
       }
+    }
+
+    if (!isValid) {
+      debugPrint('校验失败的字段: ${invalidFields.join(', ')}');
     }
 
     // 触发表单重新验证以显示错误

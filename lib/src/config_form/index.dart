@@ -31,6 +31,18 @@ class _ConfigFormState extends State<ConfigForm> {
     _initializeController();
   }
 
+  @override
+  void didUpdateWidget(covariant ConfigForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.controller != oldWidget.controller) {
+      _controller = widget.controller ?? ConfigFormController();
+      _initializeController();
+    }
+    // The configs can change on each rebuild (e.g. isShow property),
+    // so we need to update them in the controller.
+    _controller.setConfigs(widget.configs);
+  }
+
   void _initializeController() {
     _controller.setOnChanged(widget.onChanged);
     _controller.setConfigs(widget.configs);
