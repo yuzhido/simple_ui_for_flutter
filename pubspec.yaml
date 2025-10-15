@@ -1,6 +1,6 @@
 name: simple_ui
 description: "自定义简单 UI 组件"
-version: 2.0.6
+version: 2.1.0
 homepage: "https://github.com/yuzhido/simple_ui_for_flutter.git"
 repository: "https://github.com/yuzhido/simple_ui_for_flutter.git"
 issue_tracker: "https://github.com/yuzhido/simple_ui_for_flutter.git/issues"

@@ -5,26 +5,20 @@
 ## 特性
 
 - 🌟 [下拉选择](lib/src/dropdown_choose/README.md)（支持本地/远程、单选/多选、可搜索）
-- 🌈 [级联多选](lib/src/cascading_select/README.md)（三级联动，支持多选/单选）
-- 🌳 [树形选择](lib/src/tree_select/README.md)（支持本地/远程、初始值、双向绑定）
+- 🌳 [树形选择](lib/src/tree_select/README.md)（支持本地/远程、懒加载、多选模式）
 - 📤 [文件上传](lib/src/file_upload/README.md)（支持图片、文件、拍照、可自定义触发器）
 - 🔔 [消息通知](lib/src/notice_info/README.md)（支持滚动、点击、样式自定义）
-- 纯 Dart/Flutter 实现，易于二次开发
-
-## 效果展示
-
-<div style="display: flex; justify-content: center;">
-  <img src="lib/ceshi_image.jpg" width="300"   alt="组件效果图1" />
-  <img src="lib/ceshi_image.jpg" width="300"   alt="组件效果图2" />
-  <img src="lib/ceshi_image.jpg" width="300"   alt="组件效果图3" />
-</div>
+- 📱 [二维码扫描](lib/src/scan_qrcode/README.md)（支持相机扫描、相册选择、闪光灯控制）
+- 📊 [表格展示](lib/src/table_show/README.md)（支持固定列、自定义样式、动态行高）
+- ⏳ [加载数据](lib/src/loading_data/README.md)（支持自定义加载状态和样式）
+- 📋 [配置表单](lib/src/config_form/README.md)（动态表单生成，支持多种输入类型）
 
 ## 安装
 
 在 `pubspec.yaml` 添加依赖：
 
 ```yaml
-simple_ui: ^1.0.1
+simple_ui: ^latest
 ```
 
 或使用命令：
@@ -39,74 +33,12 @@ flutter pub add simple_ui
 import 'package:simple_ui/simple_ui.dart';
 ```
 
-## 组件用法示例
-
-### 1. [下拉选择 DropdownChoose](lib/src/dropdown_choose/README.md)
-
-```dart
-DropdownChoose<String>(
-  list: [
-    SelectData(label: '选项1', value: '1'),
-    SelectData(label: '选项2', value: '2'),
-  ],
-  multiple: false, // 单选/多选
-  filterable: true, // 可搜索
-  onSingleSelected: (val) => print(val.label),
-)
-```
-
-### 2. [级联多选 CascadingSelect](lib/src/cascading_select/README.md)
-
-```dart
-CascadingSelect<String>(
-  options: [
-    CascadingItem(label: '省份', value: 'p', children: [
-      CascadingItem(label: '城市', value: 'c', children: [
-        CascadingItem(label: '区县', value: 'a'),
-      ]),
-    ]),
-  ],
-  multiple: true, // 多选/单选
-  onConfirm: (selected) => print(selected.map((e) => e.label)),
-)
-```
-
-### 3. [树形选择 TreeSelect](lib/src/tree_select/README.md)
-
-```dart
-TreeSelect(
-  data: [
-    TreeNode(label: '节点1', id: '1', children: [TreeNode(label: '子节点', id: '1-1')]),
-  ],
-  placeholder: '请选择',
-  onSelect: (node) => print(node.label),
-)
-```
-
-### 4. [文件上传 UploadFile](lib/src/file_upload/README.md)
-
-```dart
-UploadFile(
-  allowedSources: {UploadSource.image, UploadSource.file, UploadSource.camera},
-  onSelected: (result) => print(result.name),
-)
-```
-
-### 5. [消息通知 NoticeInfo](lib/src/notice_info/README.md)
-
-```dart
-NoticeInfo(
-  message: '这是一条消息通知',
-  enableScroll: true, // 超长自动滚动
-  onTap: () => print('点击了通知'),
-)
-```
-
 ## 依赖
 
 - file_picker
 - image_picker
 - flutter_svg
+- mobile_scanner
 
 ## 贡献
 

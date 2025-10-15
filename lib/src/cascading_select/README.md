@@ -1,206 +1,225 @@
 # CascadingSelect 级联选择组件
 
-一个功能强大的三级级联选择组件，支持多选和单选模式，适用于省市区选择、分类选择等场景。
+一个功能强大的三级级联选择组件，支持多选和单选两种模式。
 
-## 特性
+## 示例展示
 
-- 🏗️ **三级联动**：支持一级 → 二级 → 三级的级联选择
-- 🎯 **多选/单选**：灵活的选择模式
-- 🚫 **不限选项**：支持"不限"选项（与具体选项互斥）
-- 🎨 **自定义数据**：支持泛型，可携带额外数据
-- 📱 **移动端优化**：适配移动端交互体验
+<img src="Snipaste_2025-10-15_14-05-30.png" width="300" alt="级联选择基本界面" />
+<img src="Snipaste_2025-10-15_14-05-45.png" width="300" alt="级联选择多选模式" />
+<img src="Snipaste_2025-10-15_14-06-00.png" width="300" alt="级联选择单选模式" />
 
-## 基本用法
+## 功能特性
 
-### 多选模式（默认）
+- 🎯 支持三级级联数据结构
+- 🔄 支持多选和单选两种模式
+- 📱 响应式设计，支持横向滚动
+- 🎨 美观的UI设计，支持自定义样式
+- ✅ 支持"不限"选项（多选模式）
+- 🔍 实时显示选择状态
 
-```dart
-CascadingSelect<String>(
-  title: '地区选择',
-  multiple: true,
-  showUnlimited: true,
-  options: [
-    CascadingItem(
-      label: '广东省',
-      value: 'gd',
-      children: [
-        CascadingItem(
-          label: '广州市',
-          value: 'gz',
-          children: [
-            CascadingItem(label: '天河区', value: 'th'),
-            CascadingItem(label: '越秀区', value: 'yx'),
-            CascadingItem(label: '海珠区', value: 'hz'),
-          ],
-        ),
-        CascadingItem(
-          label: '深圳市',
-          value: 'sz',
-          children: [
-            CascadingItem(label: '南山区', value: 'ns'),
-            CascadingItem(label: '福田区', value: 'ft'),
-          ],
-        ),
-      ],
-    ),
-    CascadingItem(
-      label: '北京市',
-      value: 'bj',
-      children: [
-        CascadingItem(
-          label: '北京市',
-          value: 'bjc',
-          children: [
-            CascadingItem(label: '朝阳区', value: 'cy'),
-            CascadingItem(label: '海淀区', value: 'hd'),
-          ],
-        ),
-      ],
-    ),
-  ],
-  onConfirm: (selected) {
-    print('选中的区域: ${selected.map((e) => e.label).join(', ')}');
-  },
-)
-```
+## 使用示例
 
-### 单选模式
+### 基本用法
 
 ```dart
-CascadingSelect<String>(
-  title: '分类选择',
-  multiple: false,
-  showUnlimited: false,
-  options: [
-    CascadingItem(
-      label: '电子产品',
-      value: 'electronics',
-      children: [
-        CascadingItem(
-          label: '手机',
-          value: 'phone',
-          children: [
-            CascadingItem(label: 'iPhone', value: 'iphone'),
-            CascadingItem(label: 'Android', value: 'android'),
-          ],
-        ),
-        CascadingItem(
-          label: '电脑',
-          value: 'computer',
-          children: [
-            CascadingItem(label: '笔记本', value: 'laptop'),
-            CascadingItem(label: '台式机', value: 'desktop'),
-          ],
-        ),
-      ],
-    ),
-  ],
-  onConfirm: (selected) {
-    if (selected.isNotEmpty) {
-      print('选中路径: ${selected.map((e) => e.label).join(' → ')}');
-    }
-  },
-)
-```
+import 'package:flutter/material.dart';
+import 'package:simple_ui_for_flutter/simple_ui_for_flutter.dart';
 
-### 带默认选中值
-
-```dart
-CascadingSelect<String>(
-  title: '地区选择',
-  multiple: true,
-  defaultSelectedValues: ['th', 'yx', 'ns'], // 默认选中天河区、越秀区、南山区
-  options: [
-    // ... 选项数据
-  ],
-  onConfirm: (selected) {
-    print('选中的区域: ${selected.map((e) => e.label).join(', ')}');
-  },
-)
-```
-
-### 携带额外数据
-
-```dart
-class RegionData {
-  final String code;
-  final String pinyin;
-  
-  RegionData({required this.code, required this.pinyin});
+class CascadingSelectExample extends StatefulWidget {
+  @override
+  _CascadingSelectExampleState createState() => _CascadingSelectExampleState();
 }
 
-CascadingSelect<RegionData>(
-  title: '地区选择',
-  options: [
-    CascadingItem(
-      label: '广东省',
-      value: 'gd',
-      extra: RegionData(code: '440000', pinyin: 'guangdong'),
-      children: [
-        CascadingItem(
-          label: '广州市',
-          value: 'gz',
-          extra: RegionData(code: '440100', pinyin: 'guangzhou'),
+class _CascadingSelectExampleState extends State<CascadingSelectExample> {
+  List<CascadingItem<String>> _buildOptions() {
+    return [
+      CascadingItem(
+        label: '广东省',
+        value: 'guangdong',
+        children: [
+          CascadingItem(
+            label: '广州市',
+            value: 'guangzhou',
+            children: [
+              CascadingItem(label: '天河区', value: 'tianhe'),
+              CascadingItem(label: '越秀区', value: 'yuexiu'),
+              CascadingItem(label: '海珠区', value: 'haizhu'),
+            ],
+          ),
+          CascadingItem(
+            label: '深圳市',
+            value: 'shenzhen',
+            children: [
+              CascadingItem(label: '南山区', value: 'nanshan'),
+              CascadingItem(label: '福田区', value: 'futian'),
+              CascadingItem(label: '罗湖区', value: 'luohu'),
+            ],
+          ),
+        ],
+      ),
+      CascadingItem(
+        label: '北京市',
+        value: 'beijing',
+        children: [
+          CascadingItem(
+            label: '北京市',
+            value: 'beijing_city',
+            children: [
+              CascadingItem(label: '朝阳区', value: 'chaoyang'),
+              CascadingItem(label: '海淀区', value: 'haidian'),
+              CascadingItem(label: '西城区', value: 'xicheng'),
+            ],
+          ),
+        ],
+      ),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('级联选择示例')),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
           children: [
-            CascadingItem(
-              label: '天河区',
-              value: 'th',
-              extra: RegionData(code: '440106', pinyin: 'tianhe'),
+            // 多选模式
+            CascadingSelect<String>(
+              options: _buildOptions(),
+              title: '选择地区（多选）',
+              multiple: true,
+              showUnlimited: true,
+              defaultSelectedValues: ['tianhe', 'nanshan'],
+              onConfirm: (selected) {
+                print('多选结果: ${selected.map((e) => e.label).join(', ')}');
+              },
+            ),
+            SizedBox(height: 20),
+            // 单选模式
+            CascadingSelect<String>(
+              options: _buildOptions(),
+              title: '选择地区（单选）',
+              multiple: false,
+              onConfirm: (selected) {
+                print('单选路径: ${selected.map((e) => e.label).join(' -> ')}');
+              },
             ),
           ],
         ),
-      ],
-    ),
-  ],
-  onConfirm: (selected) {
-    for (var item in selected) {
-      print('${item.label}: ${item.extra?.code}');
-    }
-  },
-)
-```
-
-## API 参数
-
-| 参数 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `options` | `List<CascadingItem<T>>` | 必填 | 级联数据源 |
-| `title` | `String` | `'三级联选多选'` | 顶部标题 |
-| `multiple` | `bool` | `true` | 选择模式：true=多选，false=单选 |
-| `showUnlimited` | `bool` | `true` | 是否显示"不限"选项（仅多选模式） |
-| `defaultSelectedValues` | `List<dynamic>?` | `null` | 默认选中的第三级值列表 |
-| `onConfirm` | `Function(List<CascadingItem<T>>)?` | `null` | 确认选择回调 |
-
-## CascadingItem 数据结构
-
-```dart
-class CascadingItem<T> {
-  final String label;        // 显示文本
-  final dynamic value;       // 值（用于选中判断）
-  final T? extra;           // 额外数据
-  final List<CascadingItem<T>> children; // 子级数据
+      ),
+    );
+  }
 }
 ```
 
-## 选择模式说明
+### 带额外数据的用法
 
-### 多选模式 (`multiple: true`)
-- 在第三级进行多选
-- 支持"不限"选项（与具体选项互斥）
-- `onConfirm` 返回所有选中的第三级项
+```dart
+class ExtraDataExample extends StatelessWidget {
+  List<CascadingItem<Map<String, dynamic>>> _buildOptionsWithExtra() {
+    return [
+      CascadingItem(
+        label: '电子产品',
+        value: 'electronics',
+        extra: {'icon': Icons.phone_android, 'color': Colors.blue},
+        children: [
+          CascadingItem(
+            label: '手机',
+            value: 'phone',
+            extra: {'price_range': '1000-8000'},
+            children: [
+              CascadingItem(
+                label: 'iPhone',
+                value: 'iphone',
+                extra: {'brand': 'Apple', 'popularity': 95},
+              ),
+              CascadingItem(
+                label: '华为',
+                value: 'huawei',
+                extra: {'brand': 'Huawei', 'popularity': 88},
+              ),
+            ],
+          ),
+        ],
+      ),
+    ];
+  }
 
-### 单选模式 (`multiple: false`)
-- 每级单选，不自动选中下级
-- 需要手动逐级选择
-- `onConfirm` 返回当前选中的完整路径 [一级, 二级, 三级]
+  @override
+  Widget build(BuildContext context) {
+    return CascadingSelect<Map<String, dynamic>>(
+      options: _buildOptionsWithExtra(),
+      title: '选择产品',
+      onConfirm: (selected) {
+        for (var item in selected) {
+          print('选中: ${item.label}, 额外数据: ${item.extra}');
+        }
+      },
+    );
+  }
+}
+```
+
+## API 参考
+
+### CascadingSelect
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `options` | `List<CascadingItem<T>>` | **必需** | 三级级联数据源 |
+| `title` | `String` | `'三级联选多选'` | 弹窗顶部标题 |
+| `multiple` | `bool` | `true` | 选择模式：true=多选，false=单选 |
+| `showUnlimited` | `bool` | `true` | 是否显示"不限"选项（仅多选模式有效） |
+| `defaultSelectedValues` | `List<dynamic>?` | `null` | 默认选中的第三级value列表（仅多选模式） |
+| `onConfirm` | `Function(List<CascadingItem<T>>)?` | `null` | 确认选择回调 |
+
+### CascadingItem
+
+| 属性 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `label` | `String` | **必需** | 显示文本 |
+| `value` | `dynamic` | **必需** | 选项值，用于唯一标识 |
+| `extra` | `T?` | `null` | 额外数据，可以是任意类型 |
+| `children` | `List<CascadingItem<T>>` | `[]` | 子级选项列表 |
+
+## 回调说明
+
+### onConfirm 回调
+
+- **多选模式**：返回所有选中的第三级项的列表
+- **单选模式**：返回当前选中的路径 `[一级, 二级, 三级]`
+
+```dart
+onConfirm: (List<CascadingItem<T>> selected) {
+  if (multiple) {
+    // 多选模式：selected 包含所有选中的第三级项
+    print('选中的项目: ${selected.map((e) => e.label).join(', ')}');
+  } else {
+    // 单选模式：selected 包含选择路径 [一级, 二级, 三级]
+    print('选择路径: ${selected.map((e) => e.label).join(' -> ')}');
+  }
+}
+```
+
+## 样式定制
+
+组件使用了预定义的颜色和样式，主要包括：
+
+- 主色调：`#007AFF`（iOS蓝）
+- 背景色：白色和浅灰色渐变
+- 圆角：8px 和 10px
+- 阴影：轻微的投影效果
+
+如需自定义样式，可以通过修改组件源码中的颜色常量来实现。
 
 ## 注意事项
 
-1. 数据结构必须是三级结构：一级 → 二级 → 三级
-2. 每个 `CascadingItem` 的 `value` 必须唯一
-3. `defaultSelectedValues` 仅在多选模式下有效
-4. "不限"选项仅在多选模式且 `showUnlimited: true` 时显示
+1. **数据结构**：确保数据是三级结构，每级都有 `label` 和 `value` 属性
+2. **唯一性**：每个选项的 `value` 应该是唯一的，用于标识选项
+3. **性能**：对于大量数据，建议进行分页或懒加载处理
+4. **多选模式**："不限"选项与具体选项互斥，选择"不限"会清除该二级下的所有具体选项
+5. **单选模式**：每级都是单选，不会自动选中下级选项
 
-## 示例
+## 完整示例
 
-更多使用示例请参考 [example](../../../example/lib/pages/) 目录中的相关示例页面。
+查看 `example/` 目录中的完整示例代码，了解更多使用场景和最佳实践。
