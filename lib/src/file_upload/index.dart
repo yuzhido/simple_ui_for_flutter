@@ -30,6 +30,9 @@ class FileUpload extends StatefulWidget {
   /// 自定义上传文件列表样式
   final Widget? customFileList;
 
+  /// 自定义上传区域内容（当 fileListType 为 custom 时使用）
+  final Widget Function(VoidCallback onTap)? customAreaContent;
+
   /// 上传文件列表类型
   final FileListType fileListType;
 
@@ -63,6 +66,7 @@ class FileUpload extends StatefulWidget {
   const FileUpload({
     super.key,
     this.customFileList,
+    this.customAreaContent,
     this.fileListType = FileListType.card,
     this.onFileChange,
     this.onUploadSuccess,
@@ -297,9 +301,12 @@ class _FileUploadState extends State<FileUpload> {
         final width = (maxWidth - 20) / 3;
         // 合并所有文件列表用于显示，新选择的文件显示在最后
         final allFiles = [...selectedFiles, ..._tempFiles];
-        // return isShowCardTextInfo(allFiles, width);
+        
+        // 根据文件列表类型返回不同的布局
         if (widget.fileListType == FileListType.card) {
           return buildCardList(allFiles, width);
+        } else if (widget.fileListType == FileListType.custom) {
+          return buildCustomList(allFiles);
         } else {
           return buildTextInfoList(allFiles);
         }
@@ -339,6 +346,49 @@ class _FileUploadState extends State<FileUpload> {
             onTap: () => handleFileSelection(context, widget.fileSource, _addFileToList),
             child: CardUpload(width: width, uploadIcon: widget.uploadIcon, uploadText: widget.uploadText),
           ),
+      ],
+    );
+  }
+
+  /// 自定义样式列表
+  Widget buildCustomList(List<FileUploadModel> allFiles) {
+    return Column(
+      children: [
+        // 文件列表展示区域（显示在上方）
+        if (widget.showFileList && allFiles.isNotEmpty)
+          widget.customFileList ?? buildCustomFileList(allFiles),
+        
+        // 自定义上传区域（显示在下方）
+        if (widget.customAreaContent != null && isShowButton(allFiles, widget.fileListType, widget.limit))
+          widget.customAreaContent!(() => handleFileSelection(context, widget.fileSource, _addFileToList)),
+      ],
+    );
+  }
+
+  /// 自定义文件列表（不包含上传按钮）
+  Widget buildCustomFileList(List<FileUploadModel> allFiles) {
+    return Column(
+      children: [
+        ...allFiles.asMap().entries.map((entry) {
+          final index = entry.key;
+          final fileModel = entry.value;
+          final isPending = index >= selectedFiles.length;
+          final actualIndex = isPending ? index - selectedFiles.length : index;
+
+          // 为每个文件项创建唯一的Key，基于文件ID或路径
+          final uniqueKey = Key('custom_file_${fileModel.fileInfo?.id ?? fileModel.path}_${fileModel.status.toString()}');
+
+          return GestureDetector(
+            key: uniqueKey,
+            onTap: () {
+              // 点击文件项开始上传
+              if (fileModel.status == UploadStatus.pending && isPending) {
+                _startUpload(fileModel);
+              }
+            },
+            child: FilePickerUtils.buildTextInfoFileItem(fileModel, actualIndex, (idx) => _removeFileFromList(idx, fromPending: isPending)),
+          );
+        }),
       ],
     );
   }

@@ -55,6 +55,7 @@ class _UploadForFileState extends State<UploadForFile> {
                 uploadConfig: UploadConfig(uploadUrl: props.uploadUrl, headers: null),
                 isRemoveFailFile: props.isRemoveFailFile,
                 customUpload: props.customUpload,
+                customAreaContent: props.customAreaContent,
                 defaultValue: files,
                 onFileChange: (current, selected, action) {
                   widget.controller.setFieldValue(widget.config.name, selected);

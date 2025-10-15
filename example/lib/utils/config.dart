@@ -6,7 +6,8 @@ class Config {
   /// - 'http://127.0.0.1:3000' (本地回环)
   /// - 'https://jsonplaceholder.typicode.com' (测试API)
   // static const String baseUrl = 'http://192.168.1.19:3000';
-  static const String baseUrl = 'http://192.168.8.188:3000';
+  // static const String baseUrl = 'http://192.168.8.188:3000';
+  static const String baseUrl = 'http://192.168.8.147:3000';
 
   /// 请求超时时间（毫秒）
   static const int timeout = 15000; // 增加到15秒

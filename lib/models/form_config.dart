@@ -171,6 +171,9 @@ class UploadProps {
   // 自定义上传
   final Future<FileUploadModel?> Function(String filePath, Function(double) onProgress)? customUpload;
 
+  /// 自定义上传区域内容（当 fileListType 为 custom 时使用）
+  final Widget Function(VoidCallback onTap)? customAreaContent;
+
   /// 参数3: 操作类型 ('add' 或 'remove')
   final Function(FileUploadModel currentFile, List<FileUploadModel> selectedFiles, String action)? onFileChange;
 
@@ -193,6 +196,7 @@ class UploadProps {
     this.autoUpload = true,
     this.isRemoveFailFile = false,
     this.customUpload,
+    this.customAreaContent,
     this.onFileChange,
     this.onUploadProgress,
     this.onUploadSuccess,

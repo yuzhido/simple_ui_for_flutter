@@ -1,4 +1,3 @@
-import 'package:example/pages/form_builder_demo/index.dart';
 import 'package:example/pages/loading_data/index.dart';
 import 'package:example/pages/user_list/index.dart';
 import 'package:flutter/material.dart';
@@ -16,13 +15,6 @@ class _FormBuilderExamplePageState extends State<FormBuilderExamplePage> {
       appBar: AppBar(title: const Text('表单构件示例')),
       body: Column(
         children: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const FormBuilderDemoPage()));
-            },
-            child: Text('跳转查看数据驱动表单（FormBuilder）示例'),
-          ),
-          const SizedBox(height: 12),
           ElevatedButton(
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const UserListPage()));

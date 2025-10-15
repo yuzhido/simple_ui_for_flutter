@@ -1,8 +1,8 @@
+import 'package:example/api/address_api.dart';
+import 'package:example/utils/config.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_ui/simple_ui.dart';
 import 'package:dio/dio.dart';
-import '../../../utils/config.dart';
-import '../../api/index.dart';
 
 class ConfigFormExamplePage extends StatefulWidget {
   const ConfigFormExamplePage({super.key});
@@ -164,6 +164,60 @@ class _ConfigFormExamplePageState extends State<ConfigFormExamplePage> {
           isCacheData: false, // 搜索结果不缓存
           onSingleChanged: (value, data, selectedData) {
             print('地址搜索选择: $value -> ${selectedData.label}');
+          },
+        ),
+      ),
+      // 自定义上传区域示例（真实接口）
+      FormConfig(
+        type: FormType.upload,
+        name: 'customAreaUpload',
+        label: '自定义上传区域（真实接口）',
+        required: false,
+        props: UploadProps(
+          maxFiles: 3,
+          fileListType: FileListType.custom,
+          fileSource: FileSource.all,
+          autoUpload: true,
+          isRemoveFailFile: false,
+          // 使用真实接口上传
+          customUpload: _realUploadFunction,
+          // 自定义上传区域内容
+          customAreaContent: (onTap) => GestureDetector(
+            onTap: onTap,
+            child: Container(
+              width: double.infinity,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                border: Border.all(color: Colors.blue.shade200, width: 2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.cloud_upload_outlined, size: 48, color: Colors.blue.shade400),
+                  const SizedBox(height: 8),
+                  Text(
+                    '拖拽文件到此处或点击选择',
+                    style: TextStyle(color: Colors.blue.shade600, fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 4),
+                  Text('支持多种文件格式，最多3个文件', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                ],
+              ),
+            ),
+          ),
+          // 上传进度回调
+          onUploadProgress: (file, progress) {
+            print('文件 ${file.name} 上传进度: ${(progress * 100).toStringAsFixed(1)}%');
+          },
+          // 上传成功回调
+          onUploadSuccess: (file) {
+            print('文件 ${file.name} 上传成功');
+          },
+          // 上传失败回调
+          onUploadFailed: (file, error) {
+            print('文件 ${file.name} 上传失败: $error');
           },
         ),
       ),
