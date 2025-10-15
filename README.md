@@ -4,12 +4,20 @@
 
 ## 特性
 
-- 🌟 下拉选择（支持本地/远程、单选/多选、可搜索）
-- 🌈 级联多选（三级联动，支持多选/单选）
-- 🌳 树形选择（支持本地/远程、初始值、双向绑定）
-- 📤 文件上传（支持图片、文件、拍照、可自定义触发器）
-- 🔔 消息通知（支持滚动、点击、样式自定义）
+- 🌟 [下拉选择](lib/src/dropdown_choose/README.md)（支持本地/远程、单选/多选、可搜索）
+- 🌈 [级联多选](lib/src/cascading_select/README.md)（三级联动，支持多选/单选）
+- 🌳 [树形选择](lib/src/tree_select/README.md)（支持本地/远程、初始值、双向绑定）
+- 📤 [文件上传](lib/src/file_upload/README.md)（支持图片、文件、拍照、可自定义触发器）
+- 🔔 [消息通知](lib/src/notice_info/README.md)（支持滚动、点击、样式自定义）
 - 纯 Dart/Flutter 实现，易于二次开发
+
+## 效果展示
+
+<div style="display: flex; justify-content: center;">
+  <img src="lib/ceshi_image.jpg" width="300"   alt="组件效果图1" />
+  <img src="lib/ceshi_image.jpg" width="300"   alt="组件效果图2" />
+  <img src="lib/ceshi_image.jpg" width="300"   alt="组件效果图3" />
+</div>
 
 ## 安装
 
@@ -33,7 +41,7 @@ import 'package:simple_ui/simple_ui.dart';
 
 ## 组件用法示例
 
-### 1. 下拉选择 DropdownChoose
+### 1. [下拉选择 DropdownChoose](lib/src/dropdown_choose/README.md)
 
 ```dart
 DropdownChoose<String>(
@@ -47,7 +55,7 @@ DropdownChoose<String>(
 )
 ```
 
-### 2. 级联多选 CascadingSelect
+### 2. [级联多选 CascadingSelect](lib/src/cascading_select/README.md)
 
 ```dart
 CascadingSelect<String>(
@@ -63,7 +71,7 @@ CascadingSelect<String>(
 )
 ```
 
-### 3. 树形选择 TreeSelect
+### 3. [树形选择 TreeSelect](lib/src/tree_select/README.md)
 
 ```dart
 TreeSelect(
@@ -75,7 +83,7 @@ TreeSelect(
 )
 ```
 
-### 4. 文件上传 UploadFile
+### 4. [文件上传 UploadFile](lib/src/file_upload/README.md)
 
 ```dart
 UploadFile(
@@ -84,7 +92,7 @@ UploadFile(
 )
 ```
 
-### 5. 消息通知 NoticeInfo
+### 5. [消息通知 NoticeInfo](lib/src/notice_info/README.md)
 
 ```dart
 NoticeInfo(
