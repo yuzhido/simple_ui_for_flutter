@@ -134,7 +134,7 @@ class DropdownProps<T> {
   // 是否显示新增按钮
   final bool showAdd;
   // 新增回调
-  final void Function(String)? onAdd;
+  final Future<bool?> Function(String)? onAdd;
   // 占位提示
   final String tips;
   // 单选回调

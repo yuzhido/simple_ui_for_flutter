@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:simple_ui/models/select_data.dart';
-import 'package:simple_ui/src/dropdown_choose/index.dart';
+import 'package:simple_ui/simple_ui.dart';
 import '../../api/user_api.dart';
 import '../../api/models/user.dart';
+import '../../api/hobby_api.dart';
+import '../../utils/add_data/add_hobby.dart';
 
 class RemoteSearchDemoPage extends StatefulWidget {
   const RemoteSearchDemoPage({super.key});
@@ -14,6 +16,7 @@ class _RemoteSearchDemoPageState extends State<RemoteSearchDemoPage> {
   // 选中的值
   SelectData<User>? selectedRealUser; // 真实API用户
   SelectData<User>? selectedAlwaysRefreshUser; // 总是刷新的用户
+  SelectData<Hobby>? selectedHobby; // 真实API爱好
 
   // 真实API用户搜索
   Future<List<SelectData<User>>> _searchRealUsers(String keyword) async {
@@ -101,6 +104,92 @@ class _RemoteSearchDemoPageState extends State<RemoteSearchDemoPage> {
     }
   }
 
+  // 真实API爱好搜索
+  Future<List<SelectData<Hobby>>> _searchHobbies(String keyword) async {
+    // 模拟网络延迟
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    try {
+      print('开始搜索爱好，关键字: $keyword');
+
+      // 调用真实API
+      final response = await HobbyApi.getHobbyList(
+        page: 1,
+        limit: 20, // 限制返回数量
+        keyword: keyword.isNotEmpty ? keyword : null,
+      );
+
+      print('爱好API响应: $response');
+
+      // 更安全的解析API响应
+      final bool success = response['success'] == true;
+      final dynamic data = response['data'];
+
+      if (success && data is List) {
+        // data 直接是爱好数组
+        final List<SelectData<Hobby>> result = [];
+
+        for (int i = 0; i < data.length; i++) {
+          try {
+            final dynamic hobbyJson = data[i];
+            if (hobbyJson is Map<String, dynamic>) {
+              final hobby = Hobby.fromJson(hobbyJson);
+
+              // 确保爱好数据有效
+              if (hobby.name != null && hobby.name!.isNotEmpty) {
+                result.add(SelectData<Hobby>(label: hobby.name!, value: hobby.id ?? 'hobby_$i', data: hobby));
+              }
+            }
+          } catch (e) {
+            print('解析爱好数据失败 (索引 $i): $e');
+            continue; // 跳过这个爱好，继续处理下一个
+          }
+        }
+
+        print('成功解析 ${result.length} 个爱好');
+        return result;
+      } else if (success && data is Map<String, dynamic>) {
+        // data 是对象，包含 list 字段
+        final dynamic listData = data['list'];
+
+        if (listData is List) {
+          final List<SelectData<Hobby>> result = [];
+
+          for (int i = 0; i < listData.length; i++) {
+            try {
+              final dynamic hobbyJson = listData[i];
+              if (hobbyJson is Map<String, dynamic>) {
+                final hobby = Hobby.fromJson(hobbyJson);
+
+                // 确保爱好数据有效
+                if (hobby.name != null && hobby.name!.isNotEmpty) {
+                  result.add(SelectData<Hobby>(label: hobby.name!, value: hobby.id ?? 'hobby_$i', data: hobby));
+                }
+              }
+            } catch (e) {
+              print('解析爱好数据失败 (索引 $i): $e');
+              continue; // 跳过这个爱好，继续处理下一个
+            }
+          }
+
+          print('成功解析 ${result.length} 个爱好');
+          return result;
+        } else {
+          print('API返回的list字段不是数组类型: ${listData.runtimeType}');
+          return [];
+        }
+      } else {
+        print('API返回失败或data字段格式不正确: success=$success, data=${data.runtimeType}');
+        return [];
+      }
+    } catch (e, stackTrace) {
+      // 网络错误或其他异常，返回空列表
+      print('搜索爱好失败: $e');
+      print('堆栈跟踪: $stackTrace');
+      return [];
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -171,6 +260,26 @@ class _RemoteSearchDemoPageState extends State<RemoteSearchDemoPage> {
             ),
 
             const SizedBox(height: 24),
+
+            // 爱好远程搜索示例
+            _buildSectionTitle('爱好远程搜索', Icons.favorite),
+            const SizedBox(height: 8),
+            _buildDescription('使用真实的HobbyApi.getHobbyList接口搜索爱好数据'),
+            const SizedBox(height: 12),
+            DropdownChoose<Hobby>(
+              remote: true,
+              showAdd: true,
+              onAdd: (val) => showAddHobbyDialog(context, initialName: val),
+              remoteSearch: _searchHobbies,
+              defaultValue: selectedHobby,
+              onSingleChanged: (value, data, selectData) {
+                setState(() {
+                  selectedHobby = selectData;
+                });
+              },
+              tips: '请输入爱好关键字搜索',
+            ),
+            _buildResultCard('选中的爱好', selectedHobby != null ? selectedHobby!.data.name ?? '未命名' : '未选择', Colors.purple),
 
             // alwaysRefresh 示例
             _buildSectionTitle('总是刷新数据示例', Icons.refresh),

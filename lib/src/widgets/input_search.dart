@@ -75,7 +75,19 @@ class _InputSearchState extends State<InputSearch> {
                 decoration: InputDecoration(
                   hintText: widget.hintText ?? (widget.remote ? '请输入关键字搜索' : '请输入关键字筛选'),
                   hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-                  border: InputBorder.none,
+                  // 设置所有状态的边框颜色
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: const Color(0xFFeeeeee), width: 1),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: const Color(0xFFeeeeee), width: 1),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: const Color(0xFF007AFF), width: 2),
+                  ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   prefixIcon: Icon(Icons.search, color: Colors.grey[400], size: 20),
                   suffixIcon: widget.showClearButton && _searchController.text.isNotEmpty

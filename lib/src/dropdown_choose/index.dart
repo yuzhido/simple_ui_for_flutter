@@ -17,7 +17,7 @@ class DropdownChoose<T> extends StatefulWidget {
   // 是否多选
   final bool multiple;
   // 新增回调
-  final Function(String)? onAdd;
+  final Future<bool?> Function(String)? onAdd;
   // 单选模式回调 - 参数: (选中的value值, 选中的data值, 选中的完整数据)
   final void Function(dynamic, T, SelectData<T>)? onSingleChanged;
   // 多选模式回调 - 参数: (选中的value值列表, 选中的data值列表, 选中的完整数据列表)

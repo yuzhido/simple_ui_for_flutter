@@ -24,7 +24,7 @@ class ChooseContent<T> extends StatefulWidget {
   // 是否多选
   final bool multiple;
   // 新增回调
-  final Function(String)? onAdd;
+  final Future<bool?> Function(String)? onAdd;
   // 选中回调
   final void Function(SelectData<T>?, List<SelectData<T>>)? onSelected;
   // 默认展示的数据
@@ -268,11 +268,25 @@ class _ChooseContentState<T> extends State<ChooseContent<T>> {
                             final bool isFooter = showAddFooter && index == _filteredList.length;
                             // 必须输入了关键字查询
                             if (isFooter && _searchController.text.trim() != '') {
+                              final String kw = _searchController.text.trim();
                               return InkWell(
-                                onTap: () {
-                                  widget.onAdd?.call(_searchController.text.trim());
+                                onTap: () async {
+                                  // 调用新增回调，并在返回true时自动刷新列表（触发一次搜索）
+                                  final bool? ok = await widget.onAdd?.call(kw);
+                                  if (ok == true) {
+                                    await _handleRemoteFetch();
+                                  }
                                 },
-                                child: OnAdd(onAdd: widget.onAdd, kw: _searchController.text.trim()),
+                                // 内部显示的“去新增”按钮也使用同样的逻辑
+                                child: OnAdd(
+                                  onAdd: (String innerKw) async {
+                                    final bool? ok = await widget.onAdd?.call(innerKw);
+                                    if (ok == true) {
+                                      await _handleRemoteFetch();
+                                    }
+                                  },
+                                  kw: kw,
+                                ),
                               );
                             }
                             // 如果是footer但没有输入关键字，返回空容器

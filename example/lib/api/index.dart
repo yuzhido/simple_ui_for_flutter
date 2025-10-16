@@ -28,6 +28,7 @@ export 'school_api.dart';
 export 'city_api.dart';
 export 'area_location_api.dart';
 export 'address_api.dart';
+export 'hobby_api.dart';
 
 // 导出使用示例
 export 'example_usage.dart';
