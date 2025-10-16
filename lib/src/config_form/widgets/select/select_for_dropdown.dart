@@ -32,7 +32,7 @@ class _DropdownFieldContentState<T> extends State<SelectForDropdown<T>> {
     return ValueListenableBuilder(
       valueListenable: countNotifier,
       builder: (context, _, __) {
-        final dynamic currentValue = widget.controller.getValue<dynamic>(config.name) ?? '';
+        // final dynamic currentValue = widget.controller.getValue<dynamic>(config.name) ?? '';
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -43,7 +43,7 @@ class _DropdownFieldContentState<T> extends State<SelectForDropdown<T>> {
                 Container(
                   padding: EdgeInsets.only(bottom: 18),
                   child: DropdownChoose<dynamic>(
-                    key: ValueKey('dropdown_${config.name}_$currentValue'), // 使用key强制重新创建组件
+                    key: ValueKey('dropdown_${config.name}'), // 使用稳定的key，避免因值变化导致组件重建
                     options: config.props?.options,
                     multiple: config.props?.multiple,
                     filterable: config.props?.filterable,

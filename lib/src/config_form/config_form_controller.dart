@@ -165,4 +165,37 @@ class ConfigFormController extends ChangeNotifier {
     _errors.remove(fieldName);
     notifyListeners();
   }
+
+  /// 重置字段为默认值
+  void resetFieldToDefault(String fieldName) {
+    // 从配置中找到对应字段的默认值
+    final config = _configs.firstWhere((config) => config.name == fieldName, orElse: () => throw ArgumentError('Field $fieldName not found in configs'));
+
+    if (config.defaultValue != null) {
+      _formData[fieldName] = config.defaultValue;
+    } else {
+      _formData.remove(fieldName);
+    }
+
+    _errors.remove(fieldName);
+    notifyListeners();
+    _onChanged?.call(_formData);
+  }
+
+  /// 批量重置字段为默认值
+  void resetFieldsToDefault(List<String> fieldNames) {
+    for (final fieldName in fieldNames) {
+      final config = _configs.where((config) => config.name == fieldName).firstOrNull;
+      if (config != null) {
+        if (config.defaultValue != null) {
+          _formData[fieldName] = config.defaultValue;
+        } else {
+          _formData.remove(fieldName);
+        }
+        _errors.remove(fieldName);
+      }
+    }
+    notifyListeners();
+    _onChanged?.call(_formData);
+  }
 }

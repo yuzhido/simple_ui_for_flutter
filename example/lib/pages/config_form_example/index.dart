@@ -1,4 +1,7 @@
 import 'package:example/api/address_api.dart';
+import 'package:example/api/hobby_api.dart';
+import 'package:example/api/user_api.dart';
+import 'package:example/api/models/user.dart';
 import 'package:example/utils/config.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_ui/simple_ui.dart';
@@ -88,6 +91,44 @@ class _ConfigFormExamplePageState extends State<ConfigFormExamplePage> {
     final shouldShowHobbies = genderValue == 'male';
 
     return [
+      // 用户选择（使用真实API远程搜索）
+      FormConfig(
+        type: FormType.dropdown,
+        name: 'user_remote',
+        label: '用户选择（远程搜索）',
+        required: true,
+        validator: (value) {
+          if (value == null) {
+            return '请选择一个用户';
+          }
+          return null;
+        },
+        props: DropdownProps<User>(
+          options: const [], // 初始为空，通过远程搜索获取
+          remote: true, // 启用远程搜索
+          remoteSearch: _searchUsers, // 使用我们定义的用户搜索方法
+          tips: '请输入用户姓名搜索',
+        ),
+      ),
+      // 自定义下拉选择爱好（使用真实API远程搜索）
+      FormConfig(
+        type: FormType.dropdown,
+        name: 'hobby_remote',
+        label: '爱好选择（远程搜索）',
+        required: true,
+        validator: (value) {
+          if (value == null) {
+            return '请选择一个爱好';
+          }
+          return null;
+        },
+        props: DropdownProps<String>(
+          options: const [], // 初始为空，通过远程搜索获取
+          remote: true, // 启用远程搜索
+          remoteSearch: _searchHobbies, // 使用我们定义的爱好搜索方法
+          tips: '搜索爱好...',
+        ),
+      ),
       // 真实API地址选择示例 - 省份选择（懒加载模式）
       FormConfig(
         type: FormType.treeSelect,
@@ -682,6 +723,188 @@ class _ConfigFormExamplePageState extends State<ConfigFormExamplePage> {
       return result;
     } catch (e) {
       print('搜索地址失败: $e');
+      return [];
+    }
+  }
+
+  // 真实API方法：搜索爱好
+  Future<List<SelectData<String>>> _searchHobbies(String keyword) async {
+    // 模拟网络延迟
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    try {
+      print('开始搜索爱好，关键字: $keyword');
+
+      // 调用真实API
+      final response = await HobbyApi.getHobbyList(
+        page: 1,
+        limit: 20, // 限制返回数量
+        keyword: keyword.isNotEmpty ? keyword : null,
+      );
+
+      print('爱好API响应: $response');
+
+      // 更安全的解析API响应
+      final bool success = response['success'] == true;
+      final dynamic data = response['data'];
+
+      if (success && data is List) {
+        // data 直接是爱好数组
+        final List<SelectData<String>> result = [];
+
+        for (int i = 0; i < data.length; i++) {
+          try {
+            final dynamic hobbyJson = data[i];
+            if (hobbyJson is Map<String, dynamic>) {
+              final String name = hobbyJson['name'] ?? '';
+              final String id = hobbyJson['id']?.toString() ?? 'hobby_$i';
+
+              // 确保爱好数据有效
+              if (name.isNotEmpty) {
+                result.add(SelectData<String>(label: name, value: id, data: id));
+              }
+            }
+          } catch (e) {
+            print('解析爱好数据失败 (索引 $i): $e');
+            continue; // 跳过这个爱好，继续处理下一个
+          }
+        }
+
+        print('成功解析 ${result.length} 个爱好');
+        return result;
+      } else if (success && data is Map<String, dynamic>) {
+        // data 是对象，包含 list 字段
+        final dynamic listData = data['list'];
+
+        if (listData is List) {
+          final List<SelectData<String>> result = [];
+
+          for (int i = 0; i < listData.length; i++) {
+            try {
+              final dynamic hobbyJson = listData[i];
+              if (hobbyJson is Map<String, dynamic>) {
+                final String name = hobbyJson['name'] ?? '';
+                final String id = hobbyJson['id']?.toString() ?? 'hobby_$i';
+
+                // 确保爱好数据有效
+                if (name.isNotEmpty) {
+                  result.add(SelectData<String>(label: name, value: id, data: id));
+                }
+              }
+            } catch (e) {
+              print('解析爱好数据失败 (索引 $i): $e');
+              continue; // 跳过这个爱好，继续处理下一个
+            }
+          }
+
+          print('成功解析 ${result.length} 个爱好');
+          return result;
+        } else {
+          print('API返回的list字段不是数组类型: ${listData.runtimeType}');
+          return [];
+        }
+      } else {
+        print('API返回失败或data字段格式不正确: success=$success, data=${data.runtimeType}');
+        return [];
+      }
+    } catch (e, stackTrace) {
+      // 网络错误或其他异常，返回空列表
+      print('搜索爱好失败: $e');
+      print('堆栈跟踪: $stackTrace');
+      return [];
+    }
+  }
+
+  // 真实API方法：搜索用户
+  Future<List<SelectData<User>>> _searchUsers(String keyword) async {
+    // 模拟网络延迟
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    try {
+      print('开始搜索用户，关键字: $keyword');
+
+      // 调用真实API
+      final response = await UserApi.getUserList(
+        page: 1,
+        limit: 20, // 限制返回数量
+        name: keyword.isNotEmpty ? keyword : null,
+      );
+
+      print('用户API响应: $response');
+
+      // 更安全的解析API响应
+      final bool success = response['success'] == true;
+      final dynamic data = response['data'];
+
+      if (success && data is List) {
+        // data 直接是用户数组
+        final List<SelectData<User>> result = [];
+
+        for (int i = 0; i < data.length; i++) {
+          try {
+            final dynamic userJson = data[i];
+            if (userJson is Map<String, dynamic>) {
+              final user = User.fromJson(userJson);
+
+              // 确保用户数据有效
+              if (user.name != null && user.name!.isNotEmpty) {
+                result.add(SelectData<User>(
+                  label: '${user.name} - ${user.school ?? '未知学校'} (${user.age ?? 0}岁)', 
+                  value: user.id ?? 'user_$i', 
+                  data: user
+                ));
+              }
+            }
+          } catch (e) {
+            print('解析用户数据失败 (索引 $i): $e');
+            continue; // 跳过这个用户，继续处理下一个
+          }
+        }
+
+        print('成功解析 ${result.length} 个用户');
+        return result;
+      } else if (success && data is Map<String, dynamic>) {
+        // data 是对象，包含 list 字段
+        final dynamic listData = data['list'];
+
+        if (listData is List) {
+          final List<SelectData<User>> result = [];
+
+          for (int i = 0; i < listData.length; i++) {
+            try {
+              final dynamic userJson = listData[i];
+              if (userJson is Map<String, dynamic>) {
+                final user = User.fromJson(userJson);
+
+                // 确保用户数据有效
+                if (user.name != null && user.name!.isNotEmpty) {
+                  result.add(SelectData<User>(
+                    label: '${user.name} - ${user.school ?? '未知学校'} (${user.age ?? 0}岁)', 
+                    value: user.id ?? 'user_$i', 
+                    data: user
+                  ));
+                }
+              }
+            } catch (e) {
+              print('解析用户数据失败 (索引 $i): $e');
+              continue; // 跳过这个用户，继续处理下一个
+            }
+          }
+
+          print('成功解析 ${result.length} 个用户');
+          return result;
+        } else {
+          print('API返回的list字段不是数组类型: ${listData.runtimeType}');
+          return [];
+        }
+      } else {
+        print('API返回失败或data字段格式不正确: success=$success, data=${data.runtimeType}');
+        return [];
+      }
+    } catch (e, stackTrace) {
+      // 网络错误或其他异常，返回空列表
+      print('搜索用户失败: $e');
+      print('堆栈跟踪: $stackTrace');
       return [];
     }
   }

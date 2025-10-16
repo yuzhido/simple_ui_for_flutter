@@ -22,6 +22,7 @@ class ConfigForm extends StatefulWidget {
 
 class _ConfigFormState extends State<ConfigForm> {
   late ConfigFormController _controller;
+  Map<String, Key?> _previousKeys = {}; // 存储上一次的key状态
 
   @override
   void initState() {
@@ -29,6 +30,7 @@ class _ConfigFormState extends State<ConfigForm> {
     _controller = widget.controller ?? ConfigFormController();
     _initializeFormData();
     _initializeController();
+    _updatePreviousKeys(); // 初始化key状态
   }
 
   @override
@@ -61,6 +63,37 @@ class _ConfigFormState extends State<ConfigForm> {
     _controller.initializeData(initialData);
   }
 
+  /// 更新key状态记录
+  void _updatePreviousKeys() {
+    _previousKeys.clear();
+    for (var config in widget.configs) {
+      _previousKeys[config.name] = config.key;
+    }
+  }
+
+  /// 检查并处理key变化
+  void _handleKeyChanges() {
+    final List<String> fieldsToReset = [];
+
+    for (var config in widget.configs) {
+      final previousKey = _previousKeys[config.name];
+      final currentKey = config.key;
+
+      // 如果key发生了变化，记录需要重置的字段
+      if (previousKey != currentKey) {
+        fieldsToReset.add(config.name);
+      }
+    }
+
+    // 批量重置字段为默认值
+    if (fieldsToReset.isNotEmpty) {
+      _controller.resetFieldsToDefault(fieldsToReset);
+    }
+
+    // 更新key状态
+    _updatePreviousKeys();
+  }
+
   @override
   void dispose() {
     // 只有当 controller 是内部创建的时候才 dispose
@@ -72,6 +105,9 @@ class _ConfigFormState extends State<ConfigForm> {
 
   @override
   Widget build(BuildContext context) {
+    // 在每次build时检查key变化
+    _handleKeyChanges();
+
     return Form(
       key: _controller.formKey,
       child: Column(
@@ -109,10 +145,6 @@ class _ConfigFormState extends State<ConfigForm> {
             } else {
               return InputForText(key: config.key, config: config, controller: _controller, onChanged: widget.onChanged);
             }
-            // return Padding(
-            //   padding: const EdgeInsets.only(bottom: 16),
-            //   child: FieldFactory.buildField(config: config, controller: controller, onChanged: widget.onChanged),
-            // );
           }),
         ],
       ),

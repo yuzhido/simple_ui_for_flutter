@@ -257,7 +257,36 @@ class _ChooseContentState<T> extends State<ChooseContent<T>> {
                       builder: (context) {
                         // 显示新增按钮
                         final bool showAddFooter = widget.remote && widget.showAdd == true;
-                        if (_dataList.isEmpty && !showAddFooter) {
+                        // 如果数据为空，显示NoData组件
+                        if (_dataList.isEmpty) {
+                          // 如果配置了远程搜索和新增功能，在NoData下方显示新增按钮
+                          if (showAddFooter) {
+                            return Column(
+                              children: [
+                                Expanded(child: NoData()),
+                                // 只有输入了关键字才显示新增按钮
+                                if (_searchController.text.trim() != '')
+                                  InkWell(
+                                    onTap: () async {
+                                      final String kw = _searchController.text.trim();
+                                      final bool? ok = await widget.onAdd?.call(kw);
+                                      if (ok == true) {
+                                        await _handleRemoteFetch();
+                                      }
+                                    },
+                                    child: OnAdd(
+                                      onAdd: (String innerKw) async {
+                                        final bool? ok = await widget.onAdd?.call(innerKw);
+                                        if (ok == true) {
+                                          await _handleRemoteFetch();
+                                        }
+                                      },
+                                      kw: _searchController.text.trim(),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          }
                           return NoData();
                         }
 
@@ -277,7 +306,7 @@ class _ChooseContentState<T> extends State<ChooseContent<T>> {
                                     await _handleRemoteFetch();
                                   }
                                 },
-                                // 内部显示的“去新增”按钮也使用同样的逻辑
+                                // 内部显示的"去新增"按钮也使用同样的逻辑
                                 child: OnAdd(
                                   onAdd: (String innerKw) async {
                                     final bool? ok = await widget.onAdd?.call(innerKw);
